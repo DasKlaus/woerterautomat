@@ -1,0 +1,180 @@
+* 
+{
+	margin: 0px;
+	padding: 0px;
+	list-style: none;
+	text-decoration: none;
+}
+
+#headline, #headline:hover, #headline:visited, #headline:active {color: #000;}
+
+h1, h2, h3, h4 
+{
+	font-family: ScrambleMixed, serif;
+	font-weight: normal;
+}
+
+h1 
+{
+	font-size: 102px;
+	position: fixed;
+	top: 0px;
+	background-color: #fff;
+	z-index: 2;
+	height: 98px;
+}
+
+h2 {font-size: 40px;}
+
+h3 {font-size: 16px;}
+
+@font-face { font-family: ScrambleMixed; src: url(../ScrambleMixed.ttf); }
+
+input, textarea, select {
+	background-color: #eee;
+}
+
+select {width: 516px;}
+
+body
+	{
+		font-family: Verdana, sans-serif;
+		text-align: center;
+		position:relative;
+	}
+
+#wrapper
+	{
+		position:relative;
+		margin:0px auto auto;
+		text-align:left;
+		height: 500px;
+		width: 1000px;
+	}
+
+#menu {
+	position: fixed;
+	left: auto;
+	top: 100px;
+	width: 170px;
+}
+
+#menu a, #leave, #finish{
+	position: relative;
+	display: block;
+	color: #000;
+	margin-bottom: 10px;
+	padding: 3px;
+	border: 1px solid #000;
+	border-radius: 3px;
+	background-color: #fff;
+	cursor: pointer;
+}
+
+#menu a:before, #leave:before, #finish:before {
+   content: " ";
+   position: absolute;
+   z-index: -1;
+   top: 3px;
+   left: 3px;
+   right: -5px;
+   bottom: -5px;
+   border: 1px solid #000;
+   border-radius: 3px;
+}
+
+#menu a:hover, #leave:hover, #finish:hover {box-shadow: inset 1px 2px 2px #888;}
+
+#menu a:active, #leave:active, #finish:active {box-shadow: inset 1px 2px 3px #555;}
+
+#content {
+	width: 800px;
+	position: absolute;
+	top: 110px;
+	left: 200px;
+}
+
+p {margin-bottom: 10px;}
+
+.info 
+{
+	padding: 10px;
+	border: 1px solid #000;
+	border-radius: 6px;
+}
+
+.game 
+{
+	display: block;
+	float: left;
+	width: 320px;
+	height: 145px;
+	margin-right: 10px;
+	margin-bottom: 10px;
+	padding: 5px;
+	border: 1px solid #000;
+	border-radius: 3px;
+	color: #000;
+}
+
+.game:hover {background-color: #ddd;}
+
+#clock, #shuffle, #abc, #orig, #back, #submit, #input, #wordbox, .playerdiv
+{
+	padding: 5px 10px ; border: 1px solid #000; border-radius: 3px; margin:10px;
+}
+.playerdiv { margin: 10px 0px 10px 0px; padding: 3px; }
+#standard, #chrono, #alpha, #length {padding: 3px 10px 0px 10px; margin: 0px 10px; border-radius: 3px; border: 1px solid #000; border-bottom: 0px; cursor: default;}
+#wordbox {line-height: 32px;}
+#input {font-size: 40px; width: 430px;}
+#letters {font-size: 102px; font-family: ScrambleMixed; clear: both;
+	webkit-user-select: none;
+	-moz-user-select: none;
+	-ms-user-select: none;
+	user-select: none;
+	cursor: default;
+	line-height: 50px;
+	padding: 10px; width: 600px;
+}
+#back, #submit {padding-top: 20px; height: 32px;}
+#shuffle:hover, #abc:hover, #orig:hover, #back:hover, #submit:hover, #standard:hover, #chrono:hover, #alpha:hover, #length:hover {background-color: #eee;}
+#back, #input, #submit, #standard, #chrono, #alpha, #length {float: left;}
+#lettersortbuttons div {padding: 3px 10px 0px 10px; margin: 0px 10px; border-radius: 3px; border: 1px solid #000; cursor: default; float: left;}
+.startletter {margin-right: 10px; font-weight: bold; font-family: ScrambleMixed; font-size: 40px;}
+.startnumber {margin-right: 10px; font-weight: bold; font-family: ScrambleMixed; font-size: 40px;}
+.wordspan {
+    padding: 1px 3px 1px 3px; 
+    border: 1px solid #bbbbbb; 
+    border-radius: 3px;
+    color: #000000;
+    transition: border-color 1s , color 1s ;
+    }
+   .fadeIn{
+    color: #ff6666 ;
+    border: 1px solid #ff6666;
+    transition: border-color 0s , color 0s ;
+   }
+   .fadeOut{
+    color: #000000 ;
+    border: 1px solid #bbbbbb; 
+    transition: border-color 1s , color 1s 
+   }
+.wordspan:hover {
+  border: 1px solid #f66; text-decoration: line-through; -moz-text-decoration-color: #f66; text-decoration-color: #f66;
+  .playerbox {width: 80px;}
+}
+.pointspan { color: 999; font-size: 10px; margin-left: 3px;}
+
+#wordtable {width: 100%;}
+#wordtable td {border: 1px solid #bbb; padding: 0px 3px;}
+.mainrow {font-weight: bold;}
+#wordtable {
+	border-spacing: 0px;
+	}
+
+#menu input {padding: 10px; border-radius: 3px; font-size: 16px;}
+
+#newwordinput { margin-top: 10px; margin-bottom: 40px; width: 100%; padding: 10px; font-family: "ScrambleMixed"; font-size: 102px;}
+#languageinput { width: 150px; margin-right: 100px;}
+#flexioncheckbox { }
+#newgamesubmit {float: right; padding: 20px; margin-top: -20px;}
