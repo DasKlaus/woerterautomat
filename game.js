@@ -92,9 +92,8 @@ function sortword(word)
 			{
 				var pointsbox = document.createElement('div');
 				pointsbox.id = points+"words";
-				var number = document.createElement('div');
+				var number = document.createElement('span');
 				number.className = 'startnumber';
-				number.style.display = 'none';
 				number.innerHTML = points;
 				pointsbox.appendChild(number);
 				
