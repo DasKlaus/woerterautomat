@@ -153,6 +153,11 @@ switch($_GET["action"]) {
 		{
 			$return["words"][] = $result;
 		}
+		$query = mysql_query("select points from playerstatus where game = ".mysql_real_escape_string($_GET['game'])." and player='".mysql_real_escape_string($_GET['player'])."'") or die ('Error: '.mysql_error());
+		while ($result = mysql_fetch_array($query))
+		{
+			$return["ownpoints"] = $result;
+		}
 		echo json_encode($return); 
 		break;
 	case "joingame":
