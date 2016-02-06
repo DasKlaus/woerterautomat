@@ -9,16 +9,16 @@ function keyhandle(e) {
   if (chrCode==0) chrTyped = ' ';
   else chrTyped = String.fromCharCode(chrCode);
   
-  if ("ABCDEFGHIJKLMNOPQRSTUVWXYZÄÖÜßäöü".indexOf(chrTyped) != -1) 
+  if ("ABCDEFGHIJKLMNOPQRSTUVWXYZÃ„Ã–ÃœÃŸÃ¤Ã¶Ã¼".indexOf(chrTyped) != -1) 
 	{
 		evt.preventDefault();
 		var charpressed = String.fromCharCode(e.charCode).toLowerCase();
-		if ("äöüß".indexOf(chrTyped) != -1)
+		if ("Ã¤Ã¶Ã¼ÃŸ".indexOf(chrTyped) != -1)
 		{
-			charpressed = (charpressed=="ä")?"ae":charpressed;
-			charpressed = (charpressed=="ö")?"oe":charpressed;
-			charpressed = (charpressed=="ü")?"ue":charpressed;
-			charpressed = (charpressed=="ß")?"ss":charpressed;
+			charpressed = (charpressed=="Ã¤")?"ae":charpressed;
+			charpressed = (charpressed=="Ã¶")?"oe":charpressed;
+			charpressed = (charpressed=="Ã¼")?"ue":charpressed;
+			charpressed = (charpressed=="ÃŸ")?"ss":charpressed;
 		}
 		document.getElementById("newwordinput").value += charpressed;
 	}

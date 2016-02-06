@@ -7,7 +7,7 @@ $dbuser = "DasKlaussql12";
 $dbpass = "hNzljODYwM";
 
 mysql_connect($host, $dbuser, $dbpass) or die ('Verbindung mit Datenbank konnte nicht hergestellt werden: '.mysql_error());
-mysql_select_db($dbname) or die ('Datenbank konnte nicht ausgewählt werden: '.mysql_error());
+mysql_select_db($dbname) or die ('Datenbank konnte nicht ausgewÃ¤hlt werden: '.mysql_error());
 
 switch($_GET["action"]) {
 	/*case "settime": 
@@ -251,7 +251,7 @@ function allpointsnew()
 
 function umlaute($string)
 {
-	 $upas = Array("ä" => "&auml;", "ü" => "&uuml;", "ö" => "&ouml;", "Ä" => "&Auml;", "Ü" => "&Uuml;", "Ö" => "&Ouml;", "ß" => "&szlig;"); 
+	 $upas = Array("Ã¤" => "&auml;", "Ã¼" => "&uuml;", "Ã¶" => "&ouml;", "Ã„" => "&Auml;", "Ãœ" => "&Uuml;", "Ã–" => "&Ouml;", "ÃŸ" => "&szlig;"); 
 	return strtr($string, $upas);
 }
 

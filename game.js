@@ -2,11 +2,11 @@
 
 
 // Begrenzung Spieler, Einladung Spieler
-// Wörterbuch: Wort, Sprache, Deklination/Eigenname? Stimmen pro, Stimmen contra
-// Auswertung: Tabelle mit Haken für Deklination/Eigenname und ja/nein
-// Auswertung: sortieren nach Spielern, Punkten, Häufigkeit, Länge, Alphabet
+// WÃ¶rterbuch: Wort, Sprache, Deklination/Eigenname? Stimmen pro, Stimmen contra
+// Auswertung: Tabelle mit Haken fÃ¼r Deklination/Eigenname und ja/nein
+// Auswertung: sortieren nach Spielern, Punkten, HÃ¤ufigkeit, LÃ¤nge, Alphabet
 // Auswertung: langsam anzeigen
-// Auswertung: weiter mögliche Wörter aus dem Wörterbuch anzeigen
+// Auswertung: weiter mÃ¶gliche WÃ¶rter aus dem WÃ¶rterbuch anzeigen
 
 function letterclicked(obj) 
   {
@@ -473,7 +473,7 @@ function keyhandle(e)
 	  else chrTyped = String.fromCharCode(chrCode).toLowerCase();
 	if (chrCode == 13) { submitword(); }
 	if (chrCode == 8) { backspace(); }
-	if ("äöüß".indexOf(chrTyped) == -1)
+	if ("Ã¤Ã¶Ã¼ÃŸ".indexOf(chrTyped) == -1)
 	{
 		if (findletterspan(chrTyped, true))
 		{
@@ -483,10 +483,10 @@ function keyhandle(e)
 	else
 	{
 		umlautletters = [];
-		if (chrTyped == "ä") { umlautletters[0] = "a"; umlautletters[1] = "e"; }
-		if (chrTyped == "ö") { umlautletters[0] = "o"; umlautletters[1] = "e"; }
-		if (chrTyped == "ü") { umlautletters[0] = "u"; umlautletters[1] = "e"; }
-		if (chrTyped == "ß") { umlautletters[0] = "s"; umlautletters[1] = "s"; }
+		if (chrTyped == "Ã¤") { umlautletters[0] = "a"; umlautletters[1] = "e"; }
+		if (chrTyped == "Ã¶") { umlautletters[0] = "o"; umlautletters[1] = "e"; }
+		if (chrTyped == "Ã¼") { umlautletters[0] = "u"; umlautletters[1] = "e"; }
+		if (chrTyped == "ÃŸ") { umlautletters[0] = "s"; umlautletters[1] = "s"; }
 		if (findletterspan(umlautletters[0], true))
 		{
 			letterclicked(findletterspan(umlautletters[0], true));
@@ -516,7 +516,7 @@ function keyhandle(e)
    }
 
 function leave() {
-	if (confirm("Wenn du dieses Spiel verlässt, gehen alle deine gefundenen Wörter verloren. Fortfahren?"))
+	if (confirm("Wenn du dieses Spiel verlÃ¤sst, gehen alle deine gefundenen WÃ¶rter verloren. Fortfahren?"))
 	{
 	var playersnumber = document.getElementById("players").children.length;
 	jQuery.get( "receiver.php?action=leavegame&game="+game+"&player="+player+"&players="+playersnumber);
