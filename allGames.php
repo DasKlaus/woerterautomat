@@ -8,7 +8,7 @@ $( document ).ready(function() {
 });
 </script>
 <div id="games"></div>
-<?
+<?php
 /*
 $query = mysql_query("select * from games order by status") or die ('Error: '.mysql_error());
 while ($result = mysql_fetch_array($query))

@@ -32,7 +32,7 @@ function umlaute($string){
 		<a id="headline" href="http://antiscrabble.de/woerterautomat"><h1>woerterautomat</h1></a>
 		<div id="menu">
 			<h2 style="text-transform: lowercase;"><?php echo $writeplayer; ?></h2>
-			<?php if ($_GET['go']!="game") { ?><form method="post"><input style="width: 150px; margin-bottom: 10px;" type="text" name="name" value="<?php echo $writeplayer; ?>"><br>
+			<?php if (isset($_GET['go']) and $_GET['go']!="game") { ?><form method="post"><input style="width: 150px; margin-bottom: 10px;" type="text" name="name" value="<?php echo $writeplayer; ?>"><br>
 			<input  style="width: 170px; margin-bottom: 10px;" type="submit" value="Name ändern"></form><?php } ?>
 			<a href="?go=neu">Neues Spiel</a>
 			<a href="?go=games">Spieleübersicht</a>
