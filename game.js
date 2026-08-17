@@ -92,8 +92,9 @@ function sortword(word)
 			{
 				var pointsbox = document.createElement('div');
 				pointsbox.id = points+"words";
-				var number = document.createElement('span');
+				var number = document.createElement('div');
 				number.className = 'startnumber';
+				number.style.display = 'none';
 				number.innerHTML = points;
 				pointsbox.appendChild(number);
 				
@@ -599,8 +600,6 @@ function receivedata(json)
 		playerdiv.innerHTML = playername+'<span style="font-size: 10px;"> - '+status+'<br>'+activity+'</span>';
 		players.appendChild(playerdiv);
 	}
-	ownplayerdiv = document.getElementById(player+"player");
-	ownplayerdiv.innerHTML = player+' ('+data.ownpoints.points+')<span style="font-size: 10px;"> - '+status+'<br>'+activity+'</span>';
 	for (var i=0; i<data.words.length; i++)
 	{
 		var pointspan = document.getElementById(data.words[i].word+'points');

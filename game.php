@@ -1,23 +1,23 @@
 <?php
 $status = 0;
-$query = mysql_query("SELECT status FROM playerstatus WHERE player = '".$_SESSION['player']."' AND game = ".$_GET['game']) or die ('Error: '.mysql_error());
-while ($result = mysql_fetch_array($query))
+$query = $mysql->query("SELECT status FROM playerstatus WHERE player = '".$_SESSION['player']."' AND game = ".$_GET['game']) or die ('Error: '.$mysql->error());
+while ($result = $query->fetch_array())
 {
 	$status = $result['status'];
 }
 
 $word = '';
 $gamestatus = 0;
-$query = mysql_query("select word, status from games where id = ".$_GET['game']) or die ('Error: '.mysql_error());
-while ($result = mysql_fetch_array($query))
+$query = $mysql->query("select word, status from games where id = ".$_GET['game']) or die ('Error: '.$mysql->error());
+while ($result = $query->fetch_array())
 {
 	$word = $result['word'];
 	$gamestatus = $result['status'];
 }
 
 $words = [];
-$query = mysql_query("select word from game".$_GET['game']." where player='".$_SESSION['player']."'") or die ('Error: '.mysql_error());
-while ($result = mysql_fetch_array($query))
+$query = $mysql->query("select word from game".$_GET['game']." where player='".$_SESSION['player']."'") or die ('Error: '.$mysql->error());
+while ($result = $query->fetch_array())
 {
 	$words[] = $result['word'];
 }

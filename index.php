@@ -1,41 +1,49 @@
-<!DOCTYPE html>
 <?php
+header('Content-Type: text/html; charset=ISO-8859-1');
+
+/*
+    ini_set('display_errors', 1);
+    ini_set('display_startup_errors', 1);
+    error_reporting(E_ALL);
+*/
 session_start();
 $guest = false;
-if (isset($_POST['name'])) {$_SESSION['player'] = $_POST['name'];}
+if (isset($_POST['name'])) {$_SESSION['player'] = umlaute($_POST['name']);}
 if ($_SESSION['player']=="" or !isset($_SESSION['player'])) {$_SESSION['player'] = "Gast".session_id();}
 if (substr($_SESSION['player'], 0, 4) == "Gast") { $guest = true; }
 $writeplayer = ($guest)?"Gast":umlaute($_SESSION['player']);
 $host = "localhost";
-$dbname = "DasKlaussql12";
-$dbuser = "DasKlaussql12";
-$dbpass = "hNzljODYwM";
+$dbname = "Klaussql6";
+$dbuser = "Klaussql6";
+$dbpass = "nqkloruSCd";
 
-mysql_connect($host, $dbuser, $dbpass) or die ('Verbindung mit Datenbank konnte nicht hergestellt werden: '.mysql_error());
-mysql_select_db($dbname) or die ('Datenbank konnte nicht ausgewählt werden: '.mysql_error());
+$mysql = new mysqli($host, $dbuser, $dbpass, $dbname) 
+	or die ('Verbindung mit Datenbank konnte nicht hergestellt werden: '.$mysql->error());
 
 function umlaute($string){
   $upas = Array("ä" => "ae", "ü" => "ue", "ö" => "oe", "Ä" => "Ae", "Ü" => "Ue", "Ö" => "Oe", "ß" => "ss"); 
   return strtr($string, $upas);
   }
 ?>
+<!DOCTYPE html>
 <html>
 	<head>
-		<title>Wörterautomat</title>
+		<title>W&ouml;rterautomat</title>
 		<meta name="robots" content="index,follow">
 		<meta http-equiv="content-type" content="text/html; charset=ISO-8859-1">
+		<meta charset="ISO-8859-1">
 		<link href="style.css" type="text/css" rel="stylesheet" media="screen">
 	</head>
 	<body>
 	<script src="jquery.js"></script>
 	<div id="wrapper">
-		<a id="headline" href="http://antiscrabble.de/woerterautomat"><h1>woerterautomat</h1></a>
+		<a id="headline" href="http://killermilchschnitte.de/woerterautomat"><h1>woerterautomat</h1></a>
 		<div id="menu">
 			<h2 style="text-transform: lowercase;"><?php echo $writeplayer; ?></h2>
-			<?php if (isset($_GET['go']) and $_GET['go']!="game") { ?><form method="post"><input style="width: 150px; margin-bottom: 10px;" type="text" name="name" value="<?php echo $writeplayer; ?>"><br>
-			<input  style="width: 170px; margin-bottom: 10px;" type="submit" value="Name ändern"></form><?php } ?>
+			<?php if ($_GET['go']!="game") { ?><form method="post"><input style="width: 150px; margin-bottom: 10px;" type="text" name="name" value="<?php echo $writeplayer; ?>"><br>
+			<input  style="width: 170px; margin-bottom: 10px;" type="submit" value="Name &auml;ndern"></form><?php } ?>
 			<a href="?go=neu">Neues Spiel</a>
-			<a href="?go=games">Spieleübersicht</a>
+			<a href="?go=games">Spiele&uuml;bersicht</a>
 			<a href="?go=anleitung">Anleitung</a>
 			<a href="?go=impressum">Impressum</a>
 			<?php if ((isset($_GET["go"]) and $_GET["go"]=="games") or !isset($_GET['go'])) { ?>
@@ -47,7 +55,7 @@ function umlaute($string){
 			<?php } ?>
 			<?php if (isset($_GET["go"]) and $_GET["go"]=="game") { ?>
 				<a id="leave" onClick="leave();">Spiel verlassen</a>
-				<a id="finish" onClick="finish();">Spiel abschließen</a>
+				<a id="finish" onClick="finish();">Spiel abschlie&szlig;en</a>
 				<div id="players"></div>
 			<?php } ?>
 		</div>
@@ -58,8 +66,8 @@ function umlaute($string){
 			echo '<h2>impressum</h2>
 				<b>Angaben gemäß § 5 TMG:</b><br>
 				Wollmilchmedien<br>
-				Claudia Rössel<br>
-				Elisabethstraße 6<br>
+				Claudia R&ouml;ssel<br>
+				Elisabethstra&szlig;e 6<br>
 				18057 Rostock<br>
 				E-Mail: info@antiscrabble.de<br><br>
 
@@ -92,11 +100,11 @@ function umlaute($string){
 				{
 					$flexion = 0;
 					if (isset($_POST['flexion'])) { $flexion = 1; }
-					$query = mysql_query("insert into games (word, status, starter, language, flexion) values ('".strtolower(umlaute(mysql_real_escape_string($_POST['word'])))."', 0, '".mysql_real_escape_string($_SESSION['player'])."', '".mysql_real_escape_string($_POST['language'])."', ".$flexion.")");
-					$id = mysql_insert_id();
-					$query = mysql_query("insert into playerstatus (game, player, status) values ($id, '".mysql_real_escape_string($_SESSION['player'])."', 0)");
-					$query = mysql_query("create table game".$id." (word varchar(255) CHARACTER SET latin1 COLLATE latin1_german1_ci, player varchar(255) CHARACTER SET latin1 COLLATE latin1_german1_ci, points int(2))") or die("Fehler beim Anlegen der Spieltabelle: ".mysql_error());
-					header("Location: http://antiscrabble.de/woerterautomat/?go=game&game=".$id); /* Redirect browser */
+					$query = $mysql->query("insert into games (word, status, starter, language, flexion) values ('".strtolower(umlaute($mysql->real_escape_string($_POST['word'])))."', 0, '".$mysql->real_escape_string($_SESSION['player'])."', '".$mysql->real_escape_string($_POST['language'])."', ".$flexion.")");
+					$id = $mysql->insert_id();
+					$query = $mysql->query("insert into playerstatus (game, player, status) values ($id, '".$mysqli->real_escape_string($_SESSION['player'])."', 0)");
+					$query = mysql_query("create table game".$id." (word varchar(255) CHARACTER SET latin1 COLLATE latin1_german1_ci, player varchar(255) CHARACTER SET latin1 COLLATE latin1_german1_ci, points int(2))") or die("Fehler beim Anlegen der Spieltabelle: ".$mysql->error());
+					header("Location: http://killermilchschnitte.de/woerterautomat/?go=game&game=".$id); /* Redirect browser */
 					exit();
 				}
 				else echo '<form method="post">Gib ein Wort ein, mit dem du ein Spiel starten willst.<br>
