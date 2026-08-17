@@ -5,12 +5,7 @@ header('Content-Type: text/html; charset=ISO-8859-1');
     ini_set('display_startup_errors', 1);
     error_reporting(E_ALL);
 */
-$host = "localhost";
-$dbname = "Klaussql6";
-$dbuser = "Klaussql6";
-$dbpass = "nqkloruSCd";
-
-$mysql = new mysqli($host, $dbuser, $dbpass, $dbname) or die ('Verbindung mit Datenbank konnte nicht hergestellt werden: '.$mysql->error());
+require_once("config.php");
 
 switch($_GET["action"]) {
 	/*case "settime": 

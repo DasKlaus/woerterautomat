@@ -12,13 +12,8 @@ if (isset($_POST['name'])) {$_SESSION['player'] = umlaute($_POST['name']);}
 if ($_SESSION['player']=="" or !isset($_SESSION['player'])) {$_SESSION['player'] = "Gast".session_id();}
 if (substr($_SESSION['player'], 0, 4) == "Gast") { $guest = true; }
 $writeplayer = ($guest)?"Gast":umlaute($_SESSION['player']);
-$host = "localhost";
-$dbname = "Klaussql6";
-$dbuser = "Klaussql6";
-$dbpass = "nqkloruSCd";
 
-$mysql = new mysqli($host, $dbuser, $dbpass, $dbname) 
-	or die ('Verbindung mit Datenbank konnte nicht hergestellt werden: '.$mysql->error());
+require_once("config.php");
 
 function umlaute($string){
   $upas = Array("ä" => "ae", "ü" => "ue", "ö" => "oe", "Ä" => "Ae", "Ü" => "Ue", "Ö" => "Oe", "ß" => "ss"); 
