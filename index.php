@@ -1,5 +1,5 @@
 <?php
-header('Content-Type: text/html; charset=ISO-8859-1');
+header('Content-Type: text/html; charset=UTF-8');
 
 /*
     ini_set('display_errors', 1);
@@ -8,14 +8,14 @@ header('Content-Type: text/html; charset=ISO-8859-1');
 */
 session_start();
 $guest = false;
-if (isset($_POST['name'])) {$_SESSION['player'] = umlaute($_POST['name']);}
+if (isset($_POST['name'])) {$_SESSION['player'] = normalize_letters($_POST['name']);}
 if ($_SESSION['player']=="" or !isset($_SESSION['player'])) {$_SESSION['player'] = "Gast".session_id();}
 if (substr($_SESSION['player'], 0, 4) == "Gast") { $guest = true; }
-$writeplayer = ($guest)?"Gast":umlaute($_SESSION['player']);
+$writeplayer = ($guest)?"Gast":normalize_letters($_SESSION['player']);
 
 require_once("config.php");
 
-function umlaute($string){
+function normalize_letters($string){
   $upas = Array("ä" => "ae", "ü" => "ue", "ö" => "oe", "Ä" => "Ae", "Ü" => "Ue", "Ö" => "Oe", "ß" => "ss"); 
   return strtr($string, $upas);
   }
@@ -25,8 +25,7 @@ function umlaute($string){
 	<head>
 		<title>W&ouml;rterautomat</title>
 		<meta name="robots" content="index,follow">
-		<meta http-equiv="content-type" content="text/html; charset=ISO-8859-1">
-		<meta charset="ISO-8859-1">
+		<meta charset="UTF-8">
 		<link href="style.css" type="text/css" rel="stylesheet" media="screen">
 	</head>
 	<body>
@@ -95,7 +94,7 @@ function umlaute($string){
 				{
 					$flexion = 0;
 					if (isset($_POST['flexion'])) { $flexion = 1; }
-					$query = $mysql->query("insert into games (word, status, starter, language, flexion) values ('".strtolower(umlaute($mysql->real_escape_string($_POST['word'])))."', 0, '".$mysql->real_escape_string($_SESSION['player'])."', '".$mysql->real_escape_string($_POST['language'])."', ".$flexion.")");
+					$query = $mysql->query("insert into games (word, status, starter, language, flexion) values ('".strtolower(normalize_letters($mysql->real_escape_string($_POST['word'])))."', 0, '".$mysql->real_escape_string($_SESSION['player'])."', '".$mysql->real_escape_string($_POST['language'])."', ".$flexion.")");
 					$id = $mysql->insert_id();
 					$query = $mysql->query("insert into playerstatus (game, player, status) values ($id, '".$mysqli->real_escape_string($_SESSION['player'])."', 0)");
 					$query = mysql_query("create table game".$id." (word varchar(255) CHARACTER SET latin1 COLLATE latin1_german1_ci, player varchar(255) CHARACTER SET latin1 COLLATE latin1_german1_ci, points int(2))") or die("Fehler beim Anlegen der Spieltabelle: ".$mysql->error());

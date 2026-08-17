@@ -1,5 +1,5 @@
 <?php
-header('Content-Type: text/html; charset=ISO-8859-1');
+header('Content-Type: text/html; charset=UTF-8');
 /*
     ini_set('display_errors', 1);
     ini_set('display_startup_errors', 1);
@@ -94,13 +94,11 @@ switch($_GET["action"]) {
 		while ($result = $query->fetch_array())
 		{
 			$currentgame=$result;
-			$currentgame['starter'] = umlaute($result['starter']);
 			$currentgame['players'] = [];
 			
 			$playerquery = $mysql->query("select player, points from playerstatus where game=".$result['id']) or die ('Error: '.$mysql->error());
 			while ($playerresult = $playerquery->fetch_array())
 			{
-				$playerresult['player'] = umlaute($playerresult['player']);
 				$currentgame['players'][] = $playerresult;
 			}
 			$return[]=$currentgame;
@@ -113,7 +111,6 @@ switch($_GET["action"]) {
 		$query = $mysql->query("select player, status, points, TIMESTAMPDIFF(MINUTE,activity,CURRENT_TIMESTAMP()) as last_activity from playerstatus where game = ".$mysql->real_escape_string($_GET['game'])." order by last_activity") or die ('Error: '.$mysql->error());
 		while ($result = $query->fetch_array())
 		{
-			$result['player'] = umlaute($result['player']);
 			$return["players"][] = $result;
 		}
 		// gamestatus
@@ -128,7 +125,6 @@ switch($_GET["action"]) {
 		$query = $mysql->query("select * from game".$mysql->real_escape_string($_GET['game'])) or die ('Error: '.$mysql->error());
 		while ($result = $query->fetch_array())
 		{
-			$result['player'] = umlaute($result['player']);
 			$return["words"][] = $result;
 		}
 		echo json_encode($return);
@@ -140,7 +136,6 @@ switch($_GET["action"]) {
 		$query = $mysql->query("select player, status, TIMESTAMPDIFF(MINUTE,activity,CURRENT_TIMESTAMP()) as last_activity from playerstatus where game = ".$mysql->real_escape_string($_GET['game'])." order by last_activity") or die ('Error: '.$mysql->error());
 		while ($result = $query->fetch_array())
 		{
-			$result['player'] = umlaute($result['player']);
 			$return["players"][] = $result;
 		}
 		$return["words"] = [];
@@ -240,12 +235,6 @@ function allpointsnew()
 		)") or die ('Error calculating points for game '.$game.': '.$mysql->error());
 		calcpoints($game);
 	}
-}
-
-function umlaute($string)
-{
-	$upas = Array("ä" => "&auml;", "ü" => "&uuml;", "ö" => "&ouml;", "Ä" => "&Auml;", "Ü" => "&Uuml;", "Ö" => "&Ouml;", "ß" => "&szlig;"); 
-	return strtr($string, $upas);
 }
 
 function possible($word, $originalword)
