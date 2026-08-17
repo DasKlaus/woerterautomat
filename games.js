@@ -23,9 +23,8 @@ function calcTimediff(timediff)
 	return activity;
 }
 
-function gamedata(json)
+function gamedata(data)
 {
-	var data = $.parseJSON(json);
 	var content = document.getElementById("games");
 	content.innerHTML = "";
 	for (var i=0; i<data.length; i++)

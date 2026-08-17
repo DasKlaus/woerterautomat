@@ -1,6 +1,6 @@
 <?php
 $status = 0;
-$query = $mysql->query("SELECT status FROM playerstatus WHERE player = '".$_SESSION['player']."' AND game = ".$_GET['game']) or die ('Error: '.$mysql->error());
+$query = $mysql->query("SELECT status FROM playerstatus WHERE player = '".$_SESSION['player']."' AND game = ".$_GET['game']);
 while ($result = $query->fetch_array())
 {
 	$status = $result['status'];
@@ -8,7 +8,7 @@ while ($result = $query->fetch_array())
 
 $word = '';
 $gamestatus = 0;
-$query = $mysql->query("select word, status from games where id = ".$_GET['game']) or die ('Error: '.$mysql->error());
+$query = $mysql->query("select word, status from games where id = ".$_GET['game']);
 while ($result = $query->fetch_array())
 {
 	$word = $result['word'];
@@ -16,7 +16,7 @@ while ($result = $query->fetch_array())
 }
 
 $words = [];
-$query = $mysql->query("select word from game".$_GET['game']." where player='".$_SESSION['player']."'") or die ('Error: '.$mysql->error());
+$query = $mysql->query("select word from game".$_GET['game']." where player='".$_SESSION['player']."'");
 while ($result = $query->fetch_array())
 {
 	$words[] = $result['word'];

@@ -544,9 +544,8 @@ function finisher() {
 	}
 }
 
-function finishdata(json) 
+function finishdata(data)
 {
-	var data = $.parseJSON(json);
 	var players = document.getElementById("players");
 	players.innerHTML = "";
 	for (var i=0; i<data.players.length; i++)
@@ -574,10 +573,9 @@ function finishdata(json)
 	sortallwords(data.words, data.players);
 }
 
-function receivedata(json) 
+function receivedata(data)
   {
 	console.log("data received");
-	var data = $.parseJSON(json);
 	var players = document.getElementById("players");
 	players.innerHTML = "";
 	for (var i=0; i<data.players.length; i++)

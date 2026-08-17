@@ -1,19 +1,13 @@
 <?php
 header('Content-Type: text/html; charset=UTF-8');
+require_once("config.php");
 
-/*
-    ini_set('display_errors', 1);
-    ini_set('display_startup_errors', 1);
-    error_reporting(E_ALL);
-*/
 session_start();
 $guest = false;
 if (isset($_POST['name'])) {$_SESSION['player'] = normalize_letters($_POST['name']);}
-if ($_SESSION['player']=="" or !isset($_SESSION['player'])) {$_SESSION['player'] = "Gast".session_id();}
+if (!isset($_SESSION['player']) or $_SESSION['player']=="") {$_SESSION['player'] = "Gast".session_id();}
 if (substr($_SESSION['player'], 0, 4) == "Gast") { $guest = true; }
 $writeplayer = ($guest)?"Gast":normalize_letters($_SESSION['player']);
-
-require_once("config.php");
 
 function normalize_letters($string){
   $upas = Array("ä" => "ae", "ü" => "ue", "ö" => "oe", "Ä" => "Ae", "Ü" => "Ue", "Ö" => "Oe", "ß" => "ss"); 
@@ -34,7 +28,7 @@ function normalize_letters($string){
 		<a id="headline" href="http://killermilchschnitte.de/woerterautomat"><h1>woerterautomat</h1></a>
 		<div id="menu">
 			<h2 style="text-transform: lowercase;"><?php echo $writeplayer; ?></h2>
-			<?php if ($_GET['go']!="game") { ?><form method="post"><input style="width: 150px; margin-bottom: 10px;" type="text" name="name" value="<?php echo $writeplayer; ?>"><br>
+			<?php if (($_GET['go'] ?? "")!="game") { ?><form method="post"><input style="width: 150px; margin-bottom: 10px;" type="text" name="name" value="<?php echo $writeplayer; ?>"><br>
 			<input  style="width: 170px; margin-bottom: 10px;" type="submit" value="Name &auml;ndern"></form><?php } ?>
 			<a href="?go=neu">Neues Spiel</a>
 			<a href="?go=games">Spiele&uuml;bersicht</a>
@@ -97,7 +91,7 @@ function normalize_letters($string){
 					$query = $mysql->query("insert into games (word, status, starter, language, flexion) values ('".strtolower(normalize_letters($mysql->real_escape_string($_POST['word'])))."', 0, '".$mysql->real_escape_string($_SESSION['player'])."', '".$mysql->real_escape_string($_POST['language'])."', ".$flexion.")");
 					$id = $mysql->insert_id();
 					$query = $mysql->query("insert into playerstatus (game, player, status) values ($id, '".$mysqli->real_escape_string($_SESSION['player'])."', 0)");
-					$query = mysql_query("create table game".$id." (word varchar(255) CHARACTER SET latin1 COLLATE latin1_german1_ci, player varchar(255) CHARACTER SET latin1 COLLATE latin1_german1_ci, points int(2))") or die("Fehler beim Anlegen der Spieltabelle: ".$mysql->error());
+					$query = mysql_query("create table game".$id." (word varchar(255) CHARACTER SET latin1 COLLATE latin1_german1_ci, player varchar(255) CHARACTER SET latin1 COLLATE latin1_german1_ci, points int(2))");
 					header("Location: http://killermilchschnitte.de/woerterautomat/?go=game&game=".$id); /* Redirect browser */
 					exit();
 				}
