@@ -163,7 +163,7 @@ switch($_GET["action"] ?? "") {
 		}
 		calcpoints($mysql->real_escape_string($_GET['game']));
 		$query = $mysql->query("select player from playerstatus where game=".$mysql->real_escape_string($_GET['game']));
-		$players = $mysql->num_rows($query);
+		$players = $query->num_rows;
 		if ($players == 2)
 		{
 			$query = $mysql->query("update games set status=1 where id=".$mysql->real_escape_string($_GET['game']));
@@ -189,7 +189,7 @@ switch($_GET["action"] ?? "") {
 		$query = $mysql->query("update playerstatus set status = 2 where game=".$mysql->real_escape_string($_GET['game'])." and player='".$mysql->real_escape_string($_GET['player'])."'");
 		// if all players finished, set game status to two
 		$query = $mysql->query("select distinct(status) from playerstatus where game=".$mysql->real_escape_string($_GET['game']));
-		if ($mysql->num_rows($query)==1)
+		if ($query->num_rows==1)
 		{
 			$query = $mysql->query("update games set status = 2 where id=".$mysql->real_escape_string($_GET['game']));
 		}
@@ -202,6 +202,7 @@ echo json_encode($return);
 
 function calcpoints($game)
 {
+	global $mysql;
 	$query = $mysql->query("update playerstatus set points =
 			(select sum(game".$game.".points) as fullpoints from game".$game." 
 			where game".$game.".player=playerstatus.player group by game".$game.".player)
@@ -210,6 +211,7 @@ function calcpoints($game)
 
 function allpointsnew()
 {
+	global $mysql;
 	$games = [];
 	$query = $mysql->query("select distinct(game) from playerstatus");
 	while ($result = $query->fetch_array())

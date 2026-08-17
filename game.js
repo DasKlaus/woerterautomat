@@ -521,7 +521,7 @@ function leave() {
 	{
 	var playersnumber = document.getElementById("players").children.length;
 	jQuery.get( "receiver.php?action=leavegame&game="+game+"&player="+player+"&players="+playersnumber);
-	setTimeout(function(){ window.location = "http://antiscrabble.de/woerterautomat/"; }, 100);
+	setTimeout(function(){ window.location = "."; }, 100);
 	}
 }
 

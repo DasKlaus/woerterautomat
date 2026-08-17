@@ -25,7 +25,7 @@ function normalize_letters($string){
 	<body>
 	<script src="jquery.js"></script>
 	<div id="wrapper">
-		<a id="headline" href="http://killermilchschnitte.de/woerterautomat"><h1>woerterautomat</h1></a>
+		<a id="headline" href="."><h1>woerterautomat</h1></a>
 		<div id="menu">
 			<h2 style="text-transform: lowercase;"><?php echo $writeplayer; ?></h2>
 			<?php if (($_GET['go'] ?? "")!="game") { ?><form method="post"><input style="width: 150px; margin-bottom: 10px;" type="text" name="name" value="<?php echo $writeplayer; ?>"><br>
@@ -89,10 +89,10 @@ function normalize_letters($string){
 					$flexion = 0;
 					if (isset($_POST['flexion'])) { $flexion = 1; }
 					$query = $mysql->query("insert into games (word, status, starter, language, flexion) values ('".strtolower(normalize_letters($mysql->real_escape_string($_POST['word'])))."', 0, '".$mysql->real_escape_string($_SESSION['player'])."', '".$mysql->real_escape_string($_POST['language'])."', ".$flexion.")");
-					$id = $mysql->insert_id();
-					$query = $mysql->query("insert into playerstatus (game, player, status) values ($id, '".$mysqli->real_escape_string($_SESSION['player'])."', 0)");
-					$query = mysql_query("create table game".$id." (word varchar(255) CHARACTER SET latin1 COLLATE latin1_german1_ci, player varchar(255) CHARACTER SET latin1 COLLATE latin1_german1_ci, points int(2))");
-					header("Location: http://killermilchschnitte.de/woerterautomat/?go=game&game=".$id); /* Redirect browser */
+					$id = $mysql->insert_id;
+					$query = $mysql->query("insert into playerstatus (game, player, status) values ($id, '".$mysql->real_escape_string($_SESSION['player'])."', 0)");
+					$query = $mysql->query("create table game".$id." (word varchar(255), player varchar(255), points int(2)) DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci");
+					header("Location: ?go=game&game=".$id); /* Redirect browser */
 					exit();
 				}
 				else echo '<form method="post">Gib ein Wort ein, mit dem du ein Spiel starten willst.<br>
