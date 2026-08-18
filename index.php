@@ -1,13 +1,7 @@
 <?php
 header('Content-Type: text/html; charset=UTF-8');
 require_once("config.php");
-
-session_start();
-$guest = false;
-if (isset($_POST['name'])) {$_SESSION['player'] = normalize_letters($_POST['name']);}
-if (!isset($_SESSION['player']) or $_SESSION['player']=="") {$_SESSION['player'] = "Gast".session_id();}
-if (substr($_SESSION['player'], 0, 4) == "Gast") { $guest = true; }
-$writeplayer = ($guest)?"Gast":normalize_letters($_SESSION['player']);
+require_once("identity.php");
 
 function normalize_letters($string){
   $upas = Array("ä" => "ae", "ü" => "ue", "ö" => "oe", "Ä" => "Ae", "Ü" => "Ue", "Ö" => "Oe", "ß" => "ss"); 
@@ -28,8 +22,7 @@ function normalize_letters($string){
 		<a id="headline" href="."><h1>woerterautomat</h1></a>
 		<div id="menu">
 			<h2 style="text-transform: lowercase;"><?php echo $writeplayer; ?></h2>
-			<?php if (($_GET['go'] ?? "")!="game") { ?><form method="post"><input style="width: 150px; margin-bottom: 10px;" type="text" name="name" value="<?php echo $writeplayer; ?>"><br>
-			<input  style="width: 170px; margin-bottom: 10px;" type="submit" value="Name &auml;ndern"></form><?php } ?>
+			<?php if (($_GET['go'] ?? "")!="game") { identityForm(); } ?>
 			<a href="?go=neu">Neues Spiel</a>
 			<a href="?go=games">Spiele&uuml;bersicht</a>
 			<a href="?go=anleitung">Anleitung</a>
