@@ -4,9 +4,27 @@ require_once("config.php");
 require_once("identity.php");
 
 function normalize_letters($string){
-  $upas = Array("ä" => "ae", "ü" => "ue", "ö" => "oe", "Ä" => "Ae", "Ü" => "Ue", "Ö" => "Oe", "ß" => "ss"); 
+  $upas = Array("ä" => "ae", "ü" => "ue", "ö" => "oe", "Ä" => "Ae", "Ü" => "Ue", "Ö" => "Oe", "ß" => "ss");
   return strtr($string, $upas);
   }
+
+if (($_GET["go"] ?? "") == "neu" and isset($_POST["new"]))
+{
+	$sourceword = preg_replace('/[^a-z]/', '', strtolower(normalize_letters($_POST['word'] ?? '')));
+	if (strlen($sourceword) > 2)
+	{
+		$flexion = 0;
+		if (isset($_POST['flexion'])) { $flexion = 1; }
+		$language = (($_POST['language'] ?? 'de') == 'en') ? 'en' : 'de';
+		$mysql->execute_query("insert into game (source_word, language, flexion, created_by, created_by_name, created_at, last_activity_at)
+			values (?, ?, ?, ?, ?, now(), now())", [$sourceword, $language, $flexion, $_SESSION['user_id'], $_SESSION['player']]);
+		$id = $mysql->insert_id;
+		$mysql->execute_query("insert into player (game_id, user_id, display_name, joined_at, activity) values (?, ?, ?, now(), now())",
+			[$id, $_SESSION['user_id'], $_SESSION['player']]);
+		header("Location: ?go=game&game=".$id);
+		exit();
+	}
+}
 ?>
 <!DOCTYPE html>
 <html>
@@ -77,21 +95,7 @@ function normalize_letters($string){
 			}
 			elseif (isset($_GET["go"]) and $_GET["go"]=="neu")
 			{
-				$sourceword = preg_replace('/[^a-z]/', '', strtolower(normalize_letters($_POST['word'] ?? '')));
-				if (isset($_POST["new"]) and strlen($sourceword) > 2)
-				{
-					$flexion = 0;
-					if (isset($_POST['flexion'])) { $flexion = 1; }
-					$language = (($_POST['language'] ?? 'de') == 'en') ? 'en' : 'de';
-					$mysql->execute_query("insert into game (source_word, language, flexion, created_by, created_by_name, created_at, last_activity_at)
-						values (?, ?, ?, ?, ?, now(), now())", [$sourceword, $language, $flexion, $_SESSION['user_id'], $_SESSION['player']]);
-					$id = $mysql->insert_id;
-					$mysql->execute_query("insert into player (game_id, user_id, display_name, joined_at, activity) values (?, ?, ?, now(), now())",
-						[$id, $_SESSION['user_id'], $_SESSION['player']]);
-					header("Location: ?go=game&game=".$id); /* Redirect browser */
-					exit();
-				}
-				else echo '<form method="post">Gib ein Wort ein, mit dem du ein Spiel starten willst.<br>
+				echo '<form method="post">Gib ein Wort ein, mit dem du ein Spiel starten willst.<br>
 					<input type="text" name="word" id="newwordinput"><br>
 					Sprache: <select name="language" id="languageinput">
 					<option value="de">Deutsch</option>
