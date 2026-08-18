@@ -26,7 +26,7 @@ function submitword()
 		  }
 		if (words.indexOf(word) == -1)
 		{
-			jQuery.get( "receiver.php?action=newword&game="+game+"&player="+player+"&word="+word+"&gameword="+originalword);
+			jQuery.post( "receiver.php", {action: "newword", game: game, word: word}, receivedata );
 			words[words.length] = word;
 			sortword(word);
 		}
@@ -40,7 +40,7 @@ function submitword()
 function removeword(wordspan)
   {
 	var word = wordspan.id.substr(0, wordspan.id.indexOf("word"));
-	jQuery.get( "receiver.php?action=removeword&game="+game+"&player="+player+"&word="+word );
+	jQuery.post( "receiver.php", {action: "removeword", game: game, word: word}, receivedata );
 	words.splice(words.indexOf(word), 1);
 	wordspan.parentNode.removeChild(wordspan);
   }
@@ -519,55 +519,63 @@ function keyhandle(e)
 function leave() {
 	if (confirm("Wenn du dieses Spiel verlässt, gehen alle deine gefundenen Wörter verloren. Fortfahren?"))
 	{
-	var playersnumber = document.getElementById("players").children.length;
-	jQuery.get( "receiver.php?action=leavegame&game="+game+"&player="+player+"&players="+playersnumber);
-	setTimeout(function(){ window.location = "."; }, 100);
+	jQuery.post( "receiver.php", {action: "leavegame", game: game}, function(){ window.location = "."; });
 	}
 }
 
 function finish() {
-	jQuery.get( "receiver.php?action=finishgame&game="+game+"&player="+player+"");
 	status=2;
 	clearInterval(gamedata);
 	document.getElementById('finish').style.display = 'none';
 	document.getElementById('inputline').style.display = 'none';
 	document.getElementById('lettersortbuttons').style.display = 'none';
-	jQuery.get( "receiver.php?action=finishrequest&game="+game+"&player="+player, finishdata );
-	var gamedata = setInterval(finisher, 3000);
+	jQuery.post( "receiver.php", {action: "finishgame", game: game}, finishdata );
+	gamedata = setInterval(finisher, 3000);
 }
 
 function finisher() {
 	if (gamestatus!=2)
 	{
-		jQuery.get( "receiver.php?action=finishrequest&game="+game+"&player="+player, finishdata );
-		//var gamedata = setInterval(function(){jQuery.get( "receiver.php?action=finishrequest&game="+game+"&player="+player, finishdata );}, 5000);
+		jQuery.get( "receiver.php?action=finishrequest&game="+game, finishdata );
+	}
+}
+
+function writeplayers(list, withpoints)
+{
+	var players = document.getElementById("players");
+	players.innerHTML = "";
+	for (var i=0; i<list.length; i++)
+	{
+		var playername = list[i].player;
+		playername = (playername.substr(0, 4)=="Gast")?"Gast":playername;
+		var playerstatus = "aktiv";
+		if (list[i].status == 2) { playerstatus = "abgeschlossen"; }
+		var activity = "online";
+		if (list[i].last_activity > 0)
+		{
+			activity = "offline seit ";
+			if (list[i].last_activity > 3600) { activity += Math.round(list[i].last_activity/3600)+" Tagen"; }
+			else if (list[i].last_activity > 60) { activity += Math.round(list[i].last_activity/60)+" Stunden"; }
+			else activity += list[i].last_activity + " Minuten";
+		}
+
+		var playerdiv = document.createElement('div');
+		playerdiv.className = 'playerdiv';
+		playerdiv.id = playername+'player';
+		playerdiv.appendChild(document.createTextNode(withpoints ? playername+' ('+list[i].points+')' : playername));
+		var meta = document.createElement('span');
+		meta.style.fontSize = '10px';
+		meta.appendChild(document.createTextNode(' - '+playerstatus));
+		meta.appendChild(document.createElement('br'));
+		meta.appendChild(document.createTextNode(activity));
+		playerdiv.appendChild(meta);
+		players.appendChild(playerdiv);
 	}
 }
 
 function finishdata(data)
 {
-	var players = document.getElementById("players");
-	players.innerHTML = "";
-	for (var i=0; i<data.players.length; i++)
-	{
-		var playerdiv = document.createElement('div');
-		playerdiv.className = 'playerdiv';
-		playerdiv.id = data.players[i].player+'player';
-		var status = "aktiv";
-		if (data.players[i].status == 2) { status = "abgeschlossen"; }
-		var activity = "online";
-		if (data.players[i].last_activity > 0)
-		{
-			var activity = "offline seit ";
-			if (data.players[i].last_activity > 3600) { activity += Math.round(data.players[i].last_activity/3600)+" Tagen"; }
-			else if (data.players[i].last_activity > 60) { activity += Math.round(data.players[i].last_activity/60)+" Stunden"; }
-			else activity += data.players[i].last_activity + " Minuten";
-		}
-		var playername = data.players[i].player;
-		playername = (playername.substr(0, 4)=="Gast")?"Gast":playername;
-		playerdiv.innerHTML = playername+' ('+data.players[i].points+')<span style="font-size: 10px;"> - '+status+'<br>'+activity+'</span>';
-		players.appendChild(playerdiv);
-	}
+	writeplayers(data.players, true);
 	allwordsdump = data.words;
 	gamestatus = data.gamestatus;
 	sortallwords(data.words, data.players);
@@ -575,29 +583,7 @@ function finishdata(data)
 
 function receivedata(data)
   {
-	console.log("data received");
-	var players = document.getElementById("players");
-	players.innerHTML = "";
-	for (var i=0; i<data.players.length; i++)
-	{
-		var playerdiv = document.createElement('div');
-		playerdiv.className = 'playerdiv';
-		playerdiv.id = data.players[i].player+'player';
-		var status = "aktiv";
-		if (data.players[i].status == 2) { status = "abgeschlossen"; }
-		var activity = "online";
-		if (data.players[i].last_activity > 0)
-		{
-			var activity = "offline seit ";
-			if (data.players[i].last_activity > 3600) { activity += Math.round(data.players[i].last_activity/3600)+" Tagen"; }
-			else if (data.players[i].last_activity > 60) { activity += Math.round(data.players[i].last_activity/60)+" Stunden"; }
-			else activity += data.players[i].last_activity + " Minuten";
-		}
-		var playername = data.players[i].player;
-		playername = (playername.substr(0, 4)=="Gast")?"Gast":playername;
-		playerdiv.innerHTML = playername+'<span style="font-size: 10px;"> - '+status+'<br>'+activity+'</span>';
-		players.appendChild(playerdiv);
-	}
+	writeplayers(data.players, false);
 	for (var i=0; i<data.words.length; i++)
 	{
 		var pointspan = document.getElementById(data.words[i].word+'points');

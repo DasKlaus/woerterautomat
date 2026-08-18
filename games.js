@@ -1,7 +1,7 @@
 function filter(filtermode)
 {
 	mode = filtermode;
-	jQuery.get( "receiver.php?action=showgames&player="+player+"&mode="+mode, gamedata);
+	jQuery.get( "receiver.php?action=showgames&mode="+mode, gamedata);
 }
 
 /* TODO: make better */
@@ -46,16 +46,19 @@ function gamedata(data)
 		gamelink.className = 'game';
 		gamelink.href = '?go=game&game='+data[i].id;
 		var headline = document.createElement('h2');
-		headline.innerHTML = data[i].word;
+		headline.textContent = data[i].word;
 		gamelink.appendChild(headline);
-		gamelink.innerHTML += '('+status+') gestartet '+activity+' auf '+language+' von '+data[i].starter+' '+flexion+' Flexionsformen<br>mit';
+		gamelink.appendChild(document.createTextNode('('+status+') gestartet '+activity+' auf '+language+' von '+data[i].starter+' '+flexion+' Flexionsformen'));
+		gamelink.appendChild(document.createElement('br'));
+		var players = 'mit';
 		for (var j=0; j<data[i].players.length; j++)
 		{
 			var player = data[i].players[j].player;
 			player = (player.substr(0, 4)=="Gast")?"Gast":player;
-			gamelink.innerHTML += ' '+player;
-			if (data[i].status == 2) { gamelink.innerHTML += ' ('+data[i].players[j].points+')'; }
+			players += ' '+player;
+			if (data[i].status == 2) { players += ' ('+data[i].players[j].points+')'; }
 		}
+		gamelink.appendChild(document.createTextNode(players));
 		content.appendChild(gamelink);
 	}
 }
