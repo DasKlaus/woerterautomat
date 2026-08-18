@@ -33,6 +33,7 @@ $( document ).ready(function() {
   document.getElementById("player").style.display = 'none';
   document.getElementById("input").value = '';
   document.getElementById('input').onkeypress = keyhandle;
+  document.getElementById('input').onkeydown = keydownhandle;
 
   if (status == 2)
   {

@@ -462,7 +462,17 @@ function backspace()
 	}
   }
 
-function keyhandle(e) 
+function keydownhandle(e)
+  {
+	evt = e || event;
+	if (evt.keyCode == 8)
+	{
+		evt.preventDefault();
+		backspace();
+	}
+  }
+
+function keyhandle(e)
   {
 	evt = e || event;
 	evt.preventDefault();
@@ -473,7 +483,6 @@ function keyhandle(e)
 	if (chrCode==0) chrTyped = ' ';
 	  else chrTyped = String.fromCharCode(chrCode).toLowerCase();
 	if (chrCode == 13) { submitword(); }
-	if (chrCode == 8) { backspace(); }
 	if ("äöüß".indexOf(chrTyped) == -1)
 	{
 		if (findletterspan(chrTyped, true))
