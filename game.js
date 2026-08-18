@@ -120,7 +120,7 @@ function sortword(word)
 	wordspan.className = 'wordspan';
 	wordspan.id = word+'word';
 	wordspan.innerHTML = word;
-	if (status != 2) {$( wordspan ).attr( "onClick", "removeword(this);" );}
+	if (mystatus != 2) {$( wordspan ).attr( "onClick", "removeword(this);" );}
 	sortcontainer.appendChild(wordspan);
 	sortcontainer.appendChild(document.createTextNode(" "));
   }
@@ -133,7 +133,7 @@ function sortallwordsdump(a,b)
 function sortwords()
   {
 	var tosort = words;
-	if (status == 2) {tosort = allwordsdump;}
+	if (mystatus == 2) {tosort = allwordsdump;}
 	var worddiv = document.getElementById("words");
 	worddiv.innerHTML = '';
 	switch (sortmode)
@@ -146,7 +146,7 @@ function sortwords()
 		case 'alpha':
 			var sortedword = sortstring(originalword);
 			makeletterboxes(sortedword);
-			if (status == 2) {tosort.sort(sortallwordsdump);}
+			if (mystatus == 2) {tosort.sort(sortallwordsdump);}
 			else {tosort.sort();}
 		break;
 		case 'length':
@@ -159,7 +159,7 @@ function sortwords()
 	}
 	for (var i=0; i<tosort.length; i++)
 	{
-		if (status == 2) {sortfinishedword(tosort[i]);}
+		if (mystatus == 2) {sortfinishedword(tosort[i]);}
 		else {sortword(tosort[i]);}
 	}
   }
@@ -362,7 +362,7 @@ function sortfinishedword(word)
 	wordspan.className = 'wordspan';
 	wordspan.id = word["word"]+'word';
 	wordspan.innerHTML = word["word"];
-	if (status != 2) {$( wordspan ).attr( "onClick", "removeword(this);" );}
+	if (mystatus != 2) {$( wordspan ).attr( "onClick", "removeword(this);" );}
 	sortcontainer.appendChild(wordspan);
 	sortcontainer.appendChild(document.createTextNode(" "));
 }
@@ -533,7 +533,7 @@ function leave() {
 }
 
 function finish() {
-	status=2;
+	mystatus=2;
 	clearInterval(gamedata);
 	document.getElementById('finish').style.display = 'none';
 	document.getElementById('inputline').style.display = 'none';

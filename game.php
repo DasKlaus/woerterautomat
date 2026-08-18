@@ -7,7 +7,7 @@ if (!$currentgame)
 	return;
 }
 
-$status = (int)$mysql->execute_query("select status from player where game_id = ? and user_id = ?", [$game, $_SESSION['user_id']])->fetch_column();
+$mystatus = (int)$mysql->execute_query("select status from player where game_id = ? and user_id = ?", [$game, $_SESSION['user_id']])->fetch_column();
 
 $words = $mysql->execute_query("select word from word where game_id = ? and user_id = ?", [$game, $_SESSION['user_id']])->fetch_all(MYSQLI_ASSOC);
 ?>
@@ -15,7 +15,7 @@ $words = $mysql->execute_query("select word from word where game_id = ? and user
 <script>
   var game = <?php echo json_encode($game); ?>;
   var originalword = <?php echo json_encode($currentgame['source_word']); ?>;
-  var status = <?php echo json_encode($status); ?>;
+  var mystatus = <?php echo json_encode($mystatus); ?>;
   var gamestatus = <?php echo json_encode((int)$currentgame['status']); ?>;
   var sortmode = 'standard';
   var lettermode = 'original';
@@ -28,14 +28,14 @@ $( document ).ready(function() {
   if (gamestatus != 2)
   {
 	jQuery.post( "receiver.php", {action: "joingame", game: game} );
-  } else { status = 2; }
+  } else { mystatus = 2; }
   writeletters(originalword);
   document.getElementById("player").style.display = 'none';
   document.getElementById("input").value = '';
   document.getElementById('input').onkeypress = keyhandle;
   document.getElementById('input').onkeydown = keydownhandle;
 
-  if (status == 2)
+  if (mystatus == 2)
   {
 	document.getElementById("finish").style.display = 'none';
 	document.getElementById('inputline').style.display = 'none';
