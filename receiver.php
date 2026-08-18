@@ -91,8 +91,12 @@ else
 		case "showgames":
 			$where = "";
 			$params = [];
-			switch($_GET['mode'] ?? 'all')
+			switch($_GET['mode'] ?? 'relevant')
 			{
+				case 'relevant':
+					$where = "where game.status = 1 or game.created_by = ? or exists (select 1 from player m where m.game_id = game.id and m.user_id = ?)";
+					$params = [$user, $user];
+					break;
 				case 'own':
 					$where = "where game.created_by = ? or exists (select 1 from player m where m.game_id = game.id and m.user_id = ?)";
 					$params = [$user, $user];
@@ -107,17 +111,20 @@ else
 					$where = "where game.status = 2";
 					break;
 			}
-			$return = $mysql->execute_query("select id, source_word as word, status, language, flexion,
+			$window = " order by created_at desc, id desc limit 20 offset ".(20 * (max(1, (int)($_GET['page'] ?? 1)) - 1));
+			$return["pages"] = (int)ceil($mysql->execute_query("select count(*) from game ".$where, $params)->fetch_column() / 20);
+			$return["games"] = $mysql->execute_query("select id, source_word as word, status, language, flexion,
 					created_by_name as starter, timestampdiff(minute, created_at, now()) as starttime
-				from game ".$where." order by created_at desc", $params)->fetch_all(MYSQLI_ASSOC);
+				from game ".$where.$window, $params)->fetch_all(MYSQLI_ASSOC);
 			$players = $mysql->execute_query("select p.game_id, p.display_name as player, p.points
-				from player p join game on game.id = p.game_id ".$where." order by p.joined_at", $params)->fetch_all(MYSQLI_ASSOC);
+				from player p join (select id from game ".$where.$window.") g on g.id = p.game_id
+				order by p.joined_at", $params)->fetch_all(MYSQLI_ASSOC);
 			$bygame = [];
 			foreach ($players as $playerrow)
 			{
 				$bygame[$playerrow['game_id']][] = $playerrow;
 			}
-			foreach ($return as &$currentgame)
+			foreach ($return["games"] as &$currentgame)
 			{
 				$currentgame['players'] = $bygame[$currentgame['id']] ?? [];
 			}

@@ -46,11 +46,13 @@ if (($_GET["go"] ?? "") == "neu" and isset($_POST["new"]))
 			<a href="?go=anleitung">Anleitung</a>
 			<a href="?go=impressum">Impressum</a>
 			<?php if ((isset($_GET["go"]) and $_GET["go"]=="games") or !isset($_GET['go'])) { ?>
-				<a id="all" onClick="filter('all');">alle Spiele</a>
-				<a id="own" onClick="filter('own');">deine Spiele</a>
-				<a id="new" onClick="filter('new');">neue Spiele</a>
-				<a id="active" onClick="filter('active');">laufende Spiele</a>
-				<a id="finished" onClick="filter('finished');">abgeschlossene Spiele</a>
+				<a id="relevant" href="?go=games&amp;mode=relevant" title="laufende und eigene Spiele">relevante Spiele</a>
+				<a id="all" href="?go=games&amp;mode=all">alle Spiele</a>
+				<a id="own" href="?go=games&amp;mode=own">eigene Spiele</a>
+				<a id="new" href="?go=games&amp;mode=new">neue Spiele</a>
+				<a id="active" href="?go=games&amp;mode=active">laufende Spiele</a>
+				<a id="finished" href="?go=games&amp;mode=finished">abgeschlossene Spiele</a>
+				<div id="pagination"></div>
 			<?php } ?>
 			<?php if (isset($_GET["go"]) and $_GET["go"]=="game") { ?>
 				<a id="leave" onClick="leave();">Spiel verlassen</a>

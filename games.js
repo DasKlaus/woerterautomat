@@ -1,7 +1,21 @@
-function filter(filtermode)
+function pagebutton(label, target, enabled)
 {
-	mode = filtermode;
-	jQuery.get( "receiver.php?action=showgames&mode="+mode, gamedata);
+	var button = document.createElement(enabled ? 'a' : 'span');
+	if (enabled) { button.href = '?go=games&mode='+mode+'&page='+target; }
+	button.textContent = label;
+	return button;
+}
+
+function pagination(pages)
+{
+	var nav = document.getElementById("pagination");
+	nav.innerHTML = "";
+	if (pages < 2) { return; }
+	nav.appendChild(pagebutton("<<", 1, page > 1));
+	nav.appendChild(pagebutton("<", page - 1, page > 1));
+	nav.appendChild(pagebutton(page, page, false));
+	nav.appendChild(pagebutton(">", page + 1, page < pages));
+	nav.appendChild(pagebutton(">>", pages, page < pages));
 }
 
 /* TODO: make better */
@@ -23,8 +37,10 @@ function calcTimediff(timediff)
 	return activity;
 }
 
-function gamedata(data)
+function gamedata(response)
 {
+	pagination(response.pages);
+	var data = response.games;
 	var content = document.getElementById("games");
 	content.innerHTML = "";
 	for (var i=0; i<data.length; i++)
