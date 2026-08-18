@@ -1,65 +1,53 @@
 <?php
-$status = 0;
-$query = $mysql->query("SELECT status FROM playerstatus WHERE player = '".$_SESSION['player']."' AND game = ".$_GET['game']);
-while ($result = $query->fetch_array())
+$game = (int)($_GET['game'] ?? 0);
+$currentgame = $mysql->execute_query("select source_word, status from game where id = ?", [$game])->fetch_assoc();
+if (!$currentgame)
 {
-	$status = $result['status'];
+	echo 'Dieses Spiel gibt es nicht mehr.';
+	return;
 }
 
-$word = '';
-$gamestatus = 0;
-$query = $mysql->query("select word, status from games where id = ".$_GET['game']);
-while ($result = $query->fetch_array())
-{
-	$word = $result['word'];
-	$gamestatus = $result['status'];
-}
+$status = (int)$mysql->execute_query("select status from player where game_id = ? and user_id = ?", [$game, $_SESSION['user_id']])->fetch_column();
 
-$words = [];
-$query = $mysql->query("select word from game".$_GET['game']." where player='".$_SESSION['player']."'");
-while ($result = $query->fetch_array())
-{
-	$words[] = $result['word'];
-}
-
+$words = $mysql->execute_query("select word from word where game_id = ? and user_id = ?", [$game, $_SESSION['user_id']])->fetch_all(MYSQLI_ASSOC);
 ?>
 <script src="game.js"></script>
 <script>
-  var game = <?php echo $_GET['game']; ?>;
-  var player = "<?php echo $_SESSION['player']; ?>";
-  var originalword = '<?php echo $word; ?>';
-  var status = <?php echo $status; ?>;
-  var gamestatus = <?php echo $gamestatus; ?>;
+  var game = <?php echo json_encode($game); ?>;
+  var originalword = <?php echo json_encode($currentgame['source_word']); ?>;
+  var status = <?php echo json_encode($status); ?>;
+  var gamestatus = <?php echo json_encode((int)$currentgame['status']); ?>;
   var sortmode = 'standard';
   var lettermode = 'original';
-  var words = [originalword<?php foreach($words as $word) { echo ",'".$word."'"; } ?>];
+  var words = <?php echo json_encode(array_merge([$currentgame['source_word']], array_column($words, 'word'))); ?>;
   var pointdump = [];
   var allwordsdump = [];
+  var gamedata;
 
 $( document ).ready(function() {
   if (gamestatus != 2)
   {
-	jQuery.get( "receiver.php?action=joingame&game="+game+"&player="+player);
+	jQuery.post( "receiver.php", {action: "joingame", game: game} );
   } else { status = 2; }
-  writeletters(originalword); 
+  writeletters(originalword);
   document.getElementById("player").style.display = 'none';
   document.getElementById("input").value = '';
   document.getElementById('input').onkeypress = keyhandle;
 
-  if (status == 2) 
-  { 
+  if (status == 2)
+  {
 	document.getElementById("finish").style.display = 'none';
 	document.getElementById('inputline').style.display = 'none';
 	document.getElementById('player').style.display = 'block';
 	document.getElementById('lettersortbuttons').style.display = 'none';
-	jQuery.get( "receiver.php?action=finishrequest&game="+game+"&player="+player, finishdata );
-	var gamedata = setInterval(finisher, 5000);
+	jQuery.get( "receiver.php?action=finishrequest&game="+game, finishdata );
+	gamedata = setInterval(finisher, 5000);
   }
   else
   {
 	sortwords();
-	jQuery.get( "receiver.php?action=datarequest&game="+game+"&player="+player, receivedata );
-	var gamedata = setInterval(function(){jQuery.get( "receiver.php?action=datarequest&game="+game+"&player="+player, receivedata );}, 5000);
+	jQuery.get( "receiver.php?action=datarequest&game="+game, receivedata );
+	gamedata = setInterval(function(){jQuery.get( "receiver.php?action=datarequest&game="+game, receivedata );}, 5000);
   }
 });
 </script>
@@ -70,7 +58,7 @@ $( document ).ready(function() {
 	<div id="abc" onClick="writeletters(sortstring(originalword));">alphabetisch</div>
 	<div id="orig" onClick="writeletters(originalword);">original</div>
 	</div>
-	
+
 	<div id="letters"></div>
 </div>
 <div id="inputline" style="">

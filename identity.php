@@ -28,6 +28,6 @@ $writeplayer = ($guest)?"Gast":$_SESSION['player'];
 function identityForm()
 {
 	global $writeplayer;
-	echo '<form method="post"><input style="width: 150px; margin-bottom: 10px;" type="text" name="name" value="'.$writeplayer.'"><br>
+	echo '<form method="post"><input style="width: 150px; margin-bottom: 10px;" type="text" name="name" value="'.htmlspecialchars($writeplayer, ENT_QUOTES, 'UTF-8').'"><br>
 			<input  style="width: 170px; margin-bottom: 10px;" type="submit" value="Name &auml;ndern"></form>';
 }

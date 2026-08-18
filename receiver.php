@@ -6,251 +6,186 @@ set_exception_handler(function($e) {
 });
 ob_start();
 require_once("config.php");
+require_once("identity.php");
 
+$user = $_SESSION['user_id'];
 $return = null;
 
-switch($_GET["action"] ?? "") {
-	/*case "settime": 
-		if (isset($_GET["time"]) and is_numeric($_GET["time"])) 
-		{
-			$query = mysql_query("update playerstatus set timeleft=".$_GET['time']." where game=".$_GET['game']." and player='".$_GET['player']."'");
-		}
-		echo 'settime';
-		break;*/
-	case "reset": 
-		allpointsnew();
-		break;
-	case "newword": 
-		// validate again because hackers
-		if (possible($_GET['word'], $_GET['originalword']))
-		{
-		$query = $mysql->query("insert into game".$mysql->real_escape_string($_GET['game'])." (word, player) values ('".$mysql->real_escape_string($_GET['word'])."', '".$mysql->real_escape_string($_GET['player'])."')");
-		$points = 0;
-		$query = $mysql->query("select * from game".$mysql->real_escape_string($_GET['game'])." left join(
-				select word, 
-				char_length(word) * (
-					(select count(*) as playercount 
-					from playerstatus where game=".$mysql->real_escape_string($_GET['game'])." 
-					group by game)
-				- count(*)) as current_points 
-				from game".$mysql->real_escape_string($_GET['game'])." 
-				group by word) 
-			as stuff on game".$mysql->real_escape_string($_GET['game']).".word = stuff.word  
-			where player='".$mysql->real_escape_string($_GET['player'])."'
-			and game".$mysql->real_escape_string($_GET['game']).".word='".$mysql->real_escape_string($_GET['word'])."'"
-			);
-		while ($result = $query->fetch_array())
-		{
-			$points = $result['current_points'];
-		}
-		$query = $mysql->query("update game".$mysql->real_escape_string($_GET['game'])." set points=".$points." 
-						where word='".$mysql->real_escape_string($_GET['word'])."'");
-		$query = $mysql->query("update playerstatus set points=(points+".$points.") 
-						where player = '".$mysql->real_escape_string($_GET['player'])."' 
-						and game = '".$mysql->real_escape_string($_GET['game'])."'");
-		$query = $mysql->query("update playerstatus set points=(points-".strlen($_GET['word']).") 
-						where player != '".$mysql->real_escape_string($_GET['player'])."' 
-						and game = '".$mysql->real_escape_string($_GET['game'])."'
-						and exists(select player from game".$mysql->real_escape_string($_GET['game'])." 
-							where word = '".$mysql->real_escape_string($_GET['word'])."' 
-							and game".$mysql->real_escape_string($_GET['game']).".player = playerstatus.player)");
-		}
-		break;
-	case "removeword":
-		$query = $mysql->query("update playerstatus set points=points-(select points 
-							from game".$mysql->real_escape_string($_GET['game'])." 
-							where word = '".$mysql->real_escape_string($_GET['word'])."' limit 1)
-						where player = '".$mysql->real_escape_string($_GET['player'])."' 
-						and game = '".$mysql->real_escape_string($_GET['game'])."'");
-		$query = $mysql->query("delete from game".$mysql->real_escape_string($_GET['game'])." where player = '".$mysql->real_escape_string($_GET['player'])."' and word = '".$mysql->real_escape_string($_GET['word'])."'");
-		$query = $mysql->query("update game".$mysql->real_escape_string($_GET['game'])." set points=points+".strlen($_GET['word'])." 
-						where word='".$mysql->real_escape_string($_GET['word'])."'");
-		$query = $mysql->query("update playerstatus set points=points+".strlen($_GET['word'])." 
-						where player != '".$mysql->real_escape_string($_GET['player'])."' 
-						and game = '".$mysql->real_escape_string($_GET['game'])."' 
-						and exists(select player from game".$mysql->real_escape_string($_GET['game'])." 
-							where word = '".$mysql->real_escape_string($_GET['word'])."' 
-							and game".$mysql->real_escape_string($_GET['game']).".player = playerstatus.player)");
-		break;
-	case "showgames":
-		$return = [];
-		$where = "";
-		switch($_GET['mode'] ?? 'all')
-		{
-			case 'all':
-				break;
-			case 'own':
-				$where = "where starter='".$mysql->real_escape_string($_GET['player'])."' or '".$mysql->real_escape_string($_GET['player'])."' in (select player from playerstatus where game=games.id)";
-				break;
-			case 'new':
-				$where = "where status=0";
-				break;
-			case 'active':
-				$where = "where status=1";
-				break;
-			case 'finished':
-				$where = "where status=2";
-				break;
-		}
-		$query = $mysql->query("select *, TIMESTAMPDIFF(MINUTE,date,CURRENT_TIMESTAMP()) as starttime from games ".$where." order by date desc");
-		while ($result = $query->fetch_array())
-		{
-			$currentgame=$result;
-			$currentgame['players'] = [];
-			
-			$playerquery = $mysql->query("select player, points from playerstatus where game=".$result['id']);
-			while ($playerresult = $playerquery->fetch_array())
+if ($_SERVER['REQUEST_METHOD'] === 'POST')
+{
+	$game = (int)($_POST['game'] ?? 0);
+	$word = mb_strtolower(trim($_POST['word'] ?? ''));
+
+	switch($_POST["action"] ?? "") {
+		case "newword":
+			$sourceword = (string)$mysql->execute_query("select g.source_word from game g
+					join player p on p.game_id = g.id
+					where g.id = ? and p.user_id = ? and p.status <> 2", [$game, $user])->fetch_column();
+			if (mb_strlen($word) > 2 and possible($word, $sourceword))
 			{
-				$currentgame['players'][] = $playerresult;
+				$mysql->begin_transaction();
+				$mysql->execute_query("insert ignore into word (game_id, user_id, word, created_at) values (?, ?, ?, now())", [$game, $user, $word]);
+				recompute($mysql, $game);
+				touchgame($mysql, $game);
+				$mysql->commit();
 			}
-			$return[]=$currentgame;
-		}
-		break;
-	case "finishrequest":
-		$return = [];
-		$return["players"] = [];
-		$query = $mysql->query("select player, status, points, TIMESTAMPDIFF(MINUTE,activity,CURRENT_TIMESTAMP()) as last_activity from playerstatus where game = ".$mysql->real_escape_string($_GET['game'])." order by last_activity");
-		while ($result = $query->fetch_array())
-		{
-			$return["players"][] = $result;
-		}
-		// gamestatus
-		$return["gamestatus"] = 0;
-		$query = $mysql->query("select status from games where id=".$mysql->real_escape_string($_GET['game']));
-		while ($result = $query->fetch_array())
-		{
-			$return["gamestatus"] = $result['status'];
-		}
-		// all words and points
-		$return["words"] = [];
-		$query = $mysql->query("select * from game".$mysql->real_escape_string($_GET['game']));
-		while ($result = $query->fetch_array())
-		{
-			$return["words"][] = $result;
-		}
-		break;
-	case "datarequest":
-		$query = $mysql->query("update playerstatus set activity = CURRENT_TIMESTAMP() where game=".$mysql->real_escape_string($_GET['game'])." and player='".$mysql->real_escape_string($_GET['player'])."'");
-		$return = [];
-		$return["players"] = [];
-		$query = $mysql->query("select player, status, TIMESTAMPDIFF(MINUTE,activity,CURRENT_TIMESTAMP()) as last_activity from playerstatus where game = ".$mysql->real_escape_string($_GET['game'])." order by last_activity");
-		while ($result = $query->fetch_array())
-		{
-			$return["players"][] = $result;
-		}
-		$return["words"] = [];
-		$query = $mysql->query
-			("select word, points from game".$mysql->real_escape_string($_GET['game'])." where player='".$mysql->real_escape_string($_GET['player'])."'"
-			);
-		while ($result = $query->fetch_array())
-		{
-			$return["words"][] = $result;
-		}
-		break;
-	case "joingame":
-		$new = true;
-		$query = $mysql->query("select player from playerstatus where player='".$mysql->real_escape_string($_GET['player'])."' and game=".$mysql->real_escape_string($_GET['game']));
-		while ($result = $query->fetch_array())
-		{
-			$new = false;
-		}
-		if ($new)
-		{
-			$query = $mysql->query("insert into playerstatus (game, player, status, activity) values ('".$mysql->real_escape_string($_GET['game'])."', '".$mysql->real_escape_string($_GET['player'])."', '0', CURRENT_TIMESTAMP())");
-			// calculate all words new
-			// all words get their lettercount additionally
-			$query = $mysql->query("update game".$mysql->real_escape_string($_GET['game'])." set points = points+char_length(word)");
-		}
-		calcpoints($mysql->real_escape_string($_GET['game']));
-		$query = $mysql->query("select player from playerstatus where game=".$mysql->real_escape_string($_GET['game']));
-		$players = $query->num_rows;
-		if ($players == 2)
-		{
-			$query = $mysql->query("update games set status=1 where id=".$mysql->real_escape_string($_GET['game']));
-		}
-		break;
-	case "leavegame":
-		$query = $mysql->query("delete from playerstatus where player='".$mysql->real_escape_string($_GET['player'])."' and game=".$mysql->real_escape_string($_GET['game']));
-		if ($_GET['players'] == '1')
-		{
-			$query = $mysql->query("delete from games where id=".$mysql->real_escape_string($_GET['game']));
-			$query = $mysql->query("drop table game".$mysql->real_escape_string($_GET['game']));
-		}
-		else 
-		{ 
-			$query = $mysql->query("update game".$mysql->real_escape_string($_GET['game'])." set points = points-char_length(word) 
-							where exists(select word from (select * from game".$mysql->real_escape_string($_GET['game']).") as checktbl 
-							where player = '".$mysql->real_escape_string($_GET['player'])."' and checktbl.word = game".$mysql->real_escape_string($_GET['game']).".word)");
-			$query = $mysql->query("delete from game".$mysql->real_escape_string($_GET['game'])." where player='".$mysql->real_escape_string($_GET['player'])."'");
-			calcpoints($mysql->real_escape_string($_GET['game']));
-		}
-		break;
-	case "finishgame":
-		$query = $mysql->query("update playerstatus set status = 2 where game=".$mysql->real_escape_string($_GET['game'])." and player='".$mysql->real_escape_string($_GET['player'])."'");
-		// if all players finished, set game status to two
-		$query = $mysql->query("select distinct(status) from playerstatus where game=".$mysql->real_escape_string($_GET['game']));
-		if ($query->num_rows==1)
-		{
-			$query = $mysql->query("update games set status = 2 where id=".$mysql->real_escape_string($_GET['game']));
-		}
-		break;
-	default: break;
+			$return = gamestate($mysql, $game, $user);
+			break;
+		case "removeword":
+			$mysql->begin_transaction();
+			$mysql->execute_query("delete from word where game_id = ? and user_id = ? and word = ?", [$game, $user, $word]);
+			recompute($mysql, $game);
+			touchgame($mysql, $game);
+			$mysql->commit();
+			$return = gamestate($mysql, $game, $user);
+			break;
+		case "joingame":
+			$mysql->begin_transaction();
+			$mysql->execute_query("insert ignore into player (game_id, user_id, display_name, joined_at, activity)
+					select ?, ?, ?, now(), now() from game where id = ? and status <> 2", [$game, $user, $_SESSION['player'], $game]);
+			$mysql->execute_query("update player set display_name = ?, activity = now() where game_id = ? and user_id = ?", [$_SESSION['player'], $game, $user]);
+			$mysql->execute_query("update game set status = 1
+					where id = ? and status = 0 and (select count(*) from player where game_id = ?) > 1", [$game, $game]);
+			recompute($mysql, $game);
+			touchgame($mysql, $game);
+			$mysql->commit();
+			$return = gamestate($mysql, $game, $user);
+			break;
+		case "leavegame":
+			$mysql->begin_transaction();
+			$mysql->execute_query("delete from word where game_id = ? and user_id = ?", [$game, $user]);
+			$mysql->execute_query("delete from player where game_id = ? and user_id = ?", [$game, $user]);
+			if (playercount($mysql, $game) == 0)
+			{
+				$mysql->execute_query("delete from game where id = ?", [$game]);
+			}
+			else
+			{
+				recompute($mysql, $game);
+				touchgame($mysql, $game);
+			}
+			$mysql->commit();
+			break;
+		case "finishgame":
+			$mysql->execute_query("update player set status = 2 where game_id = ? and user_id = ?", [$game, $user]);
+			$mysql->execute_query("update game set status = 2
+					where id = ? and not exists (select 1 from player where game_id = ? and status <> 2)", [$game, $game]);
+			touchgame($mysql, $game);
+			$return = finishstate($mysql, $game);
+			break;
+		default: break;
+	}
+}
+else
+{
+	$game = (int)($_GET['game'] ?? 0);
+
+	switch($_GET["action"] ?? "") {
+		case "datarequest":
+			$mysql->execute_query("update player set display_name = ?, activity = now() where game_id = ? and user_id = ?", [$_SESSION['player'], $game, $user]);
+			$return = gamestate($mysql, $game, $user);
+			break;
+		case "finishrequest":
+			$return = finishstate($mysql, $game);
+			break;
+		case "showgames":
+			$where = "";
+			$params = [];
+			switch($_GET['mode'] ?? 'all')
+			{
+				case 'own':
+					$where = "where game.created_by = ? or exists (select 1 from player m where m.game_id = game.id and m.user_id = ?)";
+					$params = [$user, $user];
+					break;
+				case 'new':
+					$where = "where game.status = 0";
+					break;
+				case 'active':
+					$where = "where game.status = 1";
+					break;
+				case 'finished':
+					$where = "where game.status = 2";
+					break;
+			}
+			$return = $mysql->execute_query("select id, source_word as word, status, language, flexion,
+					created_by_name as starter, timestampdiff(minute, created_at, now()) as starttime
+				from game ".$where." order by created_at desc", $params)->fetch_all(MYSQLI_ASSOC);
+			$players = $mysql->execute_query("select p.game_id, p.display_name as player, p.points
+				from player p join game on game.id = p.game_id ".$where." order by p.joined_at", $params)->fetch_all(MYSQLI_ASSOC);
+			$bygame = [];
+			foreach ($players as $playerrow)
+			{
+				$bygame[$playerrow['game_id']][] = $playerrow;
+			}
+			foreach ($return as &$currentgame)
+			{
+				$currentgame['players'] = $bygame[$currentgame['id']] ?? [];
+			}
+			unset($currentgame);
+			break;
+		default: break;
+	}
 }
 
 ob_end_clean();
 echo json_encode($return);
 
-function calcpoints($game)
+function playercount($mysql, $game)
 {
-	global $mysql;
-	$query = $mysql->query("update playerstatus set points =
-			(select sum(game".$game.".points) as fullpoints from game".$game." 
-			where game".$game.".player=playerstatus.player group by game".$game.".player)
-		where game = ".$game);
+	return (int)$mysql->execute_query("select count(*) from player where game_id = ?", [$game])->fetch_column();
 }
 
-function allpointsnew()
+function recompute($mysql, $game)
 {
-	global $mysql;
-	$games = [];
-	$query = $mysql->query("select distinct(game) from playerstatus");
-	while ($result = $query->fetch_array())
-	{
-		$games[] = $result['game'];
-	}
-	
-	foreach($games as $game)
-	{
-		$query = $mysql->query("update game".$game." set points = 
-		(
-		    select char_length(word) * 
-		    (
-			(
-				select count(*) as playercount
-				from playerstatus where game=".$game."
-				group by game
-			)
-			- count(*)
-		    ) 
-		    as current_points
-		    from (select * from game".$game.") as hlp
-		    where hlp.word = game".$game.".word
-		    group by word
-		)");
-		calcpoints($game);
-	}
+	$mysql->execute_query("update player p set p.points = coalesce((
+			select sum(char_length(w.word) * (? - (select count(*) from word f
+					where f.game_id = w.game_id and f.word = w.word)))
+			from word w where w.game_id = p.game_id and w.user_id = p.user_id
+		), 0)
+		where p.game_id = ?", [playercount($mysql, $game), $game]);
 }
 
-function possible($word, $originalword)
+function touchgame($mysql, $game)
 {
-	if ($word == $originalword) return false;
-	for ($i=0; $i<strlen($word); $i++)
+	$mysql->execute_query("update game set version = version + 1, last_activity_at = now() where id = ?", [$game]);
+}
+
+function gamestate($mysql, $game, $user)
+{
+	$return = [];
+	$return["players"] = $mysql->execute_query("select display_name as player, status,
+			timestampdiff(minute, activity, now()) as last_activity
+		from player where game_id = ? order by last_activity", [$game])->fetch_all(MYSQLI_ASSOC);
+	$return["words"] = $mysql->execute_query("select w.word,
+			char_length(w.word) * (? - (select count(*) from word f
+					where f.game_id = w.game_id and f.word = w.word)) as points
+		from word w where w.game_id = ? and w.user_id = ?", [playercount($mysql, $game), $game, $user])->fetch_all(MYSQLI_ASSOC);
+	return $return;
+}
+
+function finishstate($mysql, $game)
+{
+	$return = [];
+	$return["players"] = $mysql->execute_query("select display_name as player, status, points,
+			timestampdiff(minute, activity, now()) as last_activity
+		from player where game_id = ? order by last_activity", [$game])->fetch_all(MYSQLI_ASSOC);
+	$return["gamestatus"] = (int)$mysql->execute_query("select status from game where id = ?", [$game])->fetch_column();
+	$return["words"] = $mysql->execute_query("select w.word, p.display_name as player,
+			char_length(w.word) * (? - (select count(*) from word f
+					where f.game_id = w.game_id and f.word = w.word)) as points
+		from word w join player p on p.game_id = w.game_id and p.user_id = w.user_id
+		where w.game_id = ?", [playercount($mysql, $game), $game])->fetch_all(MYSQLI_ASSOC);
+	return $return;
+}
+
+function possible($word, $sourceword)
+{
+	if ($word === $sourceword) return false;
+	for ($i = 0; $i < mb_strlen($word); $i++)
 	{
-		if (strpos($originalword, substr($word, $i, 1)) === false)
-		{
-			$originalword = substr_replace ($originalword, "", strpos($originalword, substr($word, $i, 1)), 1);
-		}
-		else return false;
+		$at = mb_strpos($sourceword, mb_substr($word, $i, 1));
+		if ($at === false) return false;
+		$sourceword = mb_substr($sourceword, 0, $at).mb_substr($sourceword, $at + 1);
 	}
 	return true;
 }

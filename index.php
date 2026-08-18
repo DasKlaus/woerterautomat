@@ -21,7 +21,7 @@ function normalize_letters($string){
 	<div id="wrapper">
 		<a id="headline" href="."><h1>woerterautomat</h1></a>
 		<div id="menu">
-			<h2 style="text-transform: lowercase;"><?php echo $writeplayer; ?></h2>
+			<h2 style="text-transform: lowercase;"><?php echo htmlspecialchars($writeplayer, ENT_QUOTES, 'UTF-8'); ?></h2>
 			<?php if (($_GET['go'] ?? "")!="game") { identityForm(); } ?>
 			<a href="?go=neu">Neues Spiel</a>
 			<a href="?go=games">Spiele&uuml;bersicht</a>
@@ -77,14 +77,17 @@ function normalize_letters($string){
 			}
 			elseif (isset($_GET["go"]) and $_GET["go"]=="neu")
 			{
-				if (isset($_POST["new"])) 
+				$sourceword = preg_replace('/[^a-z]/', '', strtolower(normalize_letters($_POST['word'] ?? '')));
+				if (isset($_POST["new"]) and strlen($sourceword) > 2)
 				{
 					$flexion = 0;
 					if (isset($_POST['flexion'])) { $flexion = 1; }
-					$query = $mysql->query("insert into games (word, status, starter, language, flexion) values ('".strtolower(normalize_letters($mysql->real_escape_string($_POST['word'])))."', 0, '".$mysql->real_escape_string($_SESSION['player'])."', '".$mysql->real_escape_string($_POST['language'])."', ".$flexion.")");
+					$language = (($_POST['language'] ?? 'de') == 'en') ? 'en' : 'de';
+					$mysql->execute_query("insert into game (source_word, language, flexion, created_by, created_by_name, created_at, last_activity_at)
+						values (?, ?, ?, ?, ?, now(), now())", [$sourceword, $language, $flexion, $_SESSION['user_id'], $_SESSION['player']]);
 					$id = $mysql->insert_id;
-					$query = $mysql->query("insert into playerstatus (game, player, status) values ($id, '".$mysql->real_escape_string($_SESSION['player'])."', 0)");
-					$query = $mysql->query("create table game".$id." (word varchar(255), player varchar(255), points int(2)) DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci");
+					$mysql->execute_query("insert into player (game_id, user_id, display_name, joined_at, activity) values (?, ?, ?, now(), now())",
+						[$id, $_SESSION['user_id'], $_SESSION['player']]);
 					header("Location: ?go=game&game=".$id); /* Redirect browser */
 					exit();
 				}
