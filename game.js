@@ -122,7 +122,7 @@ function sortword(word)
 	wordspan.innerHTML = word;
 	if (status != 2) {$( wordspan ).attr( "onClick", "removeword(this);" );}
 	sortcontainer.appendChild(wordspan);
-	sortcontainer.innerHTML += " ";
+	sortcontainer.appendChild(document.createTextNode(" "));
   }
 
 function sortallwordsdump(a,b)
@@ -364,7 +364,7 @@ function sortfinishedword(word)
 	wordspan.innerHTML = word["word"];
 	if (status != 2) {$( wordspan ).attr( "onClick", "removeword(this);" );}
 	sortcontainer.appendChild(wordspan);
-	sortcontainer.innerHTML += " ";
+	sortcontainer.appendChild(document.createTextNode(" "));
 }
   
 function lookFor(needle, haystack, param) 
