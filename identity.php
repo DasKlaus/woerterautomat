@@ -11,16 +11,16 @@ if (!isset($_SESSION['user_id']) or isset($_POST['name']))
 	$identity->set_charset('utf8mb4');
 	if (!isset($_SESSION['user_id']))
 	{
-		$identity->query("insert into user (display_name, created_at, last_seen_at) values ('', now(), now())");
+		$identity->execute_query("insert into user (display_name, created_at, last_seen_at) values ('', now(), now())");
 		$_SESSION['user_id'] = $identity->insert_id;
-		$identity->query("update user set display_name = 'Gast".$_SESSION['user_id']."' where id = ".$_SESSION['user_id']);
+		$identity->execute_query("update user set display_name = ? where id = ?", ["Gast".$_SESSION['user_id'], $_SESSION['user_id']]);
 	}
 	if (isset($_POST['name']))
 	{
-		$identity->query("update user set display_name = '".$identity->real_escape_string($_POST['name'])."' where id = ".$_SESSION['user_id']);
+		$identity->execute_query("update user set display_name = ? where id = ?", [$_POST['name'], $_SESSION['user_id']]);
 	}
-	$identity->query("update user set last_seen_at = now() where id = ".$_SESSION['user_id']);
-	$_SESSION['player'] = $identity->query("select display_name from user where id = ".$_SESSION['user_id'])->fetch_array()['display_name'];
+	$identity->execute_query("update user set last_seen_at = now() where id = ?", [$_SESSION['user_id']]);
+	$_SESSION['player'] = $identity->execute_query("select display_name from user where id = ?", [$_SESSION['user_id']])->fetch_column();
 }
 $guest = (substr($_SESSION['player'], 0, 4) == "Gast");
 $writeplayer = ($guest)?"Gast":$_SESSION['player'];
