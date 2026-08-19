@@ -26,6 +26,7 @@ if (($_GET["go"] ?? "") == "neu" and isset($_POST["new"]) and ($_POST["website"]
 			$message = "Du hast in der letzten Stunde zehn Spiele gestartet. Versuch es später noch einmal.";
 		else
 		{
+			identify();
 			$flexion = 0;
 			if (isset($_POST['flexion'])) { $flexion = 1; }
 			$language = (($_POST['language'] ?? 'de') == 'en') ? 'en' : 'de';

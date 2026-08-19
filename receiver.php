@@ -2,17 +2,19 @@
 header('Content-Type: application/json');
 set_exception_handler(function($e) {
 	ob_end_clean();
-	echo json_encode(["error" => $e->getMessage()]);
+	error_log($e);
+	echo json_encode(["error" => "server error"]);
 });
 ob_start();
 require_once("config.php");
 require_once("identity.php");
 
-$user = $_SESSION['user_id'];
 $return = null;
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST')
 {
+	identify();
+	$user = $_SESSION['user_id'];
 	$game = (int)($_POST['game'] ?? 0);
 	$word = mb_strtolower(trim($_POST['word'] ?? ''));
 
@@ -80,6 +82,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST')
 }
 else
 {
+	$user = $_SESSION['user_id'];
 	$game = (int)($_GET['game'] ?? 0);
 	$version = (int)($_GET['version'] ?? -1);
 
