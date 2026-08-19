@@ -24,13 +24,14 @@ $words = $mysql->execute_query("select word from word where game_id = ? and user
   var allwordsdump = [];
   var allplayersdump = [];
   var uniquewords = [];
+  var version = -1;
+  var pollwait = 5000;
+  var playerlist = [];
+  var playerstamp = 0;
   var gamedata;
 
 $( document ).ready(function() {
-  if (gamestatus != 2)
-  {
-	jQuery.post( "receiver.php", {action: "joingame", game: game} );
-  } else { mystatus = 2; }
+  if (gamestatus == 2) { mystatus = 2; }
   writeletters(originalword);
   document.getElementById("player").style.display = 'none';
   document.getElementById("input").value = '';
@@ -44,14 +45,14 @@ $( document ).ready(function() {
 	document.getElementById('player').style.display = 'block';
 	document.getElementById('lettersortbuttons').style.display = 'none';
 	jQuery.get( "receiver.php?action=finishrequest&game="+game, finishdata );
-	gamedata = setInterval(finisher, 5000);
   }
   else
   {
 	sortwords();
-	jQuery.get( "receiver.php?action=datarequest&game="+game, receivedata );
-	gamedata = setInterval(function(){jQuery.get( "receiver.php?action=datarequest&game="+game, receivedata );}, 5000);
+	jQuery.post( "receiver.php", {action: "joingame", game: game}, receivedata );
   }
+  gamedata = setTimeout(poll, pollwait);
+  document.addEventListener('visibilitychange', repoll);
 });
 </script>
 

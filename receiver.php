@@ -26,6 +26,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST')
 				$mysql->begin_transaction();
 				$mysql->execute_query("insert ignore into word (game_id, user_id, word, created_at) values (?, ?, ?, now())", [$game, $user, $word]);
 				recompute($mysql, $game);
+				touchplayer($mysql, $game, $user);
 				touchgame($mysql, $game);
 				$mysql->commit();
 			}
@@ -35,6 +36,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST')
 			$mysql->begin_transaction();
 			$mysql->execute_query("delete from word where game_id = ? and user_id = ? and word = ?", [$game, $user, $word]);
 			recompute($mysql, $game);
+			touchplayer($mysql, $game, $user);
 			touchgame($mysql, $game);
 			$mysql->commit();
 			$return = gamestate($mysql, $game, $user);
@@ -43,7 +45,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST')
 			$mysql->begin_transaction();
 			$mysql->execute_query("insert ignore into player (game_id, user_id, display_name, joined_at, activity)
 					select ?, ?, ?, now(), now() from game where id = ? and status <> 2", [$game, $user, $_SESSION['player'], $game]);
-			$mysql->execute_query("update player set display_name = ?, activity = now() where game_id = ? and user_id = ?", [$_SESSION['player'], $game, $user]);
+			touchplayer($mysql, $game, $user);
 			$mysql->execute_query("update game set status = 1
 					where id = ? and status = 0 and (select count(*) from player where game_id = ?) > 1", [$game, $game]);
 			recompute($mysql, $game);
@@ -67,7 +69,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST')
 			$mysql->commit();
 			break;
 		case "finishgame":
-			$mysql->execute_query("update player set status = 2 where game_id = ? and user_id = ?", [$game, $user]);
+			$mysql->execute_query("update player set status = 2, activity = now() where game_id = ? and user_id = ?", [$game, $user]);
 			$mysql->execute_query("update game set status = 2
 					where id = ? and not exists (select 1 from player where game_id = ? and status <> 2)", [$game, $game]);
 			touchgame($mysql, $game);
@@ -79,13 +81,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST')
 else
 {
 	$game = (int)($_GET['game'] ?? 0);
+	$version = (int)($_GET['version'] ?? -1);
 
 	switch($_GET["action"] ?? "") {
 		case "datarequest":
-			$mysql->execute_query("update player set display_name = ?, activity = now() where game_id = ? and user_id = ?", [$_SESSION['player'], $game, $user]);
+			if (version($mysql, $game) === $version) { ob_end_clean(); http_response_code(304); exit; }
 			$return = gamestate($mysql, $game, $user);
 			break;
 		case "finishrequest":
+			if (version($mysql, $game) === $version) { ob_end_clean(); http_response_code(304); exit; }
 			$return = finishstate($mysql, $game);
 			break;
 		case "showgames":
@@ -152,14 +156,25 @@ function recompute($mysql, $game)
 		where p.game_id = ?", [playercount($mysql, $game), $game]);
 }
 
+function touchplayer($mysql, $game, $user)
+{
+	$mysql->execute_query("update player set display_name = ?, activity = now() where game_id = ? and user_id = ?", [$_SESSION['player'], $game, $user]);
+}
+
 function touchgame($mysql, $game)
 {
 	$mysql->execute_query("update game set version = version + 1, last_activity_at = now() where id = ?", [$game]);
 }
 
+function version($mysql, $game)
+{
+	return (int)$mysql->execute_query("select version from game where id = ?", [$game])->fetch_column();
+}
+
 function gamestate($mysql, $game, $user)
 {
 	$return = [];
+	$return["version"] = version($mysql, $game);
 	$return["players"] = $mysql->execute_query("select display_name as player, status,
 			timestampdiff(minute, activity, now()) as last_activity
 		from player where game_id = ? order by last_activity", [$game])->fetch_all(MYSQLI_ASSOC);
@@ -173,6 +188,7 @@ function gamestate($mysql, $game, $user)
 function finishstate($mysql, $game)
 {
 	$return = [];
+	$return["version"] = version($mysql, $game);
 	$return["players"] = $mysql->execute_query("select display_name as player, status, points,
 			timestampdiff(minute, activity, now()) as last_activity
 		from player where game_id = ? order by last_activity", [$game])->fetch_all(MYSQLI_ASSOC);

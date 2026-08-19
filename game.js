@@ -455,23 +455,47 @@ function leave() {
 
 function finish() {
 	mystatus=2;
-	clearInterval(gamedata);
 	document.getElementById('finish').style.display = 'none';
 	document.getElementById('inputline').style.display = 'none';
 	document.getElementById('lettersortbuttons').style.display = 'none';
 	jQuery.post( "receiver.php", {action: "finishgame", game: game}, finishdata );
-	gamedata = setInterval(finisher, 3000);
 }
 
-function finisher() {
-	if (gamestatus!=2)
+function poll()
+{
+	if (mystatus == 2 && gamestatus == 2) { return; }
+	gamedata = setTimeout(poll, pollwait);
+	if (document.hidden) { return; }
+	if (mystatus == 2)
 	{
-		jQuery.get( "receiver.php?action=finishrequest&game="+game, finishdata );
+		jQuery.get( "receiver.php?action=finishrequest&game="+game+"&version="+version, finishdata );
+		return;
 	}
+	writeplayers(playerlist, false);
+	jQuery.get( "receiver.php?action=datarequest&game="+game+"&version="+version, receivedata );
+}
+
+function repoll()
+{
+	if (document.hidden) { return; }
+	clearTimeout(gamedata);
+	pollwait = 5000;
+	poll();
+}
+
+function timeago(minutes)
+{
+	var count = minutes, unit = "Minute", plural = "n";
+	if (minutes >= 1440) { count = Math.round(minutes/1440); unit = "Tag"; plural = "en"; }
+	else if (minutes >= 60) { count = Math.round(minutes/60); unit = "Stunde"; plural = "n"; }
+	if (count < 1) { return "gerade eben"; }
+	return "vor "+count+" "+unit+(count == 1 ? "" : plural);
 }
 
 function writeplayers(list, withpoints)
 {
+	playerlist = list;
+	var elapsed = Math.floor((Date.now() - playerstamp) / 60000);
 	var players = document.getElementById("players");
 	players.innerHTML = "";
 	for (var i=0; i<list.length; i++)
@@ -479,14 +503,7 @@ function writeplayers(list, withpoints)
 		var playername = list[i].player;
 		var playerstatus = "aktiv";
 		if (list[i].status == 2) { playerstatus = "abgeschlossen"; }
-		var activity = "online";
-		if (list[i].last_activity > 0)
-		{
-			activity = "offline seit ";
-			if (list[i].last_activity > 3600) { activity += Math.round(list[i].last_activity/3600)+" Tagen"; }
-			else if (list[i].last_activity > 60) { activity += Math.round(list[i].last_activity/60)+" Stunden"; }
-			else activity += list[i].last_activity + " Minuten";
-		}
+		var activity = "letzte Aktion "+timeago(list[i].last_activity + elapsed);
 
 		var playerdiv = document.createElement('div');
 		playerdiv.className = 'playerdiv';
@@ -503,6 +520,10 @@ function writeplayers(list, withpoints)
 
 function finishdata(data)
 {
+	if (!data) { pollwait = Math.min(pollwait + 5000, 30000); return; }
+	pollwait = 5000;
+	playerstamp = Date.now();
+	version = data.version;
 	writeplayers(data.players, true);
 	allplayersdump = data.players;
 	allwordsdump = data.words;
@@ -513,6 +534,10 @@ function finishdata(data)
 
 function receivedata(data)
   {
+	if (!data) { pollwait = Math.min(pollwait + 5000, 30000); return; }
+	pollwait = 5000;
+	playerstamp = Date.now();
+	version = data.version;
 	writeplayers(data.players, false);
 	wordpoints = data.words;
 	var changed = false;

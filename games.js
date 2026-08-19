@@ -78,3 +78,8 @@ function gamedata(response)
 		content.appendChild(gamelink);
 	}
 }
+
+function listgames()
+{
+	jQuery.get( "receiver.php?action=showgames&mode="+mode+"&page="+page, gamedata );
+}
