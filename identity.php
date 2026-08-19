@@ -17,7 +17,10 @@ if (!isset($_SESSION['user_id']) or isset($_POST['name']))
 	}
 	if (isset($_POST['name']))
 	{
-		$identity->execute_query("update user set display_name = ? where id = ?", [$_POST['name'], $_SESSION['user_id']]);
+		$name = mb_substr(trim($_POST['name']), 0, 32);
+		if ($name == "" or (preg_match('/^gast\d/i', $name) and $name != "Gast".$_SESSION['user_id']))
+			$name = "Gast".$_SESSION['user_id'];
+		$identity->execute_query("update user set display_name = ? where id = ?", [$name, $_SESSION['user_id']]);
 	}
 	$identity->execute_query("update user set last_seen_at = now() where id = ?", [$_SESSION['user_id']]);
 	$_SESSION['player'] = $identity->execute_query("select display_name from user where id = ?", [$_SESSION['user_id']])->fetch_column();
