@@ -8,21 +8,31 @@ function normalize_letters($string){
   return strtr($string, $upas);
   }
 
+$wait = "";
 if (($_GET["go"] ?? "") == "neu" and isset($_POST["new"]) and ($_POST["website"] ?? "") == "")
 {
 	$sourceword = preg_replace('/[^a-z]/', '', strtolower(normalize_letters($_POST['word'] ?? '')));
 	if (strlen($sourceword) > 2)
 	{
-		$flexion = 0;
-		if (isset($_POST['flexion'])) { $flexion = 1; }
-		$language = (($_POST['language'] ?? 'de') == 'en') ? 'en' : 'de';
-		$mysql->execute_query("insert into game (source_word, language, flexion, created_by, created_by_name, created_at, last_activity_at)
-			values (?, ?, ?, ?, ?, now(), now())", [$sourceword, $language, $flexion, $_SESSION['user_id'], $_SESSION['player']]);
-		$id = $mysql->insert_id;
-		$mysql->execute_query("insert into player (game_id, user_id, display_name, joined_at, activity) values (?, ?, ?, now(), now())",
-			[$id, $_SESSION['user_id'], $_SESSION['player']]);
-		header("Location: ?go=game&game=".$id);
-		exit();
+		$recent = $mysql->execute_query("select sum(created_at > now() - interval 1 minute) as lastminute, count(*) as lasthour
+			from game where created_by = ? and created_at > now() - interval 1 hour", [$_SESSION['user_id']])->fetch_assoc();
+		if ($recent['lastminute'] > 0)
+			$wait = "Du hast gerade eben ein Spiel gestartet. Warte eine Minute, bevor du das nächste startest.";
+		elseif ($recent['lasthour'] >= 10)
+			$wait = "Du hast in der letzten Stunde zehn Spiele gestartet. Versuch es später noch einmal.";
+		else
+		{
+			$flexion = 0;
+			if (isset($_POST['flexion'])) { $flexion = 1; }
+			$language = (($_POST['language'] ?? 'de') == 'en') ? 'en' : 'de';
+			$mysql->execute_query("insert into game (source_word, language, flexion, created_by, created_by_name, created_at, last_activity_at)
+				values (?, ?, ?, ?, ?, now(), now())", [$sourceword, $language, $flexion, $_SESSION['user_id'], $_SESSION['player']]);
+			$id = $mysql->insert_id;
+			$mysql->execute_query("insert into player (game_id, user_id, display_name, joined_at, activity) values (?, ?, ?, now(), now())",
+				[$id, $_SESSION['user_id'], $_SESSION['player']]);
+			header("Location: ?go=game&game=".$id);
+			exit();
+		}
 	}
 }
 ?>
@@ -96,6 +106,7 @@ if (($_GET["go"] ?? "") == "neu" and isset($_POST["new"]) and ($_POST["website"]
 			}
 			elseif (isset($_GET["go"]) and $_GET["go"]=="neu")
 			{
+				if ($wait) { echo '<p class="warning">'.$wait.'</p>'; }
 				echo '<form method="post">Gib ein Wort ein, mit dem du ein Spiel starten willst.<br>
 					<input type="text" name="word" id="newwordinput"><br>
 					<input type="text" name="website" class="hp" tabindex="-1" autocomplete="off">

@@ -182,6 +182,7 @@ p {margin-bottom: 10px;}
 #flexioncheckbox { }
 #newgamesubmit {float: right; padding: 20px; margin-top: -20px;}
 .hp {position: absolute; left: -9999px;}
+.warning {color: #f66;}
 
 #pagination {display: flex; justify-content: space-between;}
 #pagination a, #pagination span {display: inline-block; width: 16px; padding: 3px; font-size: 12px; text-align: center;}
