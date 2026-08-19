@@ -53,7 +53,7 @@ if (($_GET["go"] ?? "") == "neu" and isset($_POST["new"]) and ($_POST["website"]
 		<a id="headline" href="."><h1>woerterautomat</h1></a>
 		<div id="menu">
 			<h2 style="text-transform: lowercase;"><?php echo htmlspecialchars($writeplayer, ENT_QUOTES, 'UTF-8'); ?></h2>
-			<?php if (($_GET['go'] ?? "")!="game") { identityForm(); } ?>
+			<a href="?go=user">Profil</a>
 			<a href="?go=neu">Neues Spiel</a>
 			<a href="?go=games">Spiele&uuml;bersicht</a>
 			<a href="?go=anleitung">Anleitung</a>
@@ -108,10 +108,17 @@ if (($_GET["go"] ?? "") == "neu" and isset($_POST["new"]) and ($_POST["website"]
 			echo 'Hier kommt irgendwann eine Anleitung hin, wenn ich dafür nicht zu faul bin.<br><br>
 				Wenn du Freude an Spielen hast, die sprachliches Improvisationsgeschick erfordern, dann solltest du dir außerdem das <a href="http://rhetorisches-quartett.de" target="_blank">Rhetorische Quartett</a> ansehen.';
 			}
+			elseif (isset($_GET["go"]) and $_GET["go"]=="user")
+			{
+				echo '<h2>profil</h2>
+					<p>Der Name ist für alle sichtbar. Beleidigendes, Privates oder Anstößiges ist nicht zulässig, Verstöße können an info@antiscrabble.de gemeldet werden. Unzulässige Namen werden ohne Ankündigung anonymisiert.</p>';
+				identityForm();
+			}
 			elseif (isset($_GET["go"]) and $_GET["go"]=="neu")
 			{
 				if ($message) { echo '<p class="warning">'.$message.'</p>'; }
-				echo '<form method="post">Gib ein Wort ein, mit dem du ein Spiel starten willst.<br>
+				echo '<p>Das Wort ist für alle sichtbar. Beleidigendes, Privates oder Anstößiges ist nicht zulässig, Verstöße können an info@antiscrabble.de gemeldet werden. Unzulässige Spiele werden ohne Ankündigung gelöscht.</p>
+					<form method="post">Gib ein Wort ein, mit dem du ein Spiel starten willst.<br>
 					<input type="text" name="word" id="newwordinput" value="'.htmlspecialchars($_POST['word'] ?? '', ENT_QUOTES, 'UTF-8').'"><br>
 					<input type="text" name="website" class="hp" tabindex="-1" autocomplete="off">
 					Sprache: <select name="language" id="languageinput">
