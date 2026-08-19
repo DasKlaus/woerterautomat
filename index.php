@@ -114,9 +114,9 @@ if (($_GET["go"] ?? "") == "neu" and isset($_POST["new"]) and ($_POST["website"]
 					<input type="text" name="website" class="hp" tabindex="-1" autocomplete="off">
 					Sprache: <select name="language" id="languageinput">
 					<option value="de">Deutsch</option>
-					<option value="en">Englisch</option>
+					<option value="en"'.((($_POST['language'] ?? 'de') == 'en') ? ' selected' : '').'>Englisch</option>
 					</select>
-					<span title="gebeugte und abgeleitete Formen von Wörtern wie Mehrzahlen, Deklinationen, Konjugationen, zum Beispiel Häuser, gelaufen, fragte, dessen, mir, Notarin, Fuchses">Flexionsformen</span> erlaubt: <input type="checkbox" name="flexion" value="true" id="flexioncheckbox">
+					<span title="gebeugte und abgeleitete Formen von Wörtern wie Mehrzahlen, Deklinationen, Konjugationen, zum Beispiel Häuser, gelaufen, fragte, dessen, mir, Notarin, Fuchses">Flexionsformen</span> erlaubt: <input type="checkbox" name="flexion" value="true" id="flexioncheckbox"'.(isset($_POST['flexion']) ? ' checked' : '').'>
 					<input type="submit" name="new" value="Spiel starten" id="newgamesubmit">
 					</form>
 					<script src="newgame.js"></script>';
