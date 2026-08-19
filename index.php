@@ -8,7 +8,7 @@ function normalize_letters($string){
   return strtr($string, $upas);
   }
 
-if (($_GET["go"] ?? "") == "neu" and isset($_POST["new"]))
+if (($_GET["go"] ?? "") == "neu" and isset($_POST["new"]) and ($_POST["website"] ?? "") == "")
 {
 	$sourceword = preg_replace('/[^a-z]/', '', strtolower(normalize_letters($_POST['word'] ?? '')));
 	if (strlen($sourceword) > 2)
@@ -98,6 +98,7 @@ if (($_GET["go"] ?? "") == "neu" and isset($_POST["new"]))
 			{
 				echo '<form method="post">Gib ein Wort ein, mit dem du ein Spiel starten willst.<br>
 					<input type="text" name="word" id="newwordinput"><br>
+					<input type="text" name="website" class="hp" tabindex="-1" autocomplete="off">
 					Sprache: <select name="language" id="languageinput">
 					<option value="de">Deutsch</option>
 					<option value="en">Englisch</option>
