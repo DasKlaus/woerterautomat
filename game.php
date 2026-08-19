@@ -30,7 +30,7 @@ $words = $mysql->execute_query("select word from word where game_id = ? and user
   var playerstamp = 0;
   var gamedata;
 
-$( document ).ready(function() {
+document.addEventListener('DOMContentLoaded', function() {
   if (gamestatus == 2) { mystatus = 2; }
   writeletters(originalword);
   document.getElementById("player").style.display = 'none';
@@ -44,12 +44,12 @@ $( document ).ready(function() {
 	document.getElementById('inputline').style.display = 'none';
 	document.getElementById('player').style.display = 'block';
 	document.getElementById('lettersortbuttons').style.display = 'none';
-	jQuery.get( "receiver.php?action=finishrequest&game="+game, finishdata );
+	get("receiver.php?action=finishrequest&game="+game, finishdata);
   }
   else
   {
 	sortwords();
-	jQuery.post( "receiver.php", {action: "joingame", game: game}, receivedata );
+	post({action: "joingame", game: game}, receivedata);
   }
   gamedata = setTimeout(poll, pollwait);
   document.addEventListener('visibilitychange', repoll);

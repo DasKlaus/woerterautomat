@@ -35,7 +35,6 @@ if (($_GET["go"] ?? "") == "neu" and isset($_POST["new"]))
 		<link href="style.css" type="text/css" rel="stylesheet" media="screen">
 	</head>
 	<body>
-	<script src="jquery.js"></script>
 	<div id="wrapper">
 		<a id="headline" href="."><h1>woerterautomat</h1></a>
 		<div id="menu">

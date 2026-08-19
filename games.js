@@ -81,5 +81,7 @@ function gamedata(response)
 
 function listgames()
 {
-	jQuery.get( "receiver.php?action=showgames&mode="+mode+"&page="+page, gamedata );
+	fetch("receiver.php?action=showgames&mode="+mode+"&page="+page)
+		.then(function(response) { return response.json(); })
+		.then(gamedata);
 }

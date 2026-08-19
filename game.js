@@ -26,13 +26,13 @@ function submitword()
 		  }
 		if (words.indexOf(word) == -1)
 		{
-			jQuery.post( "receiver.php", {action: "newword", game: game, word: word}, receivedata );
+			post({action: "newword", game: game, word: word}, receivedata);
 			words[words.length] = word;
 			sortword(word);
 		}
 		else
 		{
-			colortransition("#"+word+"word");
+			colortransition(word+"word");
 		}
 	}
   }
@@ -40,7 +40,7 @@ function submitword()
 function removeword(wordspan)
   {
 	var word = wordspan.id.substr(0, wordspan.id.indexOf("word"));
-	jQuery.post( "receiver.php", {action: "removeword", game: game, word: word}, receivedata );
+	post({action: "removeword", game: game, word: word}, receivedata);
 	words.splice(words.indexOf(word), 1);
 	wordspan.parentNode.removeChild(wordspan);
   }
@@ -126,7 +126,7 @@ function sortword(word)
 	wordspan.className = 'wordspan';
 	wordspan.id = word+'word';
 	wordspan.innerHTML = word;
-	if (mystatus != 2) {$( wordspan ).attr( "onClick", "removeword(this);" ); wordspan.className += ' deletable';}
+	if (mystatus != 2) {wordspan.onclick = function() { removeword(wordspan); }; wordspan.className += ' deletable';}
 	if (found != -1)
 	{
 		var span = pointspan(wordpoints[found].points);
@@ -433,23 +433,22 @@ function keyhandle(e)
 	}
   }
 
- function colortransition( id , ini){
-    if ( $( id ).hasClass("fadeIn") ){
-     $( id ).removeClass( "fadeIn");
-     $( id ).addClass( "fadeOut" );
-    }else{
-     $( id ).removeClass( "fadeOut");
-     $( id ).addClass( "fadeIn" );
-    }
-    if (typeof(ini) === 'undefined'){
-     setTimeout(function() {colortransition( id , 1);},250);
-    }
-   }
+function colortransition(id, ini)
+{
+	var wordspan = document.getElementById(id);
+	var fadein = wordspan.classList.contains("fadeIn");
+	wordspan.classList.toggle("fadeIn", !fadein);
+	wordspan.classList.toggle("fadeOut", fadein);
+	if (ini === undefined)
+	{
+		setTimeout(function() { colortransition(id, 1); }, 250);
+	}
+}
 
 function leave() {
 	if (confirm("Wenn du dieses Spiel verlässt, gehen alle deine gefundenen Wörter verloren. Fortfahren?"))
 	{
-	jQuery.post( "receiver.php", {action: "leavegame", game: game}, function(){ window.location = "."; });
+	post({action: "leavegame", game: game}, function(){ window.location = "."; });
 	}
 }
 
@@ -458,7 +457,22 @@ function finish() {
 	document.getElementById('finish').style.display = 'none';
 	document.getElementById('inputline').style.display = 'none';
 	document.getElementById('lettersortbuttons').style.display = 'none';
-	jQuery.post( "receiver.php", {action: "finishgame", game: game}, finishdata );
+	post({action: "finishgame", game: game}, finishdata);
+}
+
+function get(url, callback)
+{
+	fetch(url).then(function(response) {
+		if (response.status == 304) { pollwait = Math.min(pollwait + 5000, 30000); return; }
+		response.json().then(callback);
+	});
+}
+
+function post(data, callback)
+{
+	fetch("receiver.php", {method: "POST", body: new URLSearchParams(data)}).then(function(response) {
+		response.json().then(callback);
+	});
 }
 
 function poll()
@@ -468,11 +482,11 @@ function poll()
 	if (document.hidden) { return; }
 	if (mystatus == 2)
 	{
-		jQuery.get( "receiver.php?action=finishrequest&game="+game+"&version="+version, finishdata );
+		get("receiver.php?action=finishrequest&game="+game+"&version="+version, finishdata);
 		return;
 	}
 	writeplayers(playerlist, false);
-	jQuery.get( "receiver.php?action=datarequest&game="+game+"&version="+version, receivedata );
+	get("receiver.php?action=datarequest&game="+game+"&version="+version, receivedata);
 }
 
 function repoll()
@@ -520,7 +534,6 @@ function writeplayers(list, withpoints)
 
 function finishdata(data)
 {
-	if (!data) { pollwait = Math.min(pollwait + 5000, 30000); return; }
 	pollwait = 5000;
 	playerstamp = Date.now();
 	version = data.version;
@@ -534,7 +547,6 @@ function finishdata(data)
 
 function receivedata(data)
   {
-	if (!data) { pollwait = Math.min(pollwait + 5000, 30000); return; }
 	pollwait = 5000;
 	playerstamp = Date.now();
 	version = data.version;
@@ -553,7 +565,7 @@ function receivedata(data)
 		else if (span.textContent != data.words[i].points)
 		{
 			span.textContent = data.words[i].points;
-			colortransition("#"+data.words[i].word+"word");
+			colortransition(data.words[i].word+"word");
 			changed = true;
 		}
 	}
