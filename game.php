@@ -20,8 +20,10 @@ $words = $mysql->execute_query("select word from word where game_id = ? and user
   var sortmode = 'standard';
   var lettermode = 'original';
   var words = <?php echo json_encode(array_merge([$currentgame['source_word']], array_column($words, 'word'))); ?>;
-  var pointdump = [];
+  var wordpoints = [];
   var allwordsdump = [];
+  var allplayersdump = [];
+  var uniquewords = [];
   var gamedata;
 
 $( document ).ready(function() {
@@ -73,8 +75,8 @@ $( document ).ready(function() {
 	<div id="chrono" onClick="sortmode = 'chrono'; sortwords();">chronologisch</div>
 	<div id="alpha" onClick="sortmode = 'alpha'; sortwords();">alphabetisch</div>
 	<div id="length" onClick="sortmode = 'length'; sortwords();">nach L&auml;nge</div>
-	<div id="points" onClick="sortmode = 'points'; pointdump=document.getElementById('words').cloneNode(true); sortwords();">nach Punkten</div>
-	<div id="player" onClick="sortmode = 'player'; sortwords();"></div>
+	<div id="points" onClick="sortmode = 'points'; sortwords();">nach Punkten</div>
+	<div id="player" onClick="sortmode = 'player'; sortwords();">nach Spielern</div>
 	<hr style="clear: both; margin-bottom: 5px;">
 	<div id="words"></div>
 	<div style="clear: both;"></div>
