@@ -8,18 +8,20 @@ function normalize_letters($string){
   return strtr($string, $upas);
   }
 
-$wait = "";
+$message = "";
 if (($_GET["go"] ?? "") == "neu" and isset($_POST["new"]) and ($_POST["website"] ?? "") == "")
 {
 	$sourceword = preg_replace('/[^a-z]/', '', strtolower(normalize_letters($_POST['word'] ?? '')));
-	if (strlen($sourceword) > 2)
+	if (strlen($sourceword) < 3)
+		$message = "Gib ein Wort mit mindestens drei Buchstaben ein.";
+	else
 	{
 		$recent = $mysql->execute_query("select sum(created_at > now() - interval 1 minute) as lastminute, count(*) as lasthour
 			from game where created_by = ? and created_at > now() - interval 1 hour", [$_SESSION['user_id']])->fetch_assoc();
 		if ($recent['lastminute'] > 0)
-			$wait = "Du hast gerade eben ein Spiel gestartet. Warte eine Minute, bevor du das nächste startest.";
+			$message = "Du hast gerade eben ein Spiel gestartet. Warte eine Minute, bevor du das nächste startest.";
 		elseif ($recent['lasthour'] >= 10)
-			$wait = "Du hast in der letzten Stunde zehn Spiele gestartet. Versuch es später noch einmal.";
+			$message = "Du hast in der letzten Stunde zehn Spiele gestartet. Versuch es später noch einmal.";
 		else
 		{
 			$flexion = 0;
@@ -106,9 +108,9 @@ if (($_GET["go"] ?? "") == "neu" and isset($_POST["new"]) and ($_POST["website"]
 			}
 			elseif (isset($_GET["go"]) and $_GET["go"]=="neu")
 			{
-				if ($wait) { echo '<p class="warning">'.$wait.'</p>'; }
+				if ($message) { echo '<p class="warning">'.$message.'</p>'; }
 				echo '<form method="post">Gib ein Wort ein, mit dem du ein Spiel starten willst.<br>
-					<input type="text" name="word" id="newwordinput"><br>
+					<input type="text" name="word" id="newwordinput" value="'.htmlspecialchars($_POST['word'] ?? '', ENT_QUOTES, 'UTF-8').'"><br>
 					<input type="text" name="website" class="hp" tabindex="-1" autocomplete="off">
 					Sprache: <select name="language" id="languageinput">
 					<option value="de">Deutsch</option>
