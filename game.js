@@ -126,7 +126,7 @@ function sortword(word)
 	wordspan.className = 'wordspan';
 	wordspan.id = word+'word';
 	wordspan.innerHTML = word;
-	if (mystatus != 2) {$( wordspan ).attr( "onClick", "removeword(this);" );}
+	if (mystatus != 2) {$( wordspan ).attr( "onClick", "removeword(this);" ); wordspan.className += ' deletable';}
 	if (found != -1)
 	{
 		var span = pointspan(wordpoints[found].points);
@@ -275,8 +275,13 @@ function sortfinishedword(word)
 			sortcontainer = document.getElementById("player"+lookFor(word["player"], allplayersdump, 'player')+"words");
 		break;
 	}
+	var finders = uniquewords[lookFor(word["word"], uniquewords, 'word')].finders;
 	var wordspan = document.createElement('span');
 	wordspan.className = 'wordspan';
+	if (finders.length == 1) { wordspan.className += ' unique'; }
+	if (words.indexOf(word["word"]) == -1) { wordspan.className += ' others'; }
+	else if (finders.length > 1) { wordspan.className += ' shared'; }
+	if (allplayersdump.length > 2) { wordspan.title = finders.join(', '); }
 	wordspan.textContent = word["word"];
 	wordspan.appendChild(pointspan(word["points"]));
 	sortcontainer.appendChild(wordspan);

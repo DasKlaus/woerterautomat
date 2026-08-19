@@ -159,7 +159,10 @@ p {margin-bottom: 10px;}
     border: 1px solid #bbbbbb; 
     transition: border-color 1s , color 1s 
    }
-.wordspan:hover {
+.unique {font-weight: bold;}
+.shared {background-color: #eee;}
+.others {background-color: #bbb; border-color: #999;}
+.deletable:hover {
   border: 1px solid #f66; text-decoration: line-through; -moz-text-decoration-color: #f66; text-decoration-color: #f66;
   .playerbox {width: 80px;}
 }
