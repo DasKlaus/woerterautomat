@@ -86,8 +86,11 @@ if (($_GET["go"] ?? "") == "neu" and isset($_POST["new"]) and ($_POST["website"]
 			}
 			elseif (isset($_GET["go"]) and $_GET["go"]=="anleitung")
 			{
-			echo 'Hier kommt irgendwann eine Anleitung hin, wenn ich dafür nicht zu faul bin.<br><br>
-				Wenn du Freude an Spielen hast, die sprachliches Improvisationsgeschick erfordern, dann solltest du dir außerdem das <a href="http://rhetorisches-quartett.de" target="_blank">Rhetorische Quartett</a> ansehen.';
+			echo '<h2>Anleitung</h2>
+				<p>Bilde aus den Buchstaben des Wortes m&ouml;glichst viele andere W&ouml;rter.
+				Jedes Wort bringt so viele Punkte, wie es Buchstaben hat, multipliziert mit der Anzahl der Mitspieler, die es nicht gefunden haben.</p>
+				<p>Die Auswertung wird angezeigt, wenn du das Spiel abschließt. Es ist erst dann wirklich beendet, wenn alle Spieler abgeschlossen haben.</p>
+				<p>Du kannst Mitspieler einladen, indem du die Spiel-URL mit ihnen teilst.</p>';
 			}
 			elseif (isset($_GET["go"]) and $_GET["go"]=="user")
 			{
