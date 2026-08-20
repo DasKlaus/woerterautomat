@@ -4,37 +4,92 @@ $dbname = "CHANGEME";
 $dbuser = "CHANGEME";
 $dbpass = "CHANGEME";
 
+session_set_cookie_params(['httponly' => true, 'samesite' => 'Lax', 'secure' => true]);
 session_start();
 $identity = null;
-$namemessage = "";
+$identitymessage = "";
 if (!isset($_SESSION['user_id']))
 {
 	$_SESSION['user_id'] = 0;
 	$_SESSION['player'] = "Gast";
 }
-if (isset($_POST['name']))
+if (!$_SESSION['user_id'] and strlen($_COOKIE['code'] ?? '') == 32)
 {
-	identify();
-	$name = mb_substr(trim($_POST['name']), 0, 32);
-	if ($name == "")
+	identityConnect();
+	$row = $identity->execute_query("select id, display_name from user where code = ?", [$_COOKIE['code']])->fetch_assoc();
+	if ($row)
 	{
-		$namemessage = "Der Name darf nicht leer sein.";
-		$name = "Gast".$_SESSION['user_id'];
+		session_regenerate_id(true);
+		$_SESSION['user_id'] = $row['id'];
+		$_SESSION['player'] = $row['display_name'];
+		$identity->execute_query("update user set last_seen_at = now() where id = ?", [$_SESSION['user_id']]);
+		identityRemember($_COOKIE['code']);
 	}
-	elseif (preg_match('/^gast\d/i', $name) and $name != "Gast".$_SESSION['user_id'])
+	else
 	{
-		$namemessage = "Namen aus Gast und einer Nummer sind reserviert.";
-		$name = "Gast".$_SESSION['user_id'];
+		identityForget();
+		$identitymessage = "Der gespeicherte Zugang ist ungültig. Möglicherweise wurde der Code in einer anderen Sitzung neu erzeugt.";
 	}
-	elseif ($name != trim($_POST['name']))
-		$namemessage = "Der Name wurde auf 32 Zeichen gekürzt.";
-	$identity->execute_query("update user set display_name = ?, last_seen_at = now() where id = ?", [$name, $_SESSION['user_id']]);
-	$_SESSION['player'] = $name;
+}
+switch ($_POST['do'] ?? '')
+{
+	case "name":
+		identify();
+		$name = mb_substr(trim($_POST['name'] ?? ''), 0, 32);
+		if ($name == "")
+		{
+			$identitymessage = "Der Name darf nicht leer sein.";
+			$name = "Gast".$_SESSION['user_id'];
+		}
+		elseif (preg_match('/^gast\d/i', $name) and $name != "Gast".$_SESSION['user_id'])
+		{
+			$identitymessage = "Namen aus Gast und einer Nummer sind reserviert.";
+			$name = "Gast".$_SESSION['user_id'];
+		}
+		elseif ($name != trim($_POST['name']))
+			$identitymessage = "Der Name wurde auf 32 Zeichen gekürzt.";
+		$identity->execute_query("update user set display_name = ?, last_seen_at = now() where id = ?", [$name, $_SESSION['user_id']]);
+		$_SESSION['player'] = $name;
+		break;
+	case "remember":
+		identify();
+		identityRemember(identityCode());
+		break;
+	case "forget":
+		identityForget();
+		break;
+	case "newcode":
+		identify();
+		$code = bin2hex(random_bytes(16));
+		$identity->execute_query("update user set code = ? where id = ?", [$code, $_SESSION['user_id']]);
+		if (isset($_COOKIE['code'])) { identityRemember($code); }
+		break;
+	case "usecode":
+		$code = trim($_POST['code'] ?? '');
+		identityConnect();
+		$row = $identity->execute_query("select id, display_name from user where code = ?", [$code])->fetch_assoc();
+		if ($row)
+		{
+			session_regenerate_id(true);
+			$_SESSION['user_id'] = $row['id'];
+			$_SESSION['player'] = $row['display_name'];
+			$identity->execute_query("update user set last_seen_at = now() where id = ?", [$_SESSION['user_id']]);
+			if (isset($_COOKIE['code'])) { identityRemember($code); }
+		}
+		else
+			$identitymessage = "Der Code ist unbekannt.";
+		break;
+	case "logout":
+		identityForget();
+		session_regenerate_id(true);
+		$_SESSION['user_id'] = 0;
+		$_SESSION['player'] = "Gast";
+		break;
 }
 $guest = (substr($_SESSION['player'], 0, 4) == "Gast");
 $writeplayer = ($guest)?"Gast":$_SESSION['player'];
 
-function identify()
+function identityConnect()
 {
 	global $host, $dbname, $dbuser, $dbpass, $identity;
 	if (!$identity)
@@ -42,19 +97,82 @@ function identify()
 		$identity = new mysqli($host, $dbuser, $dbpass, $dbname);
 		$identity->set_charset('utf8mb4');
 	}
+}
+
+function identify()
+{
+	global $identity;
+	identityConnect();
 	if (!$_SESSION['user_id'])
 	{
-		$identity->execute_query("insert into user (display_name, created_at, last_seen_at) values ('', now(), now())");
+		$identity->execute_query("insert into user (display_name, code, created_at, last_seen_at) values ('', ?, now(), now())", [bin2hex(random_bytes(16))]);
 		$_SESSION['user_id'] = $identity->insert_id;
 		$_SESSION['player'] = "Gast".$_SESSION['user_id'];
 		$identity->execute_query("update user set display_name = ? where id = ?", [$_SESSION['player'], $_SESSION['user_id']]);
 	}
 }
 
+function identityCode()
+{
+	global $identity;
+	identityConnect();
+	return (string)$identity->execute_query("select code from user where id = ?", [$_SESSION['user_id']])->fetch_column();
+}
+
+function identityRemember($code)
+{
+	setcookie('code', $code, ['expires' => time() + 31536000, 'path' => '/', 'secure' => true, 'httponly' => true, 'samesite' => 'Lax']);
+	$_COOKIE['code'] = $code;
+}
+
+function identityForget()
+{
+	setcookie('code', '', ['expires' => 1, 'path' => '/', 'secure' => true, 'httponly' => true, 'samesite' => 'Lax']);
+	unset($_COOKIE['code']);
+}
+
+function identityMessage()
+{
+	global $identitymessage;
+	if ($identitymessage) { echo '<p class="warning">'.htmlspecialchars($identitymessage, ENT_QUOTES, 'UTF-8').'</p>'; }
+}
+
 function identityForm()
 {
-	global $writeplayer, $namemessage;
-	if ($namemessage) { echo '<p class="warning">'.$namemessage.'</p>'; }
-	echo '<form method="post"><input style="width: 150px; margin-bottom: 10px;" type="text" name="name" value="'.htmlspecialchars($writeplayer, ENT_QUOTES, 'UTF-8').'"><br>
-			<input  style="width: 170px; margin-bottom: 10px;" type="submit" value="Name &auml;ndern"></form>';
+	global $writeplayer;
+	echo '<h3>Name</h3>
+		<p>Der Name ist für alle sichtbar. Beleidigendes, Privates oder Anstößiges ist nicht zulässig, Verstöße können über das Impressum gemeldet werden. Unzulässige Namen werden ohne Ankündigung anonymisiert.</p>
+		<form method="post" class="identity">
+			<input type="text" name="name" value="'.htmlspecialchars($writeplayer, ENT_QUOTES, 'UTF-8').'">
+			<button type="submit" name="do" value="name">Name &auml;ndern</button>
+		</form>';
+	if ($_SESSION['user_id'])
+	{
+		echo '<h3>Angemeldet bleiben</h3>
+			<p>Ein Cookie h&auml;lt die Anmeldung auf diesem Ger&auml;t ein Jahr lang und verl&auml;ngert sich bei jedem Besuch. Ohne Cookie endet die Anmeldung mit der Sitzung.</p>
+			<form method="post" class="identity">';
+		if (isset($_COOKIE['code']))
+			echo '<button type="submit" name="do" value="forget">Cookie l&ouml;schen</button>';
+		else
+			echo '<button type="submit" name="do" value="remember">Angemeldet bleiben</button>';
+		echo '</form>';
+	}
+	echo '<h3>Authentifizierungs-Code</h3>
+		<p>Mit dem Code ist ein Wiederanmelden in einem anderen Browser oder nach Ende der Sitzung möglich. Er sollte notiert und nicht weitergegeben werden.</p>';
+	if ($_SESSION['user_id'])
+		echo '<p class="code">'.identityCode().'</p>
+			<p class="warning">Ein neuer Code macht den bisherigen ung&uuml;ltig und beendet den Zugang in allen anderen Browsern.</p>
+			<form method="post" class="identity">
+			<button type="submit" name="do" value="newcode">Neuen Code erzeugen</button>
+			</form>';
+	echo '<form method="post" class="identity">
+			<input type="text" name="code" value="">
+			<button type="submit" name="do" value="usecode">Mit Code anmelden</button>
+		</form>';
+	if ($_SESSION['user_id'])
+		echo '<h3>Abmelden</h3>
+			<p class="warning">Ohne den Code ist der Zugang zu Name und Historie nach dem Abmelden dauerhaft verloren.</p>
+			<form method="post" class="identity">
+			<button type="submit" name="do" value="logout" onclick="return confirm(\'Ohne den Code ist der Zugang zu Name und Historie dauerhaft verloren. Wirklich abmelden?\');">Abmelden</button>
+			</form>';
 }

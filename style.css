@@ -8,8 +8,7 @@
 
 #headline, #headline:hover, #headline:visited, #headline:active {color: #000;}
 
-h1, h2, h3, h4 
-{
+h1, h2{
 	font-family: ScrambleMixed, serif;
 	font-weight: normal;
 }
@@ -26,7 +25,7 @@ h1
 
 h2 {font-size: 40px;}
 
-h3 {font-size: 16px;}
+h3 {font-size: 20px; font-weight: bold; font-family: Arial, serif;}
 
 @font-face { font-family: ScrambleMixed; src: url(ScrambleMixed.ttf); }
 
@@ -69,6 +68,7 @@ body
 	border-radius: 3px;
 	background-color: #fff;
 	cursor: pointer;
+	font-size: 16px;
 }
 
 #menu a:before, #leave:before, #finish:before {
@@ -186,3 +186,10 @@ p {margin-bottom: 10px;}
 
 #pagination {display: flex; justify-content: space-between;}
 #pagination a, #pagination span {display: inline-block; width: 16px; padding: 3px; font-size: 12px; text-align: center;}
+
+.identity {margin-bottom: 10px;}
+.identity input, .identity button {padding: 3px; border: 1px solid #000; border-radius: 3px; font-size: 16px;}
+.identity input {width: 300px;}
+.identity button {background-color: #fff; cursor: pointer; font-size: 16px;}
+.identity button:hover {box-shadow: inset 1px 2px 2px #888;}
+.code {font-family: monospace; font-size: 16px;}

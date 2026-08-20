@@ -76,6 +76,7 @@ if (($_GET["go"] ?? "") == "neu" and isset($_POST["new"]) and ($_POST["website"]
 		</div>
 		<div id="content">
 			<?php
+			identityMessage();
 			if (isset($_GET["go"]) and $_GET["go"]=="impressum")
 			{
 			echo '<h2>impressum</h2>
@@ -111,14 +112,13 @@ if (($_GET["go"] ?? "") == "neu" and isset($_POST["new"]) and ($_POST["website"]
 			}
 			elseif (isset($_GET["go"]) and $_GET["go"]=="user")
 			{
-				echo '<h2>profil</h2>
-					<p>Der Name ist für alle sichtbar. Beleidigendes, Privates oder Anstößiges ist nicht zulässig, Verstöße können an info@antiscrabble.de gemeldet werden. Unzulässige Namen werden ohne Ankündigung anonymisiert.</p>';
+				echo '<h2>profil</h2>';
 				identityForm();
 			}
 			elseif (isset($_GET["go"]) and $_GET["go"]=="neu")
 			{
 				if ($message) { echo '<p class="warning">'.$message.'</p>'; }
-				echo '<p>Das Wort ist für alle sichtbar. Beleidigendes, Privates oder Anstößiges ist nicht zulässig, Verstöße können an info@antiscrabble.de gemeldet werden. Unzulässige Spiele werden ohne Ankündigung gelöscht.</p>
+				echo '<p>Das Wort ist für alle sichtbar. Beleidigendes, Privates oder Anstößiges ist nicht zulässig, Verstöße können über das Impressum gemeldet werden. Unzulässige Spiele werden ohne Ankündigung gelöscht.</p>
 					<form method="post">Gib ein Wort ein, mit dem du ein Spiel starten willst.<br>
 					<input type="text" name="word" id="newwordinput" value="'.htmlspecialchars($_POST['word'] ?? '', ENT_QUOTES, 'UTF-8').'"><br>
 					<input type="text" name="website" class="hp" tabindex="-1" autocomplete="off">
