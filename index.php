@@ -82,31 +82,8 @@ if (($_GET["go"] ?? "") == "neu" and isset($_POST["new"]) and ($_POST["website"]
 			identityMessage();
 			if (isset($_GET["go"]) and $_GET["go"]=="impressum")
 			{
-			echo '<h2>impressum</h2>
-				<b>Angaben gemäß § 5 TMG:</b><br>
-				Wollmilchmedien<br>
-				Claudia R&ouml;ssel<br>
-				Elisabethstra&szlig;e 6<br>
-				18057 Rostock<br>
-				E-Mail: info@antiscrabble.de<br><br>
-
-				<h2>haftungsausschluss</h2>
-				<b>Haftung für Inhalte</b><br>
-				<p>Die Inhalte unserer Seiten wurden mit größter Sorgfalt erstellt. Für die Richtigkeit, Vollständigkeit und Aktualität der Inhalte können wir jedoch keine Gewähr übernehmen. Als Diensteanbieter sind wir gemäß § 7 Abs.1 TMG für eigene Inhalte auf diesen Seiten nach den allgemeinen Gesetzen verantwortlich. Nach §§ 8 bis 10 TMG sind wir als Diensteanbieter jedoch nicht verpflichtet, übermittelte oder gespeicherte fremde Informationen zu überwachen oder nach Umständen zu forschen, die auf eine rechtswidrige Tätigkeit hinweisen. Verpflichtungen zur Entfernung oder Sperrung der Nutzung von Informationen nach den allgemeinen Gesetzen bleiben hiervon unberührt. Eine diesbezügliche Haftung ist jedoch erst ab dem Zeitpunkt der Kenntnis einer konkreten Rechtsverletzung möglich. Bei Bekanntwerden von entsprechenden Rechtsverletzungen werden wir diese Inhalte umgehend entfernen.</p>
-				<br><b>Haftung für Links</b><br>
-				<p>Unser Angebot enthält Links zu externen Webseiten Dritter, auf deren Inhalte wir keinen Einfluss haben. Deshalb können wir für diese fremden Inhalte auch keine Gewähr übernehmen. Für die Inhalte der verlinkten Seiten ist stets der jeweilige Anbieter oder Betreiber der Seiten verantwortlich. Die verlinkten Seiten wurden zum Zeitpunkt der Verlinkung auf mögliche Rechtsverstöße überprüft. Rechtswidrige Inhalte waren zum Zeitpunkt der Verlinkung nicht erkennbar. Eine permanente inhaltliche Kontrolle der verlinkten Seiten ist jedoch ohne konkrete Anhaltspunkte einer Rechtsverletzung nicht zumutbar. Bei Bekanntwerden von Rechtsverletzungen werden wir derartige Links umgehend entfernen.</p>
-				<br><b>Urheberrecht</b><br>
-				<p>Die durch die Seitenbetreiber erstellten Inhalte und Werke auf diesen Seiten unterliegen dem deutschen Urheberrecht. Die Vervielfältigung, Bearbeitung, Verbreitung und jede Art der Verwertung außerhalb der Grenzen des Urheberrechtes bedürfen der schriftlichen Zustimmung des jeweiligen Autors bzw. Erstellers. Downloads und Kopien dieser Seite sind nur für den privaten, nicht kommerziellen Gebrauch gestattet. Soweit die Inhalte auf dieser Seite nicht vom Betreiber erstellt wurden, werden die Urheberrechte Dritter beachtet. Insbesondere werden Inhalte Dritter als solche gekennzeichnet. Sollten Sie trotzdem auf eine Urheberrechtsverletzung aufmerksam werden, bitten wir um einen entsprechenden Hinweis. Bei Bekanntwerden von Rechtsverletzungen werden wir derartige Inhalte umgehend entfernen.</p>
-				<h2>datenschutz</h2>
-				<b>Erhebung, Verarbeitung und Nutzung Deiner Daten</b><br>
-				<p>Du kannst diese Seite besuchen, ohne Angaben zu Deiner Person zu machen. Personenbezogene Daten werden nur erhoben, wenn Du uns diese freiwillig mitteilst. Wir verwenden die von Dir mitgeteilten Daten ohne Deine gesonderte Einwilligung ausschließlich zum bei der Erhebung angegebenen Zweck. </p>
-				<b>Weitergabe personenbezogener Daten</b><br>
-				<p>Eine Weitergabe deiner Daten an Dritte erfolgt nicht.</p>
-				<b>Auskunftsrecht</b><br>
-				<p>Nach dem Bundesdatenschutzgesetz hast Du ein Recht auf unentgeltliche Auskunft über Deine gespeicherten Daten. Außer deiner Emailadresse werden keine weiteren personenbezogenen Daten erhoben. Du kannst jederzeit formlos anfragen, ob wir deine Emailadresse gespeichert haben, indem du uns eine Email an info@antiscrabble.de schickst.</p>
-				<h2>sonstiges</h2>
-				<p>Wir weisen darauf hin, dass die Datenübertragung im Internet (z.B. bei der Kommunikation per E-Mail) Sicherheitslücken aufweisen kann. Ein lückenloser Schutz der Daten vor dem Zugriff durch Dritte ist nicht möglich.</p>
-				<p>Der Nutzung von im Rahmen der Impressumspflicht veröffentlichten Kontaktdaten durch Dritte zur Übersendung von nicht ausdrücklich angeforderter Werbung und Informationsmaterialien wird hiermit ausdrücklich widersprochen. Die Betreiber der Seiten behalten sich ausdrücklich rechtliche Schritte im Falle der unverlangten Zusendung von Werbeinformationen, etwa durch Spam-Mails, vor.</p>';
+				require_once("legal.php");
+				legalNotice();
 			}
 			elseif (isset($_GET["go"]) and $_GET["go"]=="anleitung")
 			{
