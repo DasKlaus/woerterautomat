@@ -55,14 +55,14 @@ if (($_GET["go"] ?? "") == "neu" and isset($_POST["new"]) and ($_POST["website"]
 	<div id="wrapper">
 		<a id="headline" href="."><h1>woerterautomat</h1></a>
 		<div id="menu">
-			<h2 style="text-transform: lowercase;"><?php echo htmlspecialchars($writeplayer, ENT_QUOTES, 'UTF-8'); ?></h2>
+			<?php if ($_SESSION['user_id']) echo '<h2>'.htmlspecialchars($writeplayer, ENT_QUOTES, 'UTF-8').'</h2>'; ?>
 			<a href="?go=user">Profil</a>
 			<a href="?go=neu">Neues Spiel</a>
 			<a href="?go=games">Spiele&uuml;bersicht</a>
 			<a href="?go=anleitung">Anleitung</a>
 			<a href="?go=impressum">Impressum</a>
 			<?php if ((isset($_GET["go"]) and $_GET["go"]=="games") or !isset($_GET['go'])) { ?>
-				<a id="relevant" href="?go=games&amp;mode=relevant" title="laufende und eigene Spiele">relevante Spiele</a>
+				<hr><a id="relevant" href="?go=games&amp;mode=relevant" title="laufende und eigene Spiele">relevante Spiele</a>
 				<a id="all" href="?go=games&amp;mode=all">alle Spiele</a>
 				<a id="own" href="?go=games&amp;mode=own">eigene Spiele</a>
 				<a id="new" href="?go=games&amp;mode=new">neue Spiele</a>
@@ -71,7 +71,7 @@ if (($_GET["go"] ?? "") == "neu" and isset($_POST["new"]) and ($_POST["website"]
 				<div id="pagination"></div>
 			<?php } ?>
 			<?php if (isset($_GET["go"]) and $_GET["go"]=="game") { ?>
-				<a id="leave" style="display: none;" onClick="leave();">Spiel verlassen</a>
+				<hr><a id="leave" style="display: none;" onClick="leave();">Spiel verlassen</a>
 				<a id="finish" style="display: none;" onClick="finish();">Spiel abschlie&szlig;en</a>
 				<div id="players"></div>
 			<?php } ?>
