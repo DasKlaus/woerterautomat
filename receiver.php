@@ -11,9 +11,8 @@ require_once("identity.php");
 
 $return = null;
 
-if ($_SERVER['REQUEST_METHOD'] === 'POST')
+if ($_SERVER['REQUEST_METHOD'] === 'POST' and $_SESSION['user_id'])
 {
-	identify();
 	if (identityRestriction() !== false) { $_SESSION['player'] = "Gast"; }
 	$user = $_SESSION['user_id'];
 	$game = (int)($_POST['game'] ?? 0);

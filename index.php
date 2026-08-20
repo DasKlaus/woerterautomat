@@ -9,7 +9,7 @@ function normalize_letters($string){
   }
 
 $message = "";
-if (($_GET["go"] ?? "") == "neu" and isset($_POST["new"]) and ($_POST["website"] ?? "") == "")
+if (($_GET["go"] ?? "") == "neu" and isset($_POST["new"]) and ($_POST["website"] ?? "") == "" and $_SESSION['user_id'])
 {
 	$sourceword = preg_replace('/[^a-z]/', '', strtolower(normalize_letters($_POST['word'] ?? '')));
 	$reason = identityRestriction();
@@ -29,7 +29,6 @@ if (($_GET["go"] ?? "") == "neu" and isset($_POST["new"]) and ($_POST["website"]
 			$message = "Du hast in der letzten Stunde zehn Spiele gestartet. Versuch es später noch einmal.";
 		else
 		{
-			identify();
 			$flexion = 0;
 			if (isset($_POST['flexion'])) { $flexion = 1; }
 			$language = (($_POST['language'] ?? 'de') == 'en') ? 'en' : 'de';
@@ -72,8 +71,8 @@ if (($_GET["go"] ?? "") == "neu" and isset($_POST["new"]) and ($_POST["website"]
 				<div id="pagination"></div>
 			<?php } ?>
 			<?php if (isset($_GET["go"]) and $_GET["go"]=="game") { ?>
-				<a id="leave" onClick="leave();">Spiel verlassen</a>
-				<a id="finish" onClick="finish();">Spiel abschlie&szlig;en</a>
+				<a id="leave" style="display: none;" onClick="leave();">Spiel verlassen</a>
+				<a id="finish" style="display: none;" onClick="finish();">Spiel abschlie&szlig;en</a>
 				<div id="players"></div>
 			<?php } ?>
 		</div>
@@ -93,6 +92,11 @@ if (($_GET["go"] ?? "") == "neu" and isset($_POST["new"]) and ($_POST["website"]
 			elseif (isset($_GET["go"]) and $_GET["go"]=="user")
 			{
 				echo '<h2>profil</h2>';
+				identityForm();
+			}
+			elseif (isset($_GET["go"]) and $_GET["go"]=="neu" and !$_SESSION['user_id'])
+			{
+				echo '<p>Vergib einen Namen, um ein Spiel zu erstellen, oder lass das Feld frei, um anonym zu spielen. Wenn du einen Authentifizierungs-Code hast, kannst du dich mit diesem anmelden.</p>';
 				identityForm();
 			}
 			elseif (isset($_GET["go"]) and $_GET["go"]=="neu")

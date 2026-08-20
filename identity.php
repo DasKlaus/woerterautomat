@@ -161,7 +161,7 @@ function identityForm()
 		echo '
 		<p>Der Name ist für alle sichtbar. Beleidigendes, Privates oder Anstößiges ist nicht zulässig, Verstöße können über das Impressum gemeldet werden. Unzulässige Namen werden ohne Ankündigung anonymisiert.</p>
 		<form method="post" class="identity">
-			<input type="text" name="name" value="'.htmlspecialchars($writeplayer, ENT_QUOTES, 'UTF-8').'">
+			<input type="text" name="name" value="'.htmlspecialchars($_SESSION['user_id'] ? $writeplayer : '', ENT_QUOTES, 'UTF-8').'">
 			<button type="submit" name="do" value="name">Name &auml;ndern</button>
 		</form>';
 	if ($_SESSION['user_id'])
