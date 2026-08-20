@@ -14,6 +14,7 @@ $return = null;
 if ($_SERVER['REQUEST_METHOD'] === 'POST')
 {
 	identify();
+	if (identityRestriction() !== false) { $_SESSION['player'] = "Gast"; }
 	$user = $_SESSION['user_id'];
 	$game = (int)($_POST['game'] ?? 0);
 	$word = mb_strtolower(trim($_POST['word'] ?? ''));

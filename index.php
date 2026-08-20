@@ -12,7 +12,10 @@ $message = "";
 if (($_GET["go"] ?? "") == "neu" and isset($_POST["new"]) and ($_POST["website"] ?? "") == "")
 {
 	$sourceword = preg_replace('/[^a-z]/', '', strtolower(normalize_letters($_POST['word'] ?? '')));
-	if (strlen($sourceword) < 3)
+	$reason = identityRestriction();
+	if ($reason !== false)
+		$message = "Das Erstellen von Spielen wurde gesperrt. ".$reason;
+	elseif (strlen($sourceword) < 3)
 		$message = "Gib ein Wort mit mindestens drei Buchstaben ein.";
 	elseif (strlen($sourceword) > 64)
 		$message = "Das Wort ist zu lang. Mehr als 64 Buchstaben sind nicht möglich.";
@@ -117,7 +120,7 @@ if (($_GET["go"] ?? "") == "neu" and isset($_POST["new"]) and ($_POST["website"]
 			}
 			elseif (isset($_GET["go"]) and $_GET["go"]=="neu")
 			{
-				if ($message) { echo '<p class="warning">'.$message.'</p>'; }
+				if ($message) { echo '<p class="warning">'.htmlspecialchars($message, ENT_QUOTES, 'UTF-8').'</p>'; }
 				echo '<p>Das Wort ist für alle sichtbar. Beleidigendes, Privates oder Anstößiges ist nicht zulässig, Verstöße können über das Impressum gemeldet werden. Unzulässige Spiele werden ohne Ankündigung gelöscht.</p>
 					<form method="post">Gib ein Wort ein, mit dem du ein Spiel starten willst.<br>
 					<input type="text" name="word" id="newwordinput" value="'.htmlspecialchars($_POST['word'] ?? '', ENT_QUOTES, 'UTF-8').'"><br>
