@@ -130,7 +130,7 @@ p {margin-bottom: 10px;}
 }
 .playerdiv { margin: 10px 0px 10px 0px; padding: 3px; }
 #standard, #chrono, #alpha, #length, #points, #player {padding: 3px 10px 0px 10px; margin: 0px -1px 0px 0px; border-radius: 3px; border: 1px solid #000; border-bottom: 0px; cursor: default; font-family: Rounded, Arial, sans;}
-#wordbox {line-height: 32px;}
+#wordbox {line-height: 22px;}
 #input {font-size: 40px; width: 630px;}
 #letters {clear: both;
 	webkit-user-select: none;
