@@ -47,7 +47,7 @@ if (($_GET["go"] ?? "") == "neu" and isset($_POST["new"]) and ($_POST["website"]
 <html>
 	<head>
 		<title>W&ouml;rterautomat</title>
-		<meta name="robots" content="index,follow">
+		<meta name="robots" content="index,nofollow">
 		<meta charset="UTF-8">
 		<link href="style.css" type="text/css" rel="stylesheet" media="screen">
 	</head>
@@ -84,14 +84,6 @@ if (($_GET["go"] ?? "") == "neu" and isset($_POST["new"]) and ($_POST["website"]
 				require_once("legal.php");
 				legalNotice();
 			}
-			elseif (isset($_GET["go"]) and $_GET["go"]=="anleitung")
-			{
-			echo '<h2>Anleitung</h2>
-				<p>Bilde aus den Buchstaben des Wortes m&ouml;glichst viele andere W&ouml;rter.
-				Jedes Wort bringt so viele Punkte, wie es Buchstaben hat, multipliziert mit der Anzahl der Mitspieler, die es nicht gefunden haben.</p>
-				<p>Die Auswertung wird angezeigt, wenn du das Spiel abschließt. Es ist erst dann wirklich beendet, wenn alle Spieler abgeschlossen haben.</p>
-				<p>Du kannst Mitspieler einladen, indem du die Spiel-URL mit ihnen teilst.</p>';
-			}
 			elseif (isset($_GET["go"]) and $_GET["go"]=="user")
 			{
 				echo '<h2>profil</h2>';
@@ -122,8 +114,14 @@ if (($_GET["go"] ?? "") == "neu" and isset($_POST["new"]) and ($_POST["website"]
 				include_once("game.php");
 			elseif (isset($_GET["go"]) and $_GET["go"]=="games")
 				include_once("allGames.php");
-			else
-				include_once("allGames.php");
+			else # $_GET["go"]=="anleitung" doubles as start page
+			{
+				echo '<h2>Anleitung</h2>
+					<p>Bilde aus den Buchstaben des Wortes m&ouml;glichst viele andere W&ouml;rter.
+					Jedes Wort bringt so viele Punkte, wie es Buchstaben hat, multipliziert mit der Anzahl der Mitspieler, die es nicht gefunden haben.</p>
+					<p>Die Auswertung wird angezeigt, wenn du das Spiel abschließt. Es ist erst dann wirklich beendet, wenn alle Spieler abgeschlossen haben.</p>
+					<p>Du kannst Mitspieler einladen, indem du die Spiel-URL mit ihnen teilst.</p>';
+			}
 			?>
 		</div>
 	</div>
