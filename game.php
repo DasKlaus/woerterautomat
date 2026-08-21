@@ -46,7 +46,6 @@ $words = $mysql->execute_query("select word from word where game_id = ? and user
   var isplayer = <?php echo json_encode($mystatus !== false); ?>;
   var gamestatus = <?php echo json_encode((int)$currentgame['status']); ?>;
   var sortmode = 'standard';
-  var lettermode = 'original';
   var words = <?php echo json_encode(array_merge([$currentgame['source_word']], array_column($words, 'word'))); ?>;
   var wordpoints = [];
   var ownpoints = 0;
@@ -63,7 +62,6 @@ document.addEventListener('DOMContentLoaded', function() {
   if (gamestatus == 2) { mystatus = 2; }
   if (isplayer || mystatus != 2) { document.getElementById("leave").style.display = 'block'; }
   writeletters(originalword);
-  document.getElementById("player").style.display = 'none';
   document.getElementById("input").value = '';
   document.getElementById('input').onkeypress = keyhandle;
   document.getElementById('input').onkeydown = keydownhandle;
@@ -71,8 +69,8 @@ document.addEventListener('DOMContentLoaded', function() {
   if (mystatus == 2)
   {
 	document.getElementById('inputline').style.display = 'none';
-	document.getElementById('player').style.display = 'block';
 	document.getElementById('lettersortbuttons').style.display = 'none';
+	playerbutton();
 	get("receiver.php?action=finishrequest&game="+game, finishdata);
   }
   else
@@ -87,10 +85,10 @@ document.addEventListener('DOMContentLoaded', function() {
 </script>
 
 <div id="letterline" style="">
-	<div id="lettersortbuttons">
-	<div id="shuffle" onClick="writeletters(randomstring(originalword));" style="margin-left: 180px;">mischen</div>
-	<div id="abc" onClick="writeletters(sortstring(originalword));">alphabetisch</div>
-	<div id="orig" onClick="writeletters(originalword);">original</div>
+	<div id="lettersortbuttons" class="modes">
+	<div onClick="select(this); writeletters(randomstring(originalword));">mischen</div>
+	<div onClick="select(this); writeletters(sortstring(originalword));">alphabetisch</div>
+	<div class="selected" onClick="select(this); writeletters(originalword);">original</div>
 	</div>
 
 	<div id="letters"></div>
@@ -99,16 +97,14 @@ document.addEventListener('DOMContentLoaded', function() {
 	<div id="back" onClick="backspace();">zur&uuml;ck</div>
 	<input type="text" id="input" value="" autofocus>
 	<div id="submit" onClick="submitword();">absenden</div>
-	<br style="clear: both;">
 </div>
 <div id="wordbox" style="">
-	<div id="standard" onClick="sortmode = 'standard'; sortwords();">standard</div>
-	<div id="chrono" onClick="sortmode = 'chrono'; sortwords();">chronologisch</div>
-	<div id="alpha" onClick="sortmode = 'alpha'; sortwords();">alphabetisch</div>
-	<div id="length" onClick="sortmode = 'length'; sortwords();">nach L&auml;nge</div>
-	<div id="points" onClick="sortmode = 'points'; sortwords();">nach Punkten</div>
-	<div id="player" onClick="sortmode = 'player'; sortwords();">nach Spielern</div>
-	<hr style="clear: both; margin-bottom: 5px;">
+	<div id="sortbuttons" class="modes">
+	<div class="selected" onClick="select(this); sortmode = 'standard'; sortwords();">standard</div>
+	<div onClick="select(this); sortmode = 'chrono'; sortwords();">chronologisch</div>
+	<div onClick="select(this); sortmode = 'alpha'; sortwords();">alphabetisch</div>
+	<div onClick="select(this); sortmode = 'length'; sortwords();">nach L&auml;nge</div>
+	<div onClick="select(this); sortmode = 'points'; sortwords();">nach Punkten</div>
+	</div>
 	<div id="words"></div>
-	<div style="clear: both;"></div>
 </div>

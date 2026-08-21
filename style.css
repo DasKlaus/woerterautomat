@@ -11,7 +11,7 @@ body {font-size: 14px;}
 input, select, button {font-size: inherit;}
 h1, h2 {font-family: var(--display); font-weight: normal;}
 h1 {font-size: clamp(2.5rem, 12vw, 6.375rem); line-height: 1; text-align: center;}
-h2 {font-size: 40px; text-transform: lowercase;}
+h2 {font-size: 40px; text-transform: lowercase; line-height: .5;}
 h3 {font-family: var(--ui); font-size: 20px; font-weight: normal;}
 p {margin-bottom: 10px;}
 input, select {background-color: var(--shade); font-family: var(--ui);}
@@ -25,32 +25,51 @@ input, select {background-color: var(--shade); font-family: var(--ui);}
 #headline {grid-area: head; color: var(--fg);}
 #content {grid-area: content; min-width: 0;}
 
-#menu {grid-area: menu; align-self: start; position: sticky; top: 1rem;
+#menu {grid-area: menu; align-self: start; position: sticky; top: 1rem; overflow-wrap: anywhere;
 	max-height: calc(100dvh - 2rem); overflow-y: auto; padding: 0 6px 6px 0;}
-#menu a {position: relative; display: block; margin-bottom: 10px; padding: 3px; border: 1px solid var(--fg); border-radius: 3px;
-	background-color: var(--bg); color: var(--fg); font-family: var(--ui); font-size: 16px; cursor: pointer;}
-#menu a:before {content: " "; position: absolute; z-index: -1; top: 3px; left: 3px; right: -5px; bottom: -5px;
+#menu > a, #pagination a {position: relative; display: block; margin-bottom: 10px; padding: 3px;
+	border: 1px solid var(--fg); border-radius: 3px; background-color: var(--bg); color: var(--fg);
+	font-family: var(--ui); font-size: 16px; cursor: pointer;}
+#menu > a:before, #pagination a:before {content: " "; position: absolute; z-index: -1; top: 3px; right: -5px; bottom: -5px; left: 3px;
 	border: 1px solid var(--fg); border-radius: 3px;}
-#menu a:hover:before, #menu a:active:before {background-color: var(--fg);}
 #menu hr {margin-bottom: 10px; border: none; color: transparent;}
+
+/* mode buttons: an attached group per choice, each item carrying its own shape */
+
+.modes {display: flex; flex-wrap: wrap; row-gap: 8px; width: max-content; max-width: 100%; margin-bottom: 10px;}
+.modes > * {position: relative; margin-left: -1px; padding: 3px 5px; border: 1px solid var(--fg);
+	background-color: var(--bg); color: var(--fg); cursor: pointer;}
+.modes > :first-child {margin-left: 0; border-radius: 3px 0 0 3px;}
+.modes > :last-child {border-radius: 0 3px 3px 0;}
+.modes > :before {content: " "; position: absolute; z-index: -1; top: 3px; right: -1px; bottom: -5px; left: -1px;
+	border: 1px solid var(--fg);}
+.modes > :first-child:before {left: 3px; border-radius: 3px 0 0 3px;}
+.modes > :last-child:before {right: 3px; border-radius: 0 3px 3px 0;}
+
+#menu .modes {flex-direction: column; row-gap: 0; width: auto;}
+#menu .modes > * {margin: -1px 0 0; font-size: 16px;}
+#menu .modes > :first-child {margin-top: 0; border-radius: 3px 3px 0 0;}
+#menu .modes > :last-child {border-radius: 0 0 3px 3px;}
+#menu .modes > :before {top: -1px; right: -5px; bottom: -1px; left: 3px;}
+#menu .modes > :first-child:before {top: 3px; border-radius: 3px 3px 0 0;}
+#menu .modes > :last-child:before {bottom: 3px; border-radius: 0 0 3px 3px;}
+
+#menu > a.selected:before, .modes > .selected:before {background-color: var(--line);}
+#menu > a:hover:before, #menu > a:active:before, #pagination a:hover:before, #pagination a:active:before,
+	.modes > :hover:before, .modes > :active:before {background-color: var(--fg);}
 
 /* game: letters and input */
 
-#lettersortbuttons div {float: left; margin: 0 10px; padding: 3px 10px 0; border: 1px solid var(--fg); border-radius: 3px; cursor: default;}
-#lettersortbuttons div:hover {background-color: var(--shade);}
-#letters {clear: both; width: 820px; padding: 10px; line-height: 50px; cursor: default;
-	-webkit-user-select: none; user-select: none;}
-#letters span {font-family: var(--display); font-size: 102px;}
-#back, #submit {float: left; height: 59px; margin: 10px; padding: 20px 10px 5px; border: 1px solid var(--fg); border-radius: 3px; font-family: var(--ui);}
+#letters {padding: 10px; line-height: 1; cursor: default; overflow-wrap: anywhere; -webkit-user-select: none; user-select: none;}
+#letters span {font-family: var(--display); font-size: 102px; line-height: .5;}
+#inputline {display: flex; gap: 20px; margin: 10px;}
+#back, #submit {padding: 20px 10px 5px; border: 1px solid var(--fg); border-radius: 3px; font-family: var(--ui);}
 #back:hover, #submit:hover {background-color: var(--shade);}
-#input {float: left; width: 652px; margin: 10px; padding: 5px 10px; border: 1px solid var(--fg); border-radius: 3px; font-size: 40px;}
+#input {flex: 1; min-width: 0; padding: 5px 10px; border: 1px solid var(--fg); border-radius: 3px; font-size: 40px;}
 
 /* game: word box */
 
 #wordbox {margin: 10px; padding: 5px 10px; border: 1px solid var(--fg); border-radius: 3px; line-height: 22px;}
-#standard, #chrono, #alpha, #length, #points, #player {float: left; margin: 0 -1px 0 0; padding: 3px 10px 0;
-	border: 1px solid var(--fg); border-bottom: 0; border-radius: 3px; font-family: var(--ui); cursor: default;}
-#standard:hover, #chrono:hover, #alpha:hover, #length:hover, #points:hover, #player:hover {background-color: var(--shade);}
 .startletter, .startnumber {margin-right: 10px; font-family: var(--display); font-size: 40px; font-weight: bold;}
 .startletter {text-transform: lowercase;}
 .wordspan {padding: 1px 3px; border: 1px solid var(--line); border-radius: 3px; color: var(--fg); transition: border-color 1s, color 1s;}
@@ -68,8 +87,8 @@ input, select {background-color: var(--shade); font-family: var(--ui);}
 
 /* game list */
 
-.game {display: block; float: left; width: 447px; height: 112px; margin: 0 10px 10px 0; padding: 5px;
-	border: 1px solid var(--fg); border-radius: 3px; color: var(--fg);}
+#games {display: grid; grid-template-columns: repeat(auto-fill, minmax(min(20rem, 100%), 1fr)); gap: 10px;}
+.game {min-height: 112px; padding: 5px; border: 1px solid var(--fg); border-radius: 3px; color: var(--fg); overflow-wrap: anywhere;}
 .game:hover {background-color: var(--shade-dark);}
 #pagination {display: flex; justify-content: space-between;}
 #pagination a, #pagination span {display: inline-block; width: 22px; padding: 3px; font-size: 12px; text-align: center;}

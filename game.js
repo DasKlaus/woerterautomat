@@ -8,7 +8,24 @@
 // Auswertung: langsam anzeigen
 // Auswertung: weiter mögliche Wörter aus dem Wörterbuch anzeigen
 
-function letterclicked(obj) 
+function select(button)
+  {
+	var buttons = button.parentNode.children;
+	for (var i=0; i<buttons.length; i++)
+	  {
+		buttons[i].classList.toggle('selected', buttons[i] == button);
+	  }
+  }
+
+function playerbutton()
+  {
+	var button = document.createElement('div');
+	button.textContent = "nach Spielern";
+	button.onclick = function() { select(button); sortmode = 'player'; sortwords(); };
+	document.getElementById("sortbuttons").appendChild(button);
+  }
+
+function letterclicked(obj)
   {
 	obj.style.display = "none";
 	document.getElementById("input").value += obj.innerHTML;
@@ -455,6 +472,7 @@ function finish() {
 	document.getElementById('finish').style.display = 'none';
 	document.getElementById('inputline').style.display = 'none';
 	document.getElementById('lettersortbuttons').style.display = 'none';
+	playerbutton();
 	post({action: "finishgame", game: game}, finishdata);
 }
 
