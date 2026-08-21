@@ -44,11 +44,12 @@ if (($_GET["go"] ?? "") == "neu" and isset($_POST["new"]) and ($_POST["website"]
 }
 ?>
 <!DOCTYPE html>
-<html>
+<html lang="de">
 	<head>
 		<title>W&ouml;rterautomat</title>
 		<meta name="robots" content="index,nofollow">
 		<meta charset="UTF-8">
+		<meta name="viewport" content="width=device-width, initial-scale=1">
 		<link href="style.css" type="text/css" rel="stylesheet" media="screen">
 	</head>
 	<body>
