@@ -1,200 +1,87 @@
-* 
-{
-	margin: 0px;
-	padding: 0px;
-	list-style: none;
-	text-decoration: none;
-	font-size: 14px;
-	font-family: Arial, sans;
+:root {
+	--fg: #000; --bg: #fff; --shade: #eee; --shade-dark: #ddd; --line: #bbb; --muted: #999; --alert: #f66;
+	--body: Arial, sans-serif; --ui: Rounded, Arial, sans-serif; --display: ScrambleMixed, sans-serif;
 }
 
-#headline, #headline:hover, #headline:visited, #headline:active {position: absolute; padding-left:200px; color: #000;}
+@font-face {font-family: ScrambleMixed; src: url(fonts/ScrambleMixed-German.ttf);}
+@font-face {font-family: Rounded; src: url(fonts/ARLRDBD.TTF);}
 
-h1, h2{
-	font-family: ScrambleMixed, sans;
-	font-weight: normal;
-}
-
-h1 
-{
-	font-size: 102px;
-	text-align: center;
-	top: 0px;
-	background-color: #fff;
-	z-index: 2;
-	height: 98px;
-}
-
+* {margin: 0; padding: 0; list-style: none; text-decoration: none; font-size: 14px; font-family: var(--body);}
+body {text-align: center;}
+h1, h2 {font-family: var(--display); font-weight: normal;}
+h1 {height: 98px; background-color: var(--bg); font-size: 102px; text-align: center;}
 h2 {font-size: 40px; text-transform: lowercase;}
-
-h3 {font-size: 20px; font-weight: normal; font-family: Rounded, Arial, sans;}
-
-@font-face { font-family: ScrambleMixed; src: url(fonts/ScrambleMixed-German.ttf); }
-@font-face { font-family: Rounded; src: url(fonts/ARLRDBD.TTF); }
-
-input, textarea, select {
-	background-color: #eee;
-	font-family: Rounded, Arial, sans;
-}
-
-select {width: 516px;}
-
-body
-	{
-		font-family: Verdana, sans-serif;
-		text-align: center;
-		position:relative;
-	}
-
-#wrapper
-	{
-		position:relative;
-		margin:0px auto auto;
-		text-align:left;
-		width: 1000px;
-	}
-
-#menu {
-	position: fixed;
-	left: auto;
-	top: 100px;
-	width: 170px;
-}
-
-#menu a{
-	position: relative;
-	display: block;
-	color: #000;
-	margin-bottom: 10px;
-	padding: 3px;
-	border: 1px solid #000;
-	border-radius: 3px;
-	background-color: #fff;
-	cursor: pointer;
-	font-size: 16px;
-	font-family: Rounded, Arial, sans;
-}
-
-#menu a:before{
-   content: " ";
-   position: absolute;
-   z-index: -1;
-   top: 3px;
-   left: 3px;
-   right: -5px;
-   bottom: -5px;
-   border: 1px solid #000;
-   border-radius: 3px;
-}
-#menu a:hover:before, #menu a:active:before {background-color: #000;}
-
-#menu hr {margin-bottom: 10px; color: transparent; border: none;}
-
-
-
-#content {
-	width: 926px;
-	position: absolute;
-	top: 100px;
-	left: 200px;
-}
-
+h3 {font-family: var(--ui); font-size: 20px; font-weight: normal;}
 p {margin-bottom: 10px;}
-
-.info 
-{
-	padding: 10px;
-	border: 1px solid #000;
-	border-radius: 6px;
-}
-
-.game 
-{
-	display: block;
-	float: left;
-	width: 435px;
-	height: 100px;
-	margin-right: 10px;
-	margin-bottom: 10px;
-	padding: 5px;
-	border: 1px solid #000;
-	border-radius: 3px;
-	color: #000;
-}
-
-.game:hover {background-color: #ddd;}
-
-#clock, #shuffle, #abc, #orig, #back, #submit, #input, #wordbox, .playerdiv
-{
-	padding: 5px 10px ; border: 1px solid #000; border-radius: 3px; margin:10px;
-}
-.playerdiv { margin: 10px 0px 10px 0px; padding: 3px; }
-#standard, #chrono, #alpha, #length, #points, #player {padding: 3px 10px 0px 10px; margin: 0px -1px 0px 0px; border-radius: 3px; border: 1px solid #000; border-bottom: 0px; cursor: default; font-family: Rounded, Arial, sans;}
-#wordbox {line-height: 22px;}
-#input {font-size: 40px; width: 630px;}
-#letters {clear: both;
-	webkit-user-select: none;
-	-moz-user-select: none;
-	-ms-user-select: none;
-	user-select: none;
-	cursor: default;
-	line-height: 50px;
-	padding: 10px; width: 800px;
-}
-#letters span { font-size: 102px; font-family: ScrambleMixed; }
-#back, #submit {padding-top: 20px; height: 32px; font-family: Rounded, Arial, sans;}
-#shuffle:hover, #abc:hover, #orig:hover, #back:hover, #submit:hover, #standard:hover, #chrono:hover, #alpha:hover, #length:hover, #points:hover, #player:hover {background-color: #eee;}
-#back, #input, #submit, #standard, #chrono, #alpha, #length, #points, #player {float: left; font-family: Rounded, Arial, sans;}
-#lettersortbuttons div {padding: 3px 10px 0px 10px; margin: 0px 10px; border-radius: 3px; border: 1px solid #000; cursor: default; float: left;}
-.startletter {margin-right: 10px; font-weight: bold; font-family: ScrambleMixed; font-size: 40px; text-transform:lowercase}
-.startnumber {margin-right: 10px; font-weight: bold; font-family: ScrambleMixed; font-size: 40px;}
-.wordspan {
-    padding: 1px 3px 1px 3px; 
-    border: 1px solid #bbbbbb; 
-    border-radius: 3px;
-    color: #000000;
-    transition: border-color 1s , color 1s ;
-    }
-   .fadeIn{
-    color: #ff6666 ;
-    border: 1px solid #ff6666;
-    transition: border-color 0s , color 0s ;
-   }
-   .fadeOut{
-    color: #000000 ;
-    border: 1px solid #bbbbbb; 
-    transition: border-color 1s , color 1s 
-   }
-.unique {font-weight: bold;}
-.shared {background-color: #eee;}
-.others {background-color: #bbb; border-color: #999;}
-.deletable:hover {
-  border: 1px solid #f66; text-decoration: line-through; -moz-text-decoration-color: #f66; text-decoration-color: #f66;
-}
-.pointspan { color: 999; font-size: 10px; margin-left: 3px;}
-
-#wordtable {width: 100%;}
-#wordtable td {border: 1px solid #bbb; padding: 0px 3px;}
-.mainrow {font-weight: bold;}
-#wordtable {
-	border-spacing: 0px;
-	}
-
-#menu input {padding: 10px; border-radius: 3px; font-size: 16px;}
-
-#newwordinput { margin-top: 10px; margin-bottom: 40px; width: 100%; padding: 10px; font-family: "ScrambleMixed"; font-size: 102px;}
-#languageinput { width: 150px; margin-right: 100px;}
-#flexioncheckbox { }
-#newgamesubmit {float: right; padding: 20px; margin-top: -20px;}
+input, select {background-color: var(--shade); font-family: var(--ui);}
+.warning {color: var(--alert);}
 .hp {position: absolute; left: -9999px;}
-.warning {color: #f66;}
 
+/* layout */
+
+#wrapper {position: relative; width: 1000px; margin: 0 auto auto; text-align: left;}
+#headline {position: absolute; padding-left: 200px; color: var(--fg);}
+#content {position: absolute; top: 100px; left: 200px; width: 926px;}
+
+#menu {position: fixed; top: 100px; width: 170px;}
+#menu a {position: relative; display: block; margin-bottom: 10px; padding: 3px; border: 1px solid var(--fg); border-radius: 3px;
+	background-color: var(--bg); color: var(--fg); font-family: var(--ui); font-size: 16px; cursor: pointer;}
+#menu a:before {content: " "; position: absolute; z-index: -1; top: 3px; left: 3px; right: -5px; bottom: -5px;
+	border: 1px solid var(--fg); border-radius: 3px;}
+#menu a:hover:before, #menu a:active:before {background-color: var(--fg);}
+#menu hr {margin-bottom: 10px; border: none; color: transparent;}
+
+/* game: letters and input */
+
+#lettersortbuttons div {float: left; margin: 0 10px; padding: 3px 10px 0; border: 1px solid var(--fg); border-radius: 3px; cursor: default;}
+#lettersortbuttons div:hover {background-color: var(--shade);}
+#letters {clear: both; width: 800px; padding: 10px; line-height: 50px; cursor: default;
+	webkit-user-select: none; -moz-user-select: none; -ms-user-select: none; user-select: none;}
+#letters span {font-family: var(--display); font-size: 102px;}
+#back, #submit {float: left; height: 32px; margin: 10px; padding: 20px 10px 5px; border: 1px solid var(--fg); border-radius: 3px; font-family: var(--ui);}
+#back:hover, #submit:hover {background-color: var(--shade);}
+#input {float: left; width: 630px; margin: 10px; padding: 5px 10px; border: 1px solid var(--fg); border-radius: 3px; font-size: 40px;}
+
+/* game: word box */
+
+#wordbox {margin: 10px; padding: 5px 10px; border: 1px solid var(--fg); border-radius: 3px; line-height: 22px;}
+#standard, #chrono, #alpha, #length, #points, #player {float: left; margin: 0 -1px 0 0; padding: 3px 10px 0;
+	border: 1px solid var(--fg); border-bottom: 0; border-radius: 3px; font-family: var(--ui); cursor: default;}
+#standard:hover, #chrono:hover, #alpha:hover, #length:hover, #points:hover, #player:hover {background-color: var(--shade);}
+.startletter, .startnumber {margin-right: 10px; font-family: var(--display); font-size: 40px; font-weight: bold;}
+.startletter {text-transform: lowercase;}
+.wordspan {padding: 1px 3px; border: 1px solid var(--line); border-radius: 3px; color: var(--fg); transition: border-color 1s, color 1s;}
+.fadeIn {border: 1px solid var(--alert); color: var(--alert); transition: border-color 0s, color 0s;}
+.fadeOut {border: 1px solid var(--line); color: var(--fg); transition: border-color 1s, color 1s;}
+.unique {font-weight: bold;}
+.shared {background-color: var(--shade);}
+.others {background-color: var(--line); border-color: var(--muted);}
+.deletable:hover {border: 1px solid var(--alert); text-decoration: line-through; text-decoration-color: var(--alert);}
+.pointspan {margin-left: 3px; color: 999; font-size: 10px;}
+
+/* game: players */
+
+.playerdiv {margin: 10px 0; padding: 3px; border: 1px solid var(--fg); border-radius: 3px;}
+
+/* game list */
+
+.game {display: block; float: left; width: 435px; height: 100px; margin: 0 10px 10px 0; padding: 5px;
+	border: 1px solid var(--fg); border-radius: 3px; color: var(--fg);}
+.game:hover {background-color: var(--shade-dark);}
 #pagination {display: flex; justify-content: space-between;}
 #pagination a, #pagination span {display: inline-block; width: 16px; padding: 3px; font-size: 12px; text-align: center;}
 
+/* new game */
+
+#newwordinput {width: 100%; margin: 10px 0 40px; padding: 10px; font-family: var(--display); font-size: 102px;}
+#languageinput {width: 150px; margin-right: 100px;}
+#newgamesubmit {float: right; margin-top: -20px; padding: 20px;}
+
+/* identity */
+
 .identity {margin-bottom: 10px;}
-.identity input, .identity button {padding: 3px; border: 1px solid #000; border-radius: 3px; font-size: 16px;}
+.identity input, .identity button {padding: 3px; border: 1px solid var(--fg); border-radius: 3px; font-size: 16px;}
 .identity input {width: 300px;}
-.identity button {background-color: #fff; cursor: pointer; font-size: 16px; width: 170px;}
-.identity button:hover {background-color: #eee;}
+.identity button {width: 170px; background-color: var(--bg); cursor: pointer;}
+.identity button:hover {background-color: var(--shade);}
 .code {font-family: Rounded, monospace; font-size: 16px;}
