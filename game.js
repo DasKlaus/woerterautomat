@@ -9,7 +9,8 @@ function select(button)
 
 function playerbutton()
   {
-	var button = document.createElement('div');
+	var button = document.createElement('button');
+	button.type = "button";
 	button.textContent = "nach Spielern";
 	button.onclick = function() { select(button); sortmode = 'player'; sortwords(); };
 	document.getElementById("sortbuttons").appendChild(button);

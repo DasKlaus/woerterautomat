@@ -81,7 +81,7 @@ if (($_GET["go"] ?? "") == "neu" and isset($_POST["new"]) and ($_POST["website"]
 		</div>
 		<div id="content">
 			<?php
-			if ($go != 'game' or !$_SESSION['user_id']) { echo '<a href="."><h1 id="letters">woerterautomat</h1></a>'; }
+			if ($go != 'game') { echo '<a href="."><h1 id="letters">woerterautomat</h1></a>'; }
 			identityMessage();
 			if (isset($_GET["go"]) and $_GET["go"]=="impressum")
 			{

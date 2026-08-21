@@ -22,12 +22,12 @@ input, select {background-color: var(--shade); font-family: var(--ui);}
 
 #wrapper {display: grid; grid-template-columns: 11rem 1fr; grid-template-areas: "menu content";
 	gap: 0 1.5rem; max-width: 1200px; margin: 0 auto; padding: 0 1rem;}
-#content {grid-area: content; min-width: 0;}
+#content {grid-area: content; min-width: 0; container-type: inline-size;}
 #letters {color: var(--fg); padding: 26px 0; line-height: .5; cursor: default; overflow-wrap: anywhere; -webkit-user-select: none; user-select: none;}
 #letters span {font-family: var(--display); line-height: .5;}
 
-#menu {grid-area: menu; align-self: start; position: sticky; top: min(6.375rem, 12.5cqi); overflow-wrap: anywhere;
-	max-height: calc(100dvh - 2rem); overflow-y: auto; padding: 0 6px 6px 0;}
+#menu {grid-area: menu; align-self: start; position: sticky; top: 0; overflow-wrap: anywhere;
+	max-height: calc(100dvh - 2rem); overflow-y: auto; padding: 6em 6px 6px 0;}
 #menu > a, #pagination a {position: relative; display: block; margin-bottom: 10px; padding: 3px;
 	border: 1px solid var(--fg); border-radius: 3px; background-color: var(--bg); color: var(--fg);
 	font-family: var(--ui); font-size: 16px; cursor: pointer;}
@@ -38,8 +38,8 @@ input, select {background-color: var(--shade); font-family: var(--ui);}
 /* mode buttons: an attached group per choice, each item carrying its own shape */
 
 .modes {display: flex; flex-wrap: wrap; row-gap: 8px; width: max-content; max-width: 100%; margin-bottom: 10px;}
-.modes > * {position: relative; margin-left: -1px; padding: 3px 5px; border: 1px solid var(--fg);
-	background-color: var(--bg); color: var(--fg); cursor: pointer;}
+.modes > * {position: relative; margin-left: -1px; padding: 3px 5px; border: 1px solid var(--fg); appearance: none;
+	background-color: var(--bg); color: var(--fg); line-height: normal; cursor: pointer;}
 .modes > :first-child {margin-left: 0; border-radius: 3px 0 0 3px;}
 .modes > :last-child {border-radius: 0 3px 3px 0;}
 .modes > :before {content: " "; position: absolute; z-index: -1; top: 3px; right: -1px; bottom: -5px; left: -1px;

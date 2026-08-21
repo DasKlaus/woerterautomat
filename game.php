@@ -4,7 +4,8 @@ $currentgame = $mysql->execute_query("select source_word, status, language, flex
 		timestampdiff(minute, created_at, now()) as starttime from game where id = ?", [$game])->fetch_assoc();
 if (!$currentgame)
 {
-	echo 'Dieses Spiel gibt es nicht mehr.';
+	echo '<a href="."><h1 id="letters">woerterautomat</h1></a>
+		<p>Dieses Spiel gibt es nicht mehr.</p>';
 	return;
 }
 
@@ -24,7 +25,8 @@ if (!$_SESSION['user_id'] and $currentgame['status'] != 2)
 	{
 		$playing[] = $row['display_name'] ?: "Gast";
 	}
-	echo '<h2 id="letters">'.htmlspecialchars($currentgame['source_word'], ENT_QUOTES, 'UTF-8').'</h2>
+	echo '<a href="."><h1 id="letters">woerterautomat</h1></a>
+		<h2>'.htmlspecialchars($currentgame['source_word'], ENT_QUOTES, 'UTF-8').'</h2>
 		<p>gestartet '.timeago($currentgame['starttime']).' auf '.(($currentgame['language'] == 'en') ? 'Englisch' : 'Deutsch')
 		.' von '.htmlspecialchars($currentgame['created_by_name'] ?: "Gast", ENT_QUOTES, 'UTF-8').' '.($currentgame['flexion'] ? 'mit' : 'ohne').' Flexionsformen<br>
 		mit '.htmlspecialchars(implode(', ', $playing), ENT_QUOTES, 'UTF-8').'</p>
@@ -87,9 +89,9 @@ document.addEventListener('DOMContentLoaded', function() {
 <div id="letterline" style="">
 	<h1 id="letters"></h1>
 	<div id="lettersortbuttons" class="modes">
-	<div onClick="select(this); writeletters(randomstring(originalword));">mischen</div>
-	<div onClick="select(this); writeletters(sortstring(originalword));">alphabetisch</div>
-	<div class="selected" onClick="select(this); writeletters(originalword);">original</div>
+	<button type="button" onClick="select(this); writeletters(randomstring(originalword));">mischen</button>
+	<button type="button" onClick="select(this); writeletters(sortstring(originalword));">alphabetisch</button>
+	<button type="button" class="selected" onClick="select(this); writeletters(originalword);">original</button>
 	</div>
 </div>
 <div id="inputline" style="">
@@ -99,11 +101,11 @@ document.addEventListener('DOMContentLoaded', function() {
 </div>
 <div id="wordbox" style="">
 	<div id="sortbuttons" class="modes">
-	<div class="selected" onClick="select(this); sortmode = 'standard'; sortwords();">standard</div>
-	<div onClick="select(this); sortmode = 'chrono'; sortwords();">chronologisch</div>
-	<div onClick="select(this); sortmode = 'alpha'; sortwords();">alphabetisch</div>
-	<div onClick="select(this); sortmode = 'length'; sortwords();">nach L&auml;nge</div>
-	<div onClick="select(this); sortmode = 'points'; sortwords();">nach Punkten</div>
+	<button type="button" class="selected" onClick="select(this); sortmode = 'standard'; sortwords();">standard</button>
+	<button type="button" onClick="select(this); sortmode = 'chrono'; sortwords();">chronologisch</button>
+	<button type="button" onClick="select(this); sortmode = 'alpha'; sortwords();">alphabetisch</button>
+	<button type="button" onClick="select(this); sortmode = 'length'; sortwords();">nach L&auml;nge</button>
+	<button type="button" onClick="select(this); sortmode = 'points'; sortwords();">nach Punkten</button>
 	</div>
 	<div id="words"></div>
 </div>
