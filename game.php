@@ -22,11 +22,11 @@ if (!$_SESSION['user_id'] and $currentgame['status'] != 2)
 	$playing = [];
 	foreach ($mysql->execute_query("select display_name from player where game_id = ? order by joined_at", [$game])->fetch_all(MYSQLI_ASSOC) as $row)
 	{
-		$playing[] = (substr($row['display_name'], 0, 4) == "Gast") ? "Gast" : $row['display_name'];
+		$playing[] = $row['display_name'] ?: "Gast";
 	}
 	echo '<h2 id="letters">'.htmlspecialchars($currentgame['source_word'], ENT_QUOTES, 'UTF-8').'</h2>
 		<p>gestartet '.timeago($currentgame['starttime']).' auf '.(($currentgame['language'] == 'en') ? 'Englisch' : 'Deutsch')
-		.' von '.htmlspecialchars($currentgame['created_by_name'], ENT_QUOTES, 'UTF-8').' '.($currentgame['flexion'] ? 'mit' : 'ohne').' Flexionsformen<br>
+		.' von '.htmlspecialchars($currentgame['created_by_name'] ?: "Gast", ENT_QUOTES, 'UTF-8').' '.($currentgame['flexion'] ? 'mit' : 'ohne').' Flexionsformen<br>
 		mit '.htmlspecialchars(implode(', ', $playing), ENT_QUOTES, 'UTF-8').'</p>
 		<p>Bilde aus den Buchstaben des Wortes m&ouml;glichst viele andere W&ouml;rter. Jedes Wort bringt so viele Punkte, wie es Buchstaben hat, multipliziert mit der Anzahl der Mitspieler, die es nicht gefunden haben.</p>
 		<p>Vergib einen Namen, um mitzuspielen, oder lass das Feld frei, um anonym zu spielen. Wenn du einen Authentifizierungs-Code hast, kannst du dich mit diesem anmelden.</p>';

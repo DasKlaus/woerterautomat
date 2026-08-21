@@ -13,7 +13,7 @@ $return = null;
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST' and $_SESSION['user_id'])
 {
-	if (identityRestriction() !== false) { $_SESSION['player'] = "Gast"; }
+	if (identityRestriction() !== false) { $_SESSION['display_name'] = ""; }
 	$user = $_SESSION['user_id'];
 	$game = (int)($_POST['game'] ?? 0);
 	$word = mb_strtolower(trim($_POST['word'] ?? ''));
@@ -46,7 +46,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' and $_SESSION['user_id'])
 		case "joingame":
 			$mysql->begin_transaction();
 			$mysql->execute_query("insert ignore into player (game_id, user_id, display_name, joined_at, activity)
-					select ?, ?, ?, now(), now() from game where id = ? and status <> 2", [$game, $user, $_SESSION['player'], $game]);
+					select ?, ?, ?, now(), now() from game where id = ? and status <> 2", [$game, $user, $_SESSION['display_name'], $game]);
 			touchplayer($mysql, $game, $user);
 			$mysql->execute_query("update game set status = 1
 					where id = ? and status = 0 and (select count(*) from player where game_id = ?) > 1", [$game, $game]);
@@ -161,7 +161,7 @@ function recompute($mysql, $game)
 
 function touchplayer($mysql, $game, $user)
 {
-	$mysql->execute_query("update player set display_name = ?, activity = now() where game_id = ? and user_id = ?", [$_SESSION['player'], $game, $user]);
+	$mysql->execute_query("update player set display_name = ?, activity = now() where game_id = ? and user_id = ?", [$_SESSION['display_name'], $game, $user]);
 }
 
 function touchgame($mysql, $game)
@@ -192,11 +192,11 @@ function finishstate($mysql, $game)
 {
 	$return = [];
 	$return["version"] = version($mysql, $game);
-	$return["players"] = $mysql->execute_query("select display_name as player, status, points,
+	$return["players"] = $mysql->execute_query("select display_name as player, user_id, status, points,
 			timestampdiff(minute, activity, now()) as last_activity
 		from player where game_id = ? order by last_activity", [$game])->fetch_all(MYSQLI_ASSOC);
 	$return["gamestatus"] = (int)$mysql->execute_query("select status from game where id = ?", [$game])->fetch_column();
-	$return["words"] = $mysql->execute_query("select w.word, p.display_name as player,
+	$return["words"] = $mysql->execute_query("select w.word, w.user_id, p.display_name as player,
 			char_length(w.word) * (? - (select count(*) from word f
 					where f.game_id = w.game_id and f.word = w.word)) as points
 		from word w join player p on p.game_id = w.game_id and p.user_id = w.user_id

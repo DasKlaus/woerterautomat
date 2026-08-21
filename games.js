@@ -64,13 +64,12 @@ function gamedata(response)
 		var headline = document.createElement('h2');
 		headline.textContent = data[i].word;
 		gamelink.appendChild(headline);
-		gamelink.appendChild(document.createTextNode('('+status+') gestartet '+activity+' auf '+language+' von '+((data[i].starter.substr(0, 4)=="Gast")?"Gast":data[i].starter)+' '+flexion+' Flexionsformen'));
+		gamelink.appendChild(document.createTextNode('('+status+') gestartet '+activity+' auf '+language+' von '+(data[i].starter || "Gast")+' '+flexion+' Flexionsformen'));
 		gamelink.appendChild(document.createElement('br'));
 		var players = 'mit';
 		for (var j=0; j<data[i].players.length; j++)
 		{
-			var player = data[i].players[j].player;
-			player = (player.substr(0, 4)=="Gast")?"Gast":player;
+			var player = data[i].players[j].player || "Gast";
 			players += ' '+player;
 			if (data[i].status == 2) { players += ' ('+data[i].players[j].points+')'; }
 		}

@@ -8,10 +8,10 @@ session_set_cookie_params(['httponly' => true, 'samesite' => 'Lax', 'secure' => 
 session_start();
 $identity = null;
 $identitymessage = "";
-if (!isset($_SESSION['user_id']))
+if (!isset($_SESSION['display_name']))
 {
 	$_SESSION['user_id'] = 0;
-	$_SESSION['player'] = "Gast";
+	$_SESSION['display_name'] = "";
 }
 if (!$_SESSION['user_id'] and strlen($_COOKIE['code'] ?? '') == 32)
 {
@@ -21,7 +21,7 @@ if (!$_SESSION['user_id'] and strlen($_COOKIE['code'] ?? '') == 32)
 	{
 		session_regenerate_id(true);
 		$_SESSION['user_id'] = $row['id'];
-		$_SESSION['player'] = $row['display_name'];
+		$_SESSION['display_name'] = $row['display_name'];
 		$identity->execute_query("update user set last_seen_at = now() where id = ?", [$_SESSION['user_id']]);
 		identityRemember($_COOKIE['code']);
 	}
@@ -41,20 +41,10 @@ switch ($_POST['do'] ?? '')
 			break;
 		}
 		$name = mb_substr(trim($_POST['name'] ?? ''), 0, 32);
-		if ($name == "")
-		{
-			$identitymessage = "Der Name darf nicht leer sein.";
-			$name = "Gast".$_SESSION['user_id'];
-		}
-		elseif (preg_match('/^gast\d/i', $name) and $name != "Gast".$_SESSION['user_id'])
-		{
-			$identitymessage = "Namen aus Gast und einer Nummer sind reserviert.";
-			$name = "Gast".$_SESSION['user_id'];
-		}
-		elseif ($name != trim($_POST['name']))
+		if ($name != trim($_POST['name'] ?? ''))
 			$identitymessage = "Der Name wurde auf 32 Zeichen gekürzt.";
 		$identity->execute_query("update user set display_name = ?, last_seen_at = now() where id = ?", [$name, $_SESSION['user_id']]);
-		$_SESSION['player'] = $name;
+		$_SESSION['display_name'] = $name;
 		break;
 	case "remember":
 		identify();
@@ -77,7 +67,7 @@ switch ($_POST['do'] ?? '')
 		{
 			session_regenerate_id(true);
 			$_SESSION['user_id'] = $row['id'];
-			$_SESSION['player'] = $row['display_name'];
+			$_SESSION['display_name'] = $row['display_name'];
 			$identity->execute_query("update user set last_seen_at = now() where id = ?", [$_SESSION['user_id']]);
 			if (isset($_COOKIE['code'])) { identityRemember($code); }
 		}
@@ -88,11 +78,9 @@ switch ($_POST['do'] ?? '')
 		identityForget();
 		session_regenerate_id(true);
 		$_SESSION['user_id'] = 0;
-		$_SESSION['player'] = "Gast";
+		$_SESSION['display_name'] = "";
 		break;
 }
-$guest = (substr($_SESSION['player'], 0, 4) == "Gast");
-$writeplayer = ($guest)?"Gast":$_SESSION['player'];
 
 function identityConnect()
 {
@@ -112,8 +100,6 @@ function identify()
 	{
 		$identity->execute_query("insert into user (display_name, code, created_at, last_seen_at) values ('', ?, now(), now())", [bin2hex(random_bytes(16))]);
 		$_SESSION['user_id'] = $identity->insert_id;
-		$_SESSION['player'] = "Gast".$_SESSION['user_id'];
-		$identity->execute_query("update user set display_name = ? where id = ?", [$_SESSION['player'], $_SESSION['user_id']]);
 	}
 }
 
@@ -152,7 +138,6 @@ function identityMessage()
 
 function identityForm()
 {
-	global $writeplayer;
 	echo '<h3>Name</h3>';
 	$reason = identityRestriction();
 	if ($reason !== false)
@@ -161,7 +146,7 @@ function identityForm()
 		echo '
 		<p>Der Name ist für alle sichtbar. Beleidigendes, Privates oder Anstößiges ist nicht zulässig, Verstöße können über das Impressum gemeldet werden. Unzulässige Namen werden ohne Ankündigung anonymisiert.</p>
 		<form method="post" class="identity">
-			<input type="text" name="name" value="'.htmlspecialchars($_SESSION['user_id'] ? $writeplayer : '', ENT_QUOTES, 'UTF-8').'">
+			<input type="text" name="name" value="'.htmlspecialchars($_SESSION['display_name'], ENT_QUOTES, 'UTF-8').'">
 			<button type="submit" name="do" value="name">Name &auml;ndern</button>
 		</form>';
 	if ($_SESSION['user_id'])

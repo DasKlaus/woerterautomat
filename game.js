@@ -184,7 +184,7 @@ function makeplayerboxes()
 		document.getElementById("words").appendChild(playerbox);
 		var playerboxhead = document.createElement('span');
 		playerboxhead.className = 'startletter';
-		playerboxhead.textContent = allplayersdump[i].player;
+		playerboxhead.textContent = allplayersdump[i].player || "Gast";
 		playerbox.appendChild(playerboxhead);
 	}
 }
@@ -200,7 +200,7 @@ function dedupe(rows)
 			byword[rows[i].word] = {word: rows[i].word, points: rows[i].points, finders: []};
 			list.push(byword[rows[i].word]);
 		}
-		byword[rows[i].word].finders.push(rows[i].player);
+		byword[rows[i].word].finders.push(rows[i].player || "Gast");
 	}
 	return list;
 }
@@ -270,7 +270,7 @@ function sortfinishedword(word)
 			sortcontainer = document.getElementById(points+"words");
 		break;
 		case 'player':
-			sortcontainer = document.getElementById("player"+lookFor(word["player"], allplayersdump, 'player')+"words");
+			sortcontainer = document.getElementById("player"+lookFor(word["user_id"], allplayersdump, 'user_id')+"words");
 		break;
 	}
 	var finders = uniquewords[lookFor(word["word"], uniquewords, 'word')].finders;
@@ -512,7 +512,7 @@ function writeplayers(list)
 	players.innerHTML = "";
 	for (var i=0; i<list.length; i++)
 	{
-		var playername = list[i].player;
+		var playername = list[i].player || "Gast";
 		var points = list[i].self ? ownpoints : list[i].points;
 		var playerstatus = "aktiv";
 		if (list[i].status == 2) { playerstatus = "abgeschlossen"; }
