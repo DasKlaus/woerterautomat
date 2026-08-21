@@ -98,9 +98,8 @@ function sortword(word)
 			{
 				var pointsbox = document.createElement('div');
 				pointsbox.id = points+"words";
-				var number = document.createElement('div');
+				var number = document.createElement('span');
 				number.className = 'startnumber';
-				number.style.display = 'none';
 				number.innerHTML = points;
 				pointsbox.appendChild(number);
 				
@@ -250,9 +249,8 @@ function sortfinishedword(word)
 			{
 				var pointsbox = document.createElement('div');
 				pointsbox.id = points+"words";
-				var number = document.createElement('div');
+				var number = document.createElement('span');
 				number.className = 'startnumber';
-				number.style.display = 'none';
 				number.innerHTML = points;
 				pointsbox.appendChild(number);
 				
@@ -485,7 +483,7 @@ function poll()
 		get("receiver.php?action=finishrequest&game="+game+"&version="+version, finishdata);
 		return;
 	}
-	writeplayers(playerlist, false);
+	writeplayers(playerlist);
 	get("receiver.php?action=datarequest&game="+game+"&version="+version, receivedata);
 }
 
@@ -506,7 +504,7 @@ function timeago(minutes)
 	return "vor "+count+" "+unit+(count == 1 ? "" : plural);
 }
 
-function writeplayers(list, withpoints)
+function writeplayers(list)
 {
 	playerlist = list;
 	var elapsed = Math.floor((Date.now() - playerstamp) / 60000);
@@ -515,13 +513,14 @@ function writeplayers(list, withpoints)
 	for (var i=0; i<list.length; i++)
 	{
 		var playername = list[i].player;
+		var points = list[i].self ? ownpoints : list[i].points;
 		var playerstatus = "aktiv";
 		if (list[i].status == 2) { playerstatus = "abgeschlossen"; }
 		var activity = "letzte Aktion "+timeago(list[i].last_activity + elapsed);
 
 		var playerdiv = document.createElement('div');
 		playerdiv.className = 'playerdiv';
-		playerdiv.appendChild(document.createTextNode(withpoints ? playername+' ('+list[i].points+')' : playername));
+		playerdiv.appendChild(document.createTextNode(points === undefined ? playername : playername+' ('+points+')'));
 		var meta = document.createElement('span');
 		meta.style.fontSize = '10px';
 		meta.appendChild(document.createTextNode(' - '+playerstatus));
@@ -537,7 +536,7 @@ function finishdata(data)
 	pollwait = 5000;
 	playerstamp = Date.now();
 	version = data.version;
-	writeplayers(data.players, true);
+	writeplayers(data.players);
 	allplayersdump = data.players;
 	allwordsdump = data.words;
 	uniquewords = dedupe(data.words);
@@ -550,11 +549,12 @@ function receivedata(data)
 	pollwait = 5000;
 	playerstamp = Date.now();
 	version = data.version;
-	writeplayers(data.players, false);
 	wordpoints = data.words;
 	var changed = false;
+	ownpoints = 0;
 	for (var i=0; i<data.words.length; i++)
 	{
+		ownpoints += data.words[i].points;
 		var span = document.getElementById(data.words[i].word+'points');
 		if (!span)
 		{
@@ -569,5 +569,6 @@ function receivedata(data)
 			changed = true;
 		}
 	}
+	writeplayers(data.players);
 	if (changed && sortmode == 'points') { sortwords(); }
   }

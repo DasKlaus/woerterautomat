@@ -49,6 +49,7 @@ $words = $mysql->execute_query("select word from word where game_id = ? and user
   var lettermode = 'original';
   var words = <?php echo json_encode(array_merge([$currentgame['source_word']], array_column($words, 'word'))); ?>;
   var wordpoints = [];
+  var ownpoints = 0;
   var allwordsdump = [];
   var allplayersdump = [];
   var uniquewords = [];

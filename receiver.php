@@ -178,9 +178,9 @@ function gamestate($mysql, $game, $user)
 {
 	$return = [];
 	$return["version"] = version($mysql, $game);
-	$return["players"] = $mysql->execute_query("select display_name as player, status,
+	$return["players"] = $mysql->execute_query("select display_name as player, status, user_id = ? as self,
 			timestampdiff(minute, activity, now()) as last_activity
-		from player where game_id = ? order by last_activity", [$game])->fetch_all(MYSQLI_ASSOC);
+		from player where game_id = ? order by last_activity", [$user, $game])->fetch_all(MYSQLI_ASSOC);
 	$return["words"] = $mysql->execute_query("select w.word,
 			char_length(w.word) * (? - (select count(*) from word f
 					where f.game_id = w.game_id and f.word = w.word)) as points
