@@ -1,12 +1,3 @@
-function select(button)
-  {
-	var buttons = button.parentNode.children;
-	for (var i=0; i<buttons.length; i++)
-	  {
-		buttons[i].classList.toggle('selected', buttons[i] == button);
-	  }
-  }
-
 function playerbutton()
   {
 	var button = document.createElement('button');
@@ -306,34 +297,6 @@ function lookFor(needle, haystack, param)
 	return -1;
 }
 
-function sortstring(word)
-  {
-	var output = [];
-	for (var i=0; i<word.length; i++)
-	{
-		output[output.length] = word.charAt(i);
-	}
-	output.sort();
-	return output.join("");
-  }
-
-function randomstring(word)
-  {
-	var output = [];
-	for (var i=0; i<word.length; i++)
-	{
-		output[output.length] = word.charAt(i);
-	}
-	output = shuffle(output);
-	return output.join("");
-  }
-
-function shuffle(o)
-{
-    for(var j, x, i = o.length; i; j = Math.floor(Math.random() * i), x = o[--i], o[i] = o[j], o[j] = x);
-    return o;
-}
-
 function makeletterboxes(word)
   {
 	for (i=0; i<word.length; i++)
@@ -353,16 +316,6 @@ function makeletterboxes(word)
 			document.getElementById(word.charAt(i)+"words").children[0].innerHTML += word.charAt(i);
 		}
 	}
-  }
-
-function writeletters(lettersinorder)
-  {
-	var letterbox = document.getElementById("letters");
-	letterbox.innerHTML = '';
-	for (i=0; i<lettersinorder.length; i++)
-	  {
-		letterbox.innerHTML += '<span onClick="letterclicked(this);">'+lettersinorder.charAt(i)+'</span>';
-	  }
   }
 
 function findletterspan(charpressed, none)
@@ -462,7 +415,7 @@ function finish() {
 	mystatus=2;
 	document.getElementById('finish').style.display = 'none';
 	document.getElementById('inputline').style.display = 'none';
-	document.getElementById('lettersortbuttons').style.display = 'none';
+	writeletters(document.getElementById("letters").textContent);
 	playerbutton();
 	post({action: "finishgame", game: game}, finishdata);
 }

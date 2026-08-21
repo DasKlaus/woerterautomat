@@ -10,7 +10,9 @@
 body {font-size: 14px;}
 input, select, button {font-size: inherit;}
 h1, h2 {font-family: var(--display); font-weight: normal;}
-h1 {font-size: min(6.375rem, 12.5cqi); line-height: 1;}
+/* one letter of the display font advances .557em, so the headline fits --letters of them into its
+   container; 11.2cqi is the floor of sixteen, the longest word the headline accommodates */
+h1 {font-size: min(6.375rem, max(11.2cqi, calc(100cqi / var(--letters) / .558))); line-height: 1;}
 h2 {font-size: 40px; text-transform: lowercase; line-height: .5; margin-bottom: 10px;}
 h3 {font-family: var(--ui); font-size: 20px; font-weight: normal;}
 p {margin-bottom: 10px;}
@@ -20,14 +22,19 @@ input, select {background-color: var(--shade); font-family: var(--ui);}
 
 /* layout */
 
-#wrapper {display: grid; grid-template-columns: 11rem 1fr; grid-template-areas: "menu content";
+#wrapper {display: grid; grid-template-columns: 11rem 1fr; grid-template-areas: "head head" "menu content";
 	gap: 0 1.5rem; max-width: 1200px; margin: 0 auto; padding: 0 1rem;}
 #content {grid-area: content; min-width: 0; container-type: inline-size;}
-#letters {color: var(--fg); padding: 26px 0; line-height: .5; cursor: default; overflow-wrap: anywhere; -webkit-user-select: none; user-select: none;}
+
+/* the sort buttons follow the headline in the DOM so they wrap below it, the reversed row puts them back to its left */
+
+#letterline {grid-area: head; display: flex; flex-direction: row-reverse; flex-wrap: wrap; justify-content: flex-end;
+	align-items: flex-end; gap: 0 1.5rem; container-type: inline-size;}
+#letters {--letters: 14; color: var(--fg); padding: .25em 0; line-height: .5; cursor: default; overflow-wrap: anywhere; -webkit-user-select: none; user-select: none;}
 #letters span {font-family: var(--display); line-height: .5;}
 
 #menu {grid-area: menu; align-self: start; position: sticky; top: 0; overflow-wrap: anywhere;
-	max-height: calc(100dvh - 2rem); overflow-y: auto; padding: 6em 6px 6px 0;}
+	max-height: calc(100dvh - 2rem); overflow-y: auto; padding: 0 6px 6px 0;}
 #menu > a, #pagination a {position: relative; display: block; margin-bottom: 10px; padding: 3px;
 	border: 1px solid var(--fg); border-radius: 3px; background-color: var(--bg); color: var(--fg);
 	font-family: var(--ui); font-size: 16px; cursor: pointer;}
@@ -46,6 +53,9 @@ input, select {background-color: var(--shade); font-family: var(--ui);}
 	border: 1px solid var(--fg);}
 .modes > :first-child:before {left: 3px; border-radius: 3px 0 0 3px;}
 .modes > :last-child:before {right: 3px; border-radius: 0 3px 3px 0;}
+
+#lettersortbuttons .modes {width: 11rem;}
+#lettersortbuttons .modes > * {flex: 1;}
 
 #menu .modes {flex-direction: column; row-gap: 0; width: auto;}
 #menu .modes > * {margin: -1px 0 0; font-size: 16px;}
@@ -94,7 +104,7 @@ input, select {background-color: var(--shade); font-family: var(--ui);}
 
 /* new game */
 
-#newwordinput {width: 100%; margin: 10px 0 40px; padding: 10px; font-family: var(--display); font-size: min(6.375rem, 12.5cqi);}
+#newwordinput {width: 100%; margin: 10px 0 40px; padding: 10px; font-family: var(--display); font-size: min(6.375rem, 11.2cqi);}
 #languageinput {width: 150px; margin-right: 100px;}
 #newgamesubmit {float: right; margin-top: -20px; padding: 20px;}
 

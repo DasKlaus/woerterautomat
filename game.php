@@ -4,8 +4,7 @@ $currentgame = $mysql->execute_query("select source_word, status, language, flex
 		timestampdiff(minute, created_at, now()) as starttime from game where id = ?", [$game])->fetch_assoc();
 if (!$currentgame)
 {
-	echo '<a href="."><h1 id="letters">woerterautomat</h1></a>
-		<p>Dieses Spiel gibt es nicht mehr.</p>';
+	echo '<p>Dieses Spiel gibt es nicht mehr.</p>';
 	return;
 }
 
@@ -25,8 +24,7 @@ if (!$_SESSION['user_id'] and $currentgame['status'] != 2)
 	{
 		$playing[] = $row['display_name'] ?: "Gast";
 	}
-	echo '<a href="."><h1 id="letters">woerterautomat</h1></a>
-		<h2>'.htmlspecialchars($currentgame['source_word'], ENT_QUOTES, 'UTF-8').'</h2>
+	echo '<h2>'.htmlspecialchars($currentgame['source_word'], ENT_QUOTES, 'UTF-8').'</h2>
 		<p>gestartet '.timeago($currentgame['starttime']).' auf '.(($currentgame['language'] == 'en') ? 'Englisch' : 'Deutsch')
 		.' von '.htmlspecialchars($currentgame['created_by_name'] ?: "Gast", ENT_QUOTES, 'UTF-8').' '.($currentgame['flexion'] ? 'mit' : 'ohne').' Flexionsformen<br>
 		mit '.htmlspecialchars(implode(', ', $playing), ENT_QUOTES, 'UTF-8').'</p>
@@ -60,10 +58,11 @@ $words = $mysql->execute_query("select word from word where game_id = ? and user
   var playerstamp = 0;
   var gamedata;
 
+if (gamestatus == 2) { mystatus = 2; }
+writeletters(originalword);
+
 document.addEventListener('DOMContentLoaded', function() {
-  if (gamestatus == 2) { mystatus = 2; }
   if (isplayer || mystatus != 2) { document.getElementById("leave").style.display = 'block'; }
-  writeletters(originalword);
   document.getElementById("input").value = '';
   document.getElementById('input').onkeypress = keyhandle;
   document.getElementById('input').onkeydown = keydownhandle;
@@ -71,7 +70,6 @@ document.addEventListener('DOMContentLoaded', function() {
   if (mystatus == 2)
   {
 	document.getElementById('inputline').style.display = 'none';
-	document.getElementById('lettersortbuttons').style.display = 'none';
 	playerbutton();
 	get("receiver.php?action=finishrequest&game="+game, finishdata);
   }
@@ -86,14 +84,6 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 </script>
 
-<div id="letterline" style="">
-	<h1 id="letters"></h1>
-	<div id="lettersortbuttons" class="modes">
-	<button type="button" onClick="select(this); writeletters(randomstring(originalword));">mischen</button>
-	<button type="button" onClick="select(this); writeletters(sortstring(originalword));">alphabetisch</button>
-	<button type="button" class="selected" onClick="select(this); writeletters(originalword);">original</button>
-	</div>
-</div>
 <div id="inputline" style="">
 	<div id="back" onClick="backspace();">zur&uuml;ck</div>
 	<input type="text" id="input" value="" autofocus>
