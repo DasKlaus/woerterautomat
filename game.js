@@ -1,13 +1,3 @@
-// show how many words others have in those categories/letters
-
-
-// Begrenzung Spieler, Einladung Spieler
-// Wörterbuch: Wort, Sprache, Deklination/Eigenname? Stimmen pro, Stimmen contra
-// Auswertung: Tabelle mit Haken für Deklination/Eigenname und ja/nein
-// Auswertung: sortieren nach Spielern, Punkten, Häufigkeit, Länge, Alphabet
-// Auswertung: langsam anzeigen
-// Auswertung: weiter mögliche Wörter aus dem Wörterbuch anzeigen
-
 function select(button)
   {
 	var buttons = button.parentNode.children;

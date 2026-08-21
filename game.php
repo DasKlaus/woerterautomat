@@ -85,13 +85,12 @@ document.addEventListener('DOMContentLoaded', function() {
 </script>
 
 <div id="letterline" style="">
+	<h1 id="letters"></h1>
 	<div id="lettersortbuttons" class="modes">
 	<div onClick="select(this); writeletters(randomstring(originalword));">mischen</div>
 	<div onClick="select(this); writeletters(sortstring(originalword));">alphabetisch</div>
 	<div class="selected" onClick="select(this); writeletters(originalword);">original</div>
 	</div>
-
-	<div id="letters"></div>
 </div>
 <div id="inputline" style="">
 	<div id="back" onClick="backspace();">zur&uuml;ck</div>

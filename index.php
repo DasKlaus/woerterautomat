@@ -8,6 +8,7 @@ function normalize_letters($string){
   return strtr($string, $upas);
   }
 
+$go = $_GET['go'] ?? 'anleitung';
 $message = "";
 if (($_GET["go"] ?? "") == "neu" and isset($_POST["new"]) and ($_POST["website"] ?? "") == "" and $_SESSION['user_id'])
 {
@@ -54,12 +55,8 @@ if (($_GET["go"] ?? "") == "neu" and isset($_POST["new"]) and ($_POST["website"]
 	</head>
 	<body>
 	<div id="wrapper">
-		<a id="headline" href="."><h1>woerterautomat</h1></a>
 		<div id="menu">
-			<?php
-			$go = $_GET['go'] ?? 'anleitung';
-			if ($_SESSION['user_id']) echo '<h2>'.htmlspecialchars($_SESSION['display_name'] ?: "Gast", ENT_QUOTES, 'UTF-8').'</h2>';
-			?>
+			<?php if ($_SESSION['user_id']) echo '<h2>'.htmlspecialchars($_SESSION['display_name'] ?: "Gast", ENT_QUOTES, 'UTF-8').'</h2>'; ?>
 			<a href="?go=user"<?php if ($go=='user') echo ' class="selected"'; ?>>Profil</a>
 			<a href="?go=neu"<?php if ($go=='neu') echo ' class="selected"'; ?>>Neues Spiel</a>
 			<a href="?go=games"<?php if ($go=='games') echo ' class="selected"'; ?>>Spiele&uuml;bersicht</a>
@@ -84,6 +81,7 @@ if (($_GET["go"] ?? "") == "neu" and isset($_POST["new"]) and ($_POST["website"]
 		</div>
 		<div id="content">
 			<?php
+			if ($go != 'game' or !$_SESSION['user_id']) { echo '<a href="."><h1 id="letters">woerterautomat</h1></a>'; }
 			identityMessage();
 			if (isset($_GET["go"]) and $_GET["go"]=="impressum")
 			{

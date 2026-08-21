@@ -10,8 +10,8 @@
 body {font-size: 14px;}
 input, select, button {font-size: inherit;}
 h1, h2 {font-family: var(--display); font-weight: normal;}
-h1 {font-size: clamp(2.5rem, 12vw, 6.375rem); line-height: 1; text-align: center;}
-h2 {font-size: 40px; text-transform: lowercase; line-height: .5;}
+h1 {font-size: min(6.375rem, 12.5cqi); line-height: 1;}
+h2 {font-size: 40px; text-transform: lowercase; line-height: .5; margin-bottom: 10px;}
 h3 {font-family: var(--ui); font-size: 20px; font-weight: normal;}
 p {margin-bottom: 10px;}
 input, select {background-color: var(--shade); font-family: var(--ui);}
@@ -20,12 +20,13 @@ input, select {background-color: var(--shade); font-family: var(--ui);}
 
 /* layout */
 
-#wrapper {display: grid; grid-template-columns: 11rem 1fr; grid-template-areas: "head head" "menu content";
+#wrapper {display: grid; grid-template-columns: 11rem 1fr; grid-template-areas: "menu content";
 	gap: 0 1.5rem; max-width: 1200px; margin: 0 auto; padding: 0 1rem;}
-#headline {grid-area: head; color: var(--fg);}
 #content {grid-area: content; min-width: 0;}
+#letters {color: var(--fg); padding: 26px 0; line-height: .5; cursor: default; overflow-wrap: anywhere; -webkit-user-select: none; user-select: none;}
+#letters span {font-family: var(--display); line-height: .5;}
 
-#menu {grid-area: menu; align-self: start; position: sticky; top: 1rem; overflow-wrap: anywhere;
+#menu {grid-area: menu; align-self: start; position: sticky; top: min(6.375rem, 12.5cqi); overflow-wrap: anywhere;
 	max-height: calc(100dvh - 2rem); overflow-y: auto; padding: 0 6px 6px 0;}
 #menu > a, #pagination a {position: relative; display: block; margin-bottom: 10px; padding: 3px;
 	border: 1px solid var(--fg); border-radius: 3px; background-color: var(--bg); color: var(--fg);
@@ -60,16 +61,14 @@ input, select {background-color: var(--shade); font-family: var(--ui);}
 
 /* game: letters and input */
 
-#letters {padding: 10px; line-height: 1; cursor: default; overflow-wrap: anywhere; -webkit-user-select: none; user-select: none;}
-#letters span {font-family: var(--display); font-size: 102px; line-height: .5;}
-#inputline {display: flex; gap: 20px; margin: 10px;}
+#inputline {display: flex; gap: 20px; margin: 10px 0;}
 #back, #submit {padding: 20px 10px 5px; border: 1px solid var(--fg); border-radius: 3px; font-family: var(--ui);}
 #back:hover, #submit:hover {background-color: var(--shade);}
 #input {flex: 1; min-width: 0; padding: 5px 10px; border: 1px solid var(--fg); border-radius: 3px; font-size: 40px;}
 
 /* game: word box */
 
-#wordbox {margin: 10px; padding: 5px 10px; border: 1px solid var(--fg); border-radius: 3px; line-height: 22px;}
+#wordbox {margin: 10px 0; line-height: 22px;}
 .startletter, .startnumber {margin-right: 10px; font-family: var(--display); font-size: 40px; font-weight: bold;}
 .startletter {text-transform: lowercase;}
 .wordspan {padding: 1px 3px; border: 1px solid var(--line); border-radius: 3px; color: var(--fg); transition: border-color 1s, color 1s;}
@@ -95,7 +94,7 @@ input, select {background-color: var(--shade); font-family: var(--ui);}
 
 /* new game */
 
-#newwordinput {width: 100%; margin: 10px 0 40px; padding: 10px; font-family: var(--display); font-size: 102px;}
+#newwordinput {width: 100%; margin: 10px 0 40px; padding: 10px; font-family: var(--display); font-size: min(6.375rem, 12.5cqi);}
 #languageinput {width: 150px; margin-right: 100px;}
 #newgamesubmit {float: right; margin-top: -20px; padding: 20px;}
 
