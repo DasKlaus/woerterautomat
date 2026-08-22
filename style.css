@@ -10,9 +10,7 @@
 body {font-size: 14px;}
 input, select, button {font-size: inherit;}
 h1, h2 {font-family: var(--display); font-weight: normal;}
-/* one letter of the display font advances .557em, so the headline fits --letters of them into its
-   container; 11.2cqi is the floor of sixteen, the longest word the headline accommodates */
-h1 {font-size: min(6.375rem, max(11.2cqi, calc(100cqi / var(--letters) / .558))); line-height: 1;}
+h1 {font-size: var(--size); line-height: 1;}
 h2 {font-size: 40px; text-transform: lowercase; line-height: .5; margin-bottom: 10px;}
 h3 {font-family: var(--ui); font-size: 20px; font-weight: normal;}
 p {margin-bottom: 10px;}
@@ -22,15 +20,24 @@ input, select {background-color: var(--shade); font-family: var(--ui);}
 
 /* layout */
 
-#wrapper {display: grid; grid-template-columns: 11rem 1fr; grid-template-areas: "head head" "menu content";
-	gap: 0 1.5rem; max-width: 1200px; margin: 0 auto; padding: 0 1rem;}
+/* One letter of the display font advances .557em; the layout needs no other measurement. --size fits
+   --letters of them across the full width, capped at the display size and floored at sixteen, the
+   longest word the headline accommodates (the divisor runs a hair over the advance, so the last letter
+   cannot fall off on rounding). --room is what is left beside the word, and turns negative exactly when
+   the sort buttons stop fitting there: multiplied out, that sign alone indents the headline to the
+   content column and lifts the buttons out of their own row into the headline's, where align-self
+   re-seats them. Their row collapses with them, so they push the menu down but never the content. */
+
+#wrapper {display: grid; grid-template-columns: 11rem 1fr; container-type: inline-size;
+	grid-template-areas: "head head" "buttons content" "menu content"; grid-template-rows: auto auto 1fr;
+	gap: 0 1.5rem; max-width: 1200px; margin: 0 auto; padding: 0 1rem;
+	--letters: 14;
+	--size: min(6.375rem, max(11.2cqi, calc(100cqi / var(--letters) / .558)));
+	--room: calc(100cqi - var(--letters) * .557 * var(--size) - 12.5rem);}
 #content {grid-area: content; min-width: 0; container-type: inline-size;}
-
-/* the sort buttons follow the headline in the DOM so they wrap below it, the reversed row puts them back to its left */
-
-#letterline {grid-area: head; display: flex; flex-direction: row-reverse; flex-wrap: wrap; justify-content: flex-end;
-	align-items: flex-end; gap: 0 1.5rem; container-type: inline-size;}
-#letters {--letters: 14; color: var(--fg); padding: .25em 0; line-height: .5; cursor: default; overflow-wrap: anywhere; -webkit-user-select: none; user-select: none;}
+#lettersortbuttons {grid-area: buttons; align-self: end; margin-top: clamp(-100vh, calc(var(--room) * -1000), 0px);}
+#letters {grid-area: head; margin-left: clamp(0px, calc(var(--room) * 1000), 12.5rem);
+	color: var(--fg); padding: .25em 0; line-height: .5; cursor: default; overflow-wrap: anywhere; -webkit-user-select: none; user-select: none;}
 #letters span {font-family: var(--display); line-height: .5;}
 
 #menu {grid-area: menu; align-self: start; position: sticky; top: 0; overflow-wrap: anywhere;
@@ -53,6 +60,7 @@ input, select {background-color: var(--shade); font-family: var(--ui);}
 	border: 1px solid var(--fg);}
 .modes > :first-child:before {left: 3px; border-radius: 3px 0 0 3px;}
 .modes > :last-child:before {right: 3px; border-radius: 0 3px 3px 0;}
+.modes > :only-child, .modes > :only-child:before {border-radius: 3px;}
 
 #lettersortbuttons .modes {width: 11rem;}
 #lettersortbuttons .modes > * {flex: 1;}

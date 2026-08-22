@@ -13,7 +13,7 @@ function select(button)
 function writeletters(lettersinorder)
   {
 	var letterbox = document.getElementById("letters");
-	letterbox.style.setProperty('--letters', lettersinorder.length);
+	document.getElementById("wrapper").style.setProperty('--letters', lettersinorder.length);
 	letterbox.innerHTML = '';
 	for (i=0; i<lettersinorder.length; i++)
 	  {

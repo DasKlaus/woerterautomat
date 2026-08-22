@@ -55,16 +55,14 @@ if (($_GET["go"] ?? "") == "neu" and isset($_POST["new"]) and ($_POST["website"]
 	</head>
 	<body>
 	<div id="wrapper">
-		<div id="letterline">
-			<h1 id="letters">woerterautomat</h1>
-			<div id="lettersortbuttons">
-				<div class="modes">
-				<button type="button" onClick="select(this); writeletters(randomstring(originalword));">mischen</button>
-				</div>
-				<div class="modes">
-				<button type="button" onClick="select(this); writeletters(sortstring(originalword));">alphabetisch</button>
-				<button type="button" class="selected" onClick="select(this); writeletters(originalword);">original</button>
-				</div>
+		<h1 id="letters">woerterautomat</h1>
+		<div id="lettersortbuttons">
+			<div class="modes">
+			<button type="button" onClick="select(this); writeletters(randomstring(originalword));">mischen</button>
+			</div>
+			<div class="modes">
+			<button type="button" onClick="select(this); writeletters(sortstring(originalword));">alphabetisch</button>
+			<button type="button" class="selected" onClick="select(this); writeletters(originalword);">original</button>
 			</div>
 		</div>
 		<script src="index.js"></script>
