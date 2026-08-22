@@ -49,11 +49,15 @@ input, select {background-color: var(--shade); font-family: var(--ui);}
 	border: 1px solid var(--fg); border-radius: 3px;}
 #menu hr {margin-bottom: 10px; border: none; color: transparent;}
 
+#menu > a.selected:before, .modes > .selected:before {background-color: var(--line);}
+#menu > a:hover:before, #menu > a:active:before, #pagination a:hover:before, #pagination a:active:before,
+	.modes > :hover:before, .modes > :active:before {background-color: var(--fg);}
+
 /* mode buttons: an attached group per choice, each item carrying its own shape */
 
-.modes {display: flex; flex-wrap: wrap; row-gap: 8px; width: max-content; max-width: 100%; margin-bottom: 10px;}
+.modes {display: flex; flex-wrap: wrap; row-gap: 8px; width: 100%; margin-bottom: 10px; text-align: center;}
 .modes > * {position: relative; margin-left: -1px; padding: 3px 5px; border: 1px solid var(--fg); appearance: none;
-	background-color: var(--bg); color: var(--fg); line-height: normal; cursor: pointer;}
+	background-color: var(--bg); color: var(--fg); line-height: normal; flex: 1; cursor: pointer;}
 .modes > :first-child {margin-left: 0; border-radius: 3px 0 0 3px;}
 .modes > :last-child {border-radius: 0 3px 3px 0;}
 .modes > :before {content: " "; position: absolute; z-index: -1; top: 3px; right: -1px; bottom: -5px; left: -1px;
@@ -61,21 +65,6 @@ input, select {background-color: var(--shade); font-family: var(--ui);}
 .modes > :first-child:before {left: 3px; border-radius: 3px 0 0 3px;}
 .modes > :last-child:before {right: 3px; border-radius: 0 3px 3px 0;}
 .modes > :only-child, .modes > :only-child:before {border-radius: 3px;}
-
-#lettersortbuttons .modes {width: 11rem;}
-#lettersortbuttons .modes > * {flex: 1;}
-
-#menu .modes {flex-direction: column; row-gap: 0; width: auto;}
-#menu .modes > * {margin: -1px 0 0; font-size: 16px;}
-#menu .modes > :first-child {margin-top: 0; border-radius: 3px 3px 0 0;}
-#menu .modes > :last-child {border-radius: 0 0 3px 3px;}
-#menu .modes > :before {top: -1px; right: -5px; bottom: -1px; left: 3px;}
-#menu .modes > :first-child:before {top: 3px; border-radius: 3px 3px 0 0;}
-#menu .modes > :last-child:before {bottom: 3px; border-radius: 0 0 3px 3px;}
-
-#menu > a.selected:before, .modes > .selected:before {background-color: var(--line);}
-#menu > a:hover:before, #menu > a:active:before, #pagination a:hover:before, #pagination a:active:before,
-	.modes > :hover:before, .modes > :active:before {background-color: var(--fg);}
 
 /* game: letters and input */
 

@@ -73,17 +73,6 @@ if (($_GET["go"] ?? "") == "neu" and isset($_POST["new"]) and ($_POST["website"]
 			<a href="?go=games"<?php if ($go=='games') echo ' class="selected"'; ?>>Spiele&uuml;bersicht</a>
 			<a href="?go=anleitung"<?php if ($go=='anleitung') echo ' class="selected"'; ?>>Anleitung</a>
 			<a href="?go=impressum"<?php if ($go=='impressum') echo ' class="selected"'; ?>>Impressum</a>
-			<?php if ((isset($_GET["go"]) and $_GET["go"]=="games") or !isset($_GET['go'])) { $mode = $_GET['mode'] ?? 'relevant'; ?>
-				<hr><div class="modes">
-				<a href="?go=games&amp;mode=relevant" title="laufende und eigene Spiele"<?php if ($mode=='relevant') echo ' class="selected"'; ?>>relevante Spiele</a>
-				<a href="?go=games&amp;mode=all"<?php if ($mode=='all') echo ' class="selected"'; ?>>alle Spiele</a>
-				<a href="?go=games&amp;mode=own"<?php if ($mode=='own') echo ' class="selected"'; ?>>eigene Spiele</a>
-				<a href="?go=games&amp;mode=new"<?php if ($mode=='new') echo ' class="selected"'; ?>>neue Spiele</a>
-				<a href="?go=games&amp;mode=active"<?php if ($mode=='active') echo ' class="selected"'; ?>>laufende Spiele</a>
-				<a href="?go=games&amp;mode=finished"<?php if ($mode=='finished') echo ' class="selected"'; ?>>abgeschlossene Spiele</a>
-				</div>
-				<div id="pagination"></div>
-			<?php } ?>
 			<?php if (isset($_GET["go"]) and $_GET["go"]=="game") { ?>
 				<hr><a id="leave" style="display: none;" onClick="leave();">Spiel verlassen</a>
 				<a id="finish" style="display: none;" onClick="finish();">Spiel abschlie&szlig;en</a>
