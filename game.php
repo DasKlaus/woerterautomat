@@ -90,7 +90,7 @@ document.addEventListener('DOMContentLoaded', function() {
 	<div id="submit" onClick="submitword();">absenden</div>
 </div>
 <div id="wordbox" style="">
-	<div id="sortbuttons" class="modes">
+	<div id="sortbuttons" class="modes collapsible">
 	<button type="button" class="selected" onClick="select(this); sortmode = 'standard'; sortwords();">standard</button>
 	<button type="button" onClick="select(this); sortmode = 'chrono'; sortwords();">chronologisch</button>
 	<button type="button" onClick="select(this); sortmode = 'alpha'; sortwords();">alphabetisch</button>

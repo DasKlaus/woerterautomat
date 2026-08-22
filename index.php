@@ -56,7 +56,7 @@ if (($_GET["go"] ?? "") == "neu" and isset($_POST["new"]) and ($_POST["website"]
 	<body>
 	<div id="wrapper">
 		<h1 id="letters">woerterautomat</h1>
-		<div id="lettersortbuttons">
+		<div id="lettersortbuttons" class="collapsible">
 			<div class="modes">
 			<button type="button" onClick="select(this); writeletters(randomstring(originalword));">mischen</button>
 			</div>
@@ -67,15 +67,19 @@ if (($_GET["go"] ?? "") == "neu" and isset($_POST["new"]) and ($_POST["website"]
 		</div>
 		<script src="index.js"></script>
 		<div id="menu">
-			<a href="?go=user"<?php if ($go=='user') echo ' class="selected"'; ?>>Profil<?php if ($_SESSION['user_id']) echo ': '.htmlspecialchars($_SESSION['display_name'] ?: "Gast", ENT_QUOTES, 'UTF-8'); ?></a>
-			<a href="?go=neu"<?php if ($go=='neu') echo ' class="selected"'; ?>>Neues Spiel</a>
-			<a href="?go=games"<?php if ($go=='games') echo ' class="selected"'; ?>>Spiele&uuml;bersicht</a>
-			<a href="?go=anleitung"<?php if ($go=='anleitung') echo ' class="selected"'; ?>>Anleitung</a>
-			<a href="?go=impressum"<?php if ($go=='impressum') echo ' class="selected"'; ?>>Impressum</a>
+			<div class="collapsible">
+				<a href="?go=user"<?php if ($go=='user') echo ' class="selected"'; ?>>Profil<?php if ($_SESSION['user_id']) echo ': '.htmlspecialchars($_SESSION['display_name'] ?: "Gast", ENT_QUOTES, 'UTF-8'); ?></a>
+				<a href="?go=neu"<?php if ($go=='neu') echo ' class="selected"'; ?>>Neues Spiel</a>
+				<a href="?go=games"<?php if ($go=='games') echo ' class="selected"'; ?>>Spiele&uuml;bersicht</a>
+				<a href="?go=anleitung"<?php if ($go=='anleitung') echo ' class="selected"'; ?>>Anleitung</a>
+				<a href="?go=impressum"<?php if ($go=='impressum') echo ' class="selected"'; ?>>Impressum</a>
+			</div>
 			<?php if (isset($_GET["go"]) and $_GET["go"]=="game") { ?>
-				<hr><a id="leave" style="display: none;" onClick="leave();">Spiel verlassen</a>
-				<a id="finish" style="display: none;" onClick="finish();">Spiel abschlie&szlig;en</a>
-				<div id="players"></div>
+				<div class="collapsible">
+					<a id="leave" style="display: none;" onClick="leave();">Spiel verlassen</a>
+					<a id="finish" style="display: none;" onClick="finish();">Spiel abschlie&szlig;en</a>
+				</div>
+				<div id="players" class="collapsible"></div>
 			<?php } ?>
 		</div>
 		<div id="content">

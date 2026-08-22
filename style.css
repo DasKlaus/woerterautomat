@@ -42,15 +42,15 @@ input, select {background-color: var(--shade); font-family: var(--ui);}
 
 #menu {grid-area: menu; align-self: start; position: sticky; top: 0; overflow-wrap: anywhere;
 	max-height: calc(100dvh - 2rem); overflow-y: auto; padding: 0 6px 6px 0;}
-#menu > a, #pagination a {position: relative; display: block; margin-bottom: 10px; padding: 3px;
+#menu a, #pagination a {position: relative; display: block; margin-bottom: 10px; padding: 3px;
 	border: 1px solid var(--fg); border-radius: 3px; background-color: var(--bg); color: var(--fg);
 	font-family: var(--ui); font-size: 16px; cursor: pointer;}
-#menu > a:before, #pagination a:before {content: " "; position: absolute; z-index: -1; top: 3px; right: -5px; bottom: -5px; left: 3px;
+#menu a:before, #pagination a:before {content: " "; position: absolute; z-index: -1; top: 3px; right: -5px; bottom: -5px; left: 3px;
 	border: 1px solid var(--fg); border-radius: 3px;}
-#menu hr {margin-bottom: 10px; border: none; color: transparent;}
+#menu .collapsible {margin-bottom: 10px;}
 
-#menu > a.selected:before, .modes > .selected:before {background-color: var(--line);}
-#menu > a:hover:before, #menu > a:active:before, #pagination a:hover:before, #pagination a:active:before,
+#menu a.selected:before, .modes > .selected:before {background-color: var(--line);}
+#menu a:hover:before, #menu a:active:before, #pagination a:hover:before, #pagination a:active:before,
 	.modes > :hover:before, .modes > :active:before {background-color: var(--fg);}
 
 /* mode buttons: an attached group per choice, each item carrying its own shape */
