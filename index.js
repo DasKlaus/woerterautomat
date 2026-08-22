@@ -1,3 +1,8 @@
+document.onclick = function(event)
+  {
+	if (event.target.classList.contains('collapsible')) { event.target.classList.toggle('open'); }
+  };
+  
 var originalword = "woerterautomat";
 var mystatus = 2;
 

@@ -13,7 +13,7 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 </script>
 <?php if ((isset($_GET["go"]) and $_GET["go"]=="games") or !isset($_GET['go'])) { $mode = $_GET['mode'] ?? 'relevant'; ?>
-	<div class="modes collapsible">
+	<div class="modes collapsible sort">
 	<a href="?go=games&amp;mode=relevant" title="laufende und eigene Spiele"<?php if ($mode=='relevant') echo ' class="selected"'; ?>>standard</a>
 	<a href="?go=games&amp;mode=own"<?php if ($mode=='own') echo ' class="selected"'; ?>>eigene</a>
 	<a href="?go=games&amp;mode=all"<?php if ($mode=='all') echo ' class="selected"'; ?>>alle</a>
