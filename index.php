@@ -67,8 +67,7 @@ if (($_GET["go"] ?? "") == "neu" and isset($_POST["new"]) and ($_POST["website"]
 		</div>
 		<script src="index.js"></script>
 		<div id="menu">
-			<?php if ($_SESSION['user_id']) echo '<h2>'.htmlspecialchars($_SESSION['display_name'] ?: "Gast", ENT_QUOTES, 'UTF-8').'</h2>'; ?>
-			<a href="?go=user"<?php if ($go=='user') echo ' class="selected"'; ?>>Profil</a>
+			<a href="?go=user"<?php if ($go=='user') echo ' class="selected"'; ?>>Profil<?php if ($_SESSION['user_id']) echo ': '.htmlspecialchars($_SESSION['display_name'] ?: "Gast", ENT_QUOTES, 'UTF-8'); ?></a>
 			<a href="?go=neu"<?php if ($go=='neu') echo ' class="selected"'; ?>>Neues Spiel</a>
 			<a href="?go=games"<?php if ($go=='games') echo ' class="selected"'; ?>>Spiele&uuml;bersicht</a>
 			<a href="?go=anleitung"<?php if ($go=='anleitung') echo ' class="selected"'; ?>>Anleitung</a>
