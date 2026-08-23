@@ -125,7 +125,7 @@ else
 			}
 			$window = " order by created_at desc, id desc limit 20 offset ".(20 * (max(1, (int)($_GET['page'] ?? 1)) - 1));
 			$return["pages"] = (int)ceil($mysql->execute_query("select count(*) from game ".$where, $params)->fetch_column() / 20);
-			$return["games"] = $mysql->execute_query("select id, source_word as word, status, language, umlauts, flexion, private, maxplayers
+			$return["games"] = $mysql->execute_query("select id, source_word as word, status, language, umlauts, flexion, private, maxplayers,
 					created_by_name as starter, timestampdiff(minute, created_at, now()) as starttime
 				from game ".$where.$window, $params)->fetch_all(MYSQLI_ASSOC);
 			$players = $mysql->execute_query("select p.game_id, p.display_name as player, p.points

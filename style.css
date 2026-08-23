@@ -36,7 +36,7 @@ input, select {background-color: var(--shade); font-family: var(--ui);}
 	--size: min(6.375rem, max(11.2cqi, calc(100cqi / var(--letters) / .558)));
 	--room: calc(100cqi - var(--letters) * .557 * var(--size) - 12.5rem);}
 #content {grid-area: content; min-width: 0; container-type: inline-size;}
-#lettersortbuttons {grid-area: buttons; align-self: end; margin-top: clamp(-100vh, calc(var(--room) * -1000), 0px);}
+#lettersortbuttons {grid-area: buttons; align-self: end; margin-top: clamp(-100vh, calc(var(--room) * -1000), 0px); margin-bottom: 10xp;}
 #letters {grid-area: head; margin-left: clamp(0px, calc(var(--room) * 1000), 12.5rem);
 	color: var(--fg); padding: .25em 0; line-height: .5; cursor: default; overflow-wrap: anywhere; -webkit-user-select: none; user-select: none;}
 #letters span {font-family: var(--display); line-height: .5;}
@@ -48,7 +48,7 @@ input, select {background-color: var(--shade); font-family: var(--ui);}
 	font-family: var(--ui); font-size: 16px; cursor: pointer;}
 #menu a:before, #pagination a:before {content: " "; position: absolute; z-index: -1; top: 3px; right: -5px; bottom: -5px; left: 3px;
 	border: 1px solid var(--fg); border-radius: 3px;}
-#menu .collapsible {margin-bottom: 10px;}
+#menu .collapsible {margin-bottom: 20px;}
 
 #menu a.selected:before, .modes > .selected:before {background-color: var(--line);}
 #menu a:hover:before, #menu a:active:before, #pagination a:hover:before, #pagination a:active:before,
@@ -119,10 +119,12 @@ input, select {background-color: var(--shade); font-family: var(--ui);}
 /* game list */
 
 #games {display: grid; grid-template-columns: repeat(auto-fill, minmax(min(20rem, 100%), 1fr)); gap: 10px;}
-.game {min-height: 112px; padding: 5px; border: 1px solid var(--fg); border-radius: 3px; color: var(--fg); overflow-wrap: anywhere;}
+.game {min-height: 78px; padding: 5px; border: 1px solid var(--fg); border-radius: 3px; color: var(--fg); overflow-wrap: anywhere;}
 .game:hover {background-color: var(--shade-dark);}
 #pagination {display: flex; justify-content: space-between;}
 #pagination a, #pagination span {display: inline-block; width: 22px; padding: 3px; font-size: 12px; text-align: center;}
+.settings {display: flex; float:right;}
+.settings > * {border: 1px solid; border-radius: 3px; font-family: var(--ui); padding: 0 5px; line-height:26px; margin: 5px;}
 
 /* new game */
 

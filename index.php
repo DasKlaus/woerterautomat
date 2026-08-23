@@ -30,11 +30,13 @@ if (($_GET["go"] ?? "") == "neu" and isset($_POST["new"]) and ($_POST["website"]
 			$message = "Du hast in der letzten Stunde zehn Spiele gestartet. Versuch es später noch einmal.";
 		else
 		{
-			$flexion = 0;
-			if (isset($_POST['flexion'])) { $flexion = 1; }
-			$language = (($_POST['language'] ?? 'de') == 'en') ? 'en' : 'de';
-			$mysql->execute_query("insert into game (source_word, language, flexion, created_by, created_by_name, created_at, last_activity_at)
-				values (?, ?, ?, ?, ?, now(), now())", [$sourceword, $language, $flexion, $_SESSION['user_id'], $_SESSION['display_name']]);
+			$flexion = (isset($_POST['flexion'])) ? 1 : 0;
+			$umlauts = (isset($_POST['umlauts'])) ? 1 : 0;
+			$private = (isset($_POST['private'])) ? 1 : 0;
+			$players = ($_POST['players'] ?? 0);
+			$language = ($_POST['language'] ?? 'de');
+			$mysql->execute_query("insert into game (source_word, language, flexion, umlauts, private, maxplayers, created_by, created_by_name, created_at, last_activity_at)
+				values (?, ?, ?, ?, ?, ?, ?, ?, now(), now())", [$sourceword, $language, $flexion, $umlauts, $private, $players, $_SESSION['user_id'], $_SESSION['display_name']]);
 			$id = $mysql->insert_id;
 			$mysql->execute_query("insert into player (game_id, user_id, display_name, joined_at, activity) values (?, ?, ?, now(), now())",
 				[$id, $_SESSION['user_id'], $_SESSION['display_name']]);

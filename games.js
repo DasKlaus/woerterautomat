@@ -46,17 +46,41 @@ function gamedata(response)
 	{
 		var status = 'neu';
 		if (data[i].status == 1) status = 'laufend';
-		if (data[i].status == 2) status = 'voll';
+		else if (data[i].status == 2) status = 'voll';
 		else if (data[i].status == 3) status = 'abgeschlossen';
 		
 		var timediff = data[i].starttime;
-		var activity = calcTimediff(timediff);
+		var whenstarted = calcTimediff(timediff);
 		
-		var language = "Deutsch";
-		if (data[i].language=="en") { language = "Englisch"; }
-		
-		var flexion = "ohne";
-		if (data[i].flexion==1) { flexion = "mit"; }
+		var settings = document.createElement('div');
+		settings.className = 'settings';
+		var span = document.createElement('span');
+		span.textContent = data[i].language.toUpperCase();
+		settings.appendChild(span);
+		if (data[i].umlauts) {
+			span = document.createElement('span');
+			span.textContent = "Ä→AE";
+			span.setAttribute('title', 'Umlaute können substituiert werden');
+			settings.appendChild(span);
+		}
+		if (data[i].flexion) {
+			span = document.createElement('span');
+			span.textContent = "⎇";
+			span.setAttribute('title', 'Flexionsformen wie Mehrzahlen, Deklinationen, Konjugationen erlaubt');
+			settings.appendChild(span);
+		}
+		if (data[i].private) {
+			span = document.createElement('span');
+			span.textContent = "⚿";
+			span.setAttribute('title', 'privates Spiel, unsichtbar für andere, zum Einladen URL teilen');
+			settings.appendChild(span);
+		}
+		if (data[i].maxplayers>0) {
+			span = document.createElement('span');
+			span.textContent = "☺≤"+data[i].maxplayers;
+			span.setAttribute('title', 'Maximum '+data[i].maxplayers+' Spieler');
+			settings.appendChild(span);
+		}
 		
 		var gamelink = document.createElement('a');
 		gamelink.className = 'game';
@@ -64,16 +88,20 @@ function gamedata(response)
 		var headline = document.createElement('h2');
 		headline.textContent = data[i].word;
 		gamelink.appendChild(headline);
-		gamelink.appendChild(document.createTextNode('('+status+') gestartet '+activity+' auf '+language+' von '+(data[i].starter || "Gast")+' '+flexion+' Flexionsformen'));
+		gamelink.appendChild(settings);
+		gamelink.appendChild(document.createTextNode('('+status+') gestartet '+whenstarted+' von '+(data[i].starter || "Gast")));
 		gamelink.appendChild(document.createElement('br'));
-		var players = 'mit';
+		//var players = 'mit';
+		var players = [];
 		for (var j=0; j<data[i].players.length; j++)
 		{
 			var player = data[i].players[j].player || "Gast";
-			players += ' '+player;
-			if (data[i].status == 3) { players += ' ('+data[i].players[j].points+')'; }
+			if (data[i].status == 3) { player += ' ('+data[i].players[j].points+')'; }
+			players.push(player)
+			/*players += ' '+player;
+			if (data[i].status == 3) { players += ' ('+data[i].players[j].points+')'; }*/
 		}
-		gamelink.appendChild(document.createTextNode(players));
+		gamelink.appendChild(document.createTextNode(players.join(" ")));
 		content.appendChild(gamelink);
 	}
 }
