@@ -17,6 +17,7 @@ p {margin-bottom: 10px;}
 input, select {background-color: var(--shade); font-family: var(--ui);}
 .warning {color: var(--alert);}
 .hp {position: absolute; left: -9999px;}
+.hide {display: none;}
 
 /* layout */
 
@@ -125,9 +126,17 @@ input, select {background-color: var(--shade); font-family: var(--ui);}
 
 /* new game */
 
-#newwordinput {width: 100%; margin: 10px 0 40px; padding: 10px; font-family: var(--display); font-size: min(6.375rem, 11.2cqi);}
-#languageinput {width: 150px; margin-right: 100px;}
-#newgamesubmit {float: right; margin-top: -20px; padding: 20px;}
+#newwordinput {border-radius: 3px; width: 100%; margin: 10px 0 40px; padding: 10px; font-family: var(--display); font-size: min(6.375rem, 11.2cqi);}
+#controlgrid {display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 12rem), 1fr)); gap: 0 20px;}
+.controls {display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: center; margin-bottom: 10px;}
+.controls label {padding-right: 5px;}
+.controls input, .controls select, #newgamesubmit {border-radius: 3px; font-family: var(--ui); font-size: 16px; padding: 3px; width: 100px; 
+	border: 1px solid var(--fg); background: var(--bg); color: var(--fg);}
+.controls input[type="checkbox"] {height: 26px; margin: 0;}
+#newgamesubmit {position: relative; width: 100%;}
+#newgamesubmit:before {content: ""; position: absolute; z-index: -1; inset: 3px -5px -5px 3px; border: 1px solid var(--fg); border-radius: 3px;}
+#newgamesubmit:active:before {background-color: var(--fg);}
+@media (min-width: 1000px) {#controlgrid {grid-template-columns: repeat(3, minmax(0, 1fr));}}
 
 /* identity */
 

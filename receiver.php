@@ -46,10 +46,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' and $_SESSION['user_id'])
 		case "joingame":
 			$mysql->begin_transaction();
 			$mysql->execute_query("insert ignore into player (game_id, user_id, display_name, joined_at, activity)
-					select ?, ?, ?, now(), now() from game where id = ? and status <> 2", [$game, $user, $_SESSION['display_name'], $game]);
+					select ?, ?, ?, now(), now() from game where id = ? and status < 2", [$game, $user, $_SESSION['display_name'], $game]);
 			touchplayer($mysql, $game, $user);
 			$mysql->execute_query("update game set status = 1
 					where id = ? and status = 0 and (select count(*) from player where game_id = ?) > 1", [$game, $game]);
+			$mysql->execute_query("update game set status = 2
+					where id = ? and (select count(*) from player where game_id = ?) = maxplayers", [$game, $game]);
 			recompute($mysql, $game);
 			touchgame($mysql, $game);
 			$mysql->commit();
@@ -71,9 +73,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' and $_SESSION['user_id'])
 			$mysql->commit();
 			break;
 		case "finishgame":
-			$mysql->execute_query("update player set status = 2, activity = now() where game_id = ? and user_id = ?", [$game, $user]);
-			$mysql->execute_query("update game set status = 2
-					where id = ? and not exists (select 1 from player where game_id = ? and status <> 2)", [$game, $game]);
+			$mysql->execute_query("update player set status = 3, activity = now() where game_id = ? and user_id = ?", [$game, $user]);
+			$mysql->execute_query("update game set status = 3
+					where id = ? and not exists (select 1 from player where game_id = ? and status <> 3)", [$game, $game]);
 			touchgame($mysql, $game);
 			$return = finishstate($mysql, $game);
 			break;
@@ -101,26 +103,29 @@ else
 			switch($_GET['mode'] ?? 'relevant')
 			{
 				case 'relevant':
-					$where = "where game.status < 2 or game.created_by = ? or exists (select 1 from player m where m.game_id = game.id and m.user_id = ?)";
-					$params = [$user, $user];
+					$where = "where (game.status < 2 and not game.private) or exists (select 1 from player m where m.game_id = game.id and m.user_id = ?)";
+					$params = [$user];
 					break;
 				case 'own':
 					$where = "where game.created_by = ? or exists (select 1 from player m where m.game_id = game.id and m.user_id = ?)";
 					$params = [$user, $user];
 					break;
 				case 'new':
-					$where = "where game.status = 0";
+					$where = "where game.status = 0 and (not game.private or exists (select 1 from player m where m.game_id = game.id and m.user_id = ?))";
+					$params = [$user];
 					break;
 				case 'active':
-					$where = "where game.status = 1";
+					$where = "where game.status = 1 and (not game.private or exists (select 1 from player m where m.game_id = game.id and m.user_id = ?))";
+					$params = [$user];
 					break;
 				case 'finished':
-					$where = "where game.status = 2";
+					$where = "where game.status = 3 and (not game.private or exists (select 1 from player m where m.game_id = game.id and m.user_id = ?))";
+					$params = [$user];
 					break;
 			}
 			$window = " order by created_at desc, id desc limit 20 offset ".(20 * (max(1, (int)($_GET['page'] ?? 1)) - 1));
 			$return["pages"] = (int)ceil($mysql->execute_query("select count(*) from game ".$where, $params)->fetch_column() / 20);
-			$return["games"] = $mysql->execute_query("select id, source_word as word, status, language, flexion,
+			$return["games"] = $mysql->execute_query("select id, source_word as word, status, language, umlauts, flexion, private, maxplayers
 					created_by_name as starter, timestampdiff(minute, created_at, now()) as starttime
 				from game ".$where.$window, $params)->fetch_all(MYSQLI_ASSOC);
 			$players = $mysql->execute_query("select p.game_id, p.display_name as player, p.points

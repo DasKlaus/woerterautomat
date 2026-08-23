@@ -1,13 +1,20 @@
 <?php
 $game = (int)($_GET['game'] ?? 0);
-$currentgame = $mysql->execute_query("select source_word, status, language, flexion, created_by_name,
+$currentgame = $mysql->execute_query("select source_word, status, language, umlauts, flexion created_by_name,
 		timestampdiff(minute, created_at, now()) as starttime from game where id = ?", [$game])->fetch_assoc();
 if (!$currentgame)
 {
-	echo '<p>Dieses Spiel gibt es nicht mehr.</p>';
+	echo '<p class="warning">Dieses Spiel gibt es nicht mehr.</p>';
 	return;
 }
 
+$mystatus = -1;
+$playing = [];
+	foreach ($mysql->execute_query("select user_id, display_name, status from player where game_id = ? order by joined_at", [$game])->fetch_all(MYSQLI_ASSOC) as $row)
+	{
+		$playing[] = $row['display_name'] ?: "Gast";
+		if ($row["user_id"] == $_SESSION['user_id']) { $mystatus = $row["status"]; }
+	}
 function timeago($minutes)
 {
 	$count = $minutes; $unit = "Minute"; $plural = "n";
@@ -17,13 +24,23 @@ function timeago($minutes)
 	return "vor ".$count." ".$unit.($count == 1 ? "" : $plural);
 }
 
-if (!$_SESSION['user_id'] and $currentgame['status'] != 2)
+if ($mystatus<0 and $currentgame['status'] == 2)
 {
 	$playing = [];
 	foreach ($mysql->execute_query("select display_name from player where game_id = ? order by joined_at", [$game])->fetch_all(MYSQLI_ASSOC) as $row)
 	{
 		$playing[] = $row['display_name'] ?: "Gast";
 	}
+	echo '<h2>'.htmlspecialchars($currentgame['source_word'], ENT_QUOTES, 'UTF-8').'</h2>
+		<p>gestartet '.timeago($currentgame['starttime']).' auf '.(($currentgame['language'] == 'en') ? 'Englisch' : 'Deutsch')
+		.' von '.htmlspecialchars($currentgame['created_by_name'] ?: "Gast", ENT_QUOTES, 'UTF-8').' '.($currentgame['flexion'] ? 'mit' : 'ohne').' Flexionsformen<br>
+		mit '.htmlspecialchars(implode(', ', $playing), ENT_QUOTES, 'UTF-8').'</p>';
+	echo '<p class="warning">Dieses Spiel nimmt keine weiteren Spieler an.</p>';
+	return;
+}
+
+if (!$_SESSION['user_id'] and $currentgame['status'] != 3)
+{
 	echo '<h2>'.htmlspecialchars($currentgame['source_word'], ENT_QUOTES, 'UTF-8').'</h2>
 		<p>gestartet '.timeago($currentgame['starttime']).' auf '.(($currentgame['language'] == 'en') ? 'Englisch' : 'Deutsch')
 		.' von '.htmlspecialchars($currentgame['created_by_name'] ?: "Gast", ENT_QUOTES, 'UTF-8').' '.($currentgame['flexion'] ? 'mit' : 'ohne').' Flexionsformen<br>
@@ -34,8 +51,6 @@ if (!$_SESSION['user_id'] and $currentgame['status'] != 2)
 	return;
 }
 
-$mystatus = $mysql->execute_query("select status from player where game_id = ? and user_id = ?", [$game, $_SESSION['user_id']])->fetch_column();
-
 $words = $mysql->execute_query("select word from word where game_id = ? and user_id = ?", [$game, $_SESSION['user_id']])->fetch_all(MYSQLI_ASSOC);
 ?>
 <script src="game.js"></script>
@@ -43,8 +58,11 @@ $words = $mysql->execute_query("select word from word where game_id = ? and user
   var game = <?php echo json_encode($game); ?>;
   var originalword = <?php echo json_encode($currentgame['source_word']); ?>;
   var mystatus = <?php echo json_encode((int)$mystatus); ?>;
-  var isplayer = <?php echo json_encode($mystatus !== false); ?>;
+  var isplayer = <?php echo json_encode($mystatus<0); ?>;
   var gamestatus = <?php echo json_encode((int)$currentgame['status']); ?>;
+  var language = <?php echo json_encode($currentgame['language']); ?>;
+  var umlauts = <?php echo json_encode($currentgame['umlauts']>0); ?>;
+  var flexion = <?php echo json_encode($currentgame['flexion']>0); ?>;
   var sortmode = 'standard';
   var words = <?php echo json_encode(array_merge([$currentgame['source_word']], array_column($words, 'word'))); ?>;
   var wordpoints = [];
@@ -58,16 +76,20 @@ $words = $mysql->execute_query("select word from word where game_id = ? and user
   var playerstamp = 0;
   var gamedata;
 
-if (gamestatus == 2) { mystatus = 2; }
+if (gamestatus == 3) { mystatus = 3; } // TODO: why? should be already 3!
+substitution = umlauts;
+
 writeletters(originalword);
+document.getElementById("anagram").remove(); // TODO: once disctionaries implemented, return function on finished games
+substitute = game[""]
 
 document.addEventListener('DOMContentLoaded', function() {
-  if (isplayer || mystatus != 2) { document.getElementById("leave").style.display = 'block'; }
+  if (isplayer || mystatus != 3) { document.getElementById("leave").style.display = 'block'; }
   document.getElementById("input").value = '';
   document.getElementById('input').onkeypress = keyhandle;
   document.getElementById('input').onkeydown = keydownhandle;
 
-  if (mystatus == 2)
+  if (mystatus == 3)
   {
 	document.getElementById('inputline').style.display = 'none';
 	playerbutton();

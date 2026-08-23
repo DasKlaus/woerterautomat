@@ -124,7 +124,7 @@ function sortword(word)
 	wordspan.className = 'wordspan';
 	wordspan.id = word+'word';
 	wordspan.innerHTML = word;
-	if (mystatus != 2) {wordspan.onclick = function() { removeword(wordspan); }; wordspan.className += ' deletable';}
+	if (mystatus != 3) {wordspan.onclick = function() { removeword(wordspan); }; wordspan.className += ' deletable';}
 	if (found != -1)
 	{
 		var span = pointspan(wordpoints[found].points);
@@ -143,7 +143,7 @@ function sortallwordsdump(a,b)
 function sortwords()
   {
 	var tosort = words;
-	if (mystatus == 2) {tosort = (sortmode == 'player') ? allwordsdump : uniquewords;}
+	if (mystatus == 3) {tosort = (sortmode == 'player') ? allwordsdump : uniquewords;}
 	var worddiv = document.getElementById("words");
 	worddiv.innerHTML = '';
 	switch (sortmode)
@@ -156,7 +156,7 @@ function sortwords()
 		case 'alpha':
 			var sortedword = sortstring(originalword);
 			makeletterboxes(sortedword);
-			if (mystatus == 2) {tosort.sort(sortallwordsdump);}
+			if (mystatus == 3) {tosort.sort(sortallwordsdump);}
 			else {tosort.sort();}
 		break;
 		case 'length':
@@ -169,7 +169,7 @@ function sortwords()
 	}
 	for (var i=0; i<tosort.length; i++)
 	{
-		if (mystatus == 2) {sortfinishedword(tosort[i]);}
+		if (mystatus == 3) {sortfinishedword(tosort[i]);}
 		else {sortword(tosort[i]);}
 	}
   }
@@ -363,31 +363,17 @@ function keyhandle(e)
 	if (chrCode==0) chrTyped = ' ';
 	  else chrTyped = String.fromCharCode(chrCode).toLowerCase();
 	if (chrCode == 13) { submitword(); }
-	if ("äöüß".indexOf(chrTyped) == -1)
-	{
-		if (findletterspan(chrTyped, true))
-		{
-			letterclicked(findletterspan(chrTyped, true));
+	var to_type = (chrTyped in umlauts and substitute == true) ? umlauts[chrTyped] : chrTyped;
+	var letterspan = undefined;
+	for (var i=0; i<to_type.length; i++) {
+		if (letterspan = findletterspan(to_type[i], true) || letterspan) {
+			letterclicked(letterspan);
 		}
-	}
-	else
-	{
-		umlautletters = [];
-		if (chrTyped == "ä") { umlautletters[0] = "a"; umlautletters[1] = "e"; }
-		if (chrTyped == "ö") { umlautletters[0] = "o"; umlautletters[1] = "e"; }
-		if (chrTyped == "ü") { umlautletters[0] = "u"; umlautletters[1] = "e"; }
-		if (chrTyped == "ß") { umlautletters[0] = "s"; umlautletters[1] = "s"; }
-		if (findletterspan(umlautletters[0], true))
-		{
-			letterclicked(findletterspan(umlautletters[0], true));
-			if (findletterspan(umlautletters[1], true))
-			{
-				letterclicked(findletterspan(umlautletters[1], true));
-			}
-			else
-			{
+		else {
+			for (var j=0; j<i; j++) {
 				backspace();
 			}
+			break;
 		}
 	}
   }
@@ -412,7 +398,7 @@ function leave() {
 }
 
 function finish() {
-	mystatus=2;
+	mystatus=3;
 	document.getElementById('finish').style.display = 'none';
 	document.getElementById('inputline').style.display = 'none';
 	writeletters(document.getElementById("letters").textContent);
@@ -437,10 +423,10 @@ function post(data, callback)
 
 function poll()
 {
-	if (mystatus == 2 && gamestatus == 2) { return; }
+	if (mystatus == 3 && gamestatus == 3) { return; }
 	gamedata = setTimeout(poll, pollwait);
 	if (document.hidden) { return; }
-	if (mystatus == 2)
+	if (mystatus == 3)
 	{
 		get("receiver.php?action=finishrequest&game="+game+"&version="+version, finishdata);
 		return;
@@ -477,7 +463,7 @@ function writeplayers(list)
 		var playername = list[i].player || "Gast";
 		var points = list[i].self ? ownpoints : list[i].points;
 		var playerstatus = "aktiv";
-		if (list[i].status == 2) { playerstatus = "abgeschlossen"; }
+		if (list[i].status == 3) { playerstatus = "abgeschlossen"; }
 		var activity = "letzte Aktion "+timeago(list[i].last_activity + elapsed);
 
 		var playerdiv = document.createElement('div');

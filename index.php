@@ -59,6 +59,7 @@ if (($_GET["go"] ?? "") == "neu" and isset($_POST["new"]) and ($_POST["website"]
 		<div id="lettersortbuttons" class="collapsible sort">
 			<div class="modes">
 			<button type="button" onClick="select(this); writeletters(randomstring(originalword));">mischen</button>
+			<button id="anagram" type="button" onClick="select(this); writeletters(anagram(target, prepared_words));">sortieren</button>
 			</div>
 			<div class="modes">
 			<button type="button" onClick="select(this); writeletters(sortstring(originalword));">alphabetisch</button>
@@ -101,21 +102,7 @@ if (($_GET["go"] ?? "") == "neu" and isset($_POST["new"]) and ($_POST["website"]
 				identityForm();
 			}
 			elseif (isset($_GET["go"]) and $_GET["go"]=="neu")
-			{
-				if ($message) { echo '<p class="warning">'.htmlspecialchars($message, ENT_QUOTES, 'UTF-8').'</p>'; }
-				echo '<p>Das Wort ist für alle sichtbar. Beleidigendes, Privates oder Anstößiges ist nicht zulässig, Verstöße können über das Impressum gemeldet werden. Unzulässige Spiele werden ohne Ankündigung gelöscht.</p>
-					<form method="post">Gib ein Wort ein, mit dem du ein Spiel starten willst.<br>
-					<input type="text" name="word" id="newwordinput" value="'.htmlspecialchars($_POST['word'] ?? '', ENT_QUOTES, 'UTF-8').'"><br>
-					<input type="text" name="website" class="hp" tabindex="-1" autocomplete="off">
-					Sprache: <select name="language" id="languageinput">
-					<option value="de">Deutsch</option>
-					<option value="en"'.((($_POST['language'] ?? 'de') == 'en') ? ' selected' : '').'>Englisch</option>
-					</select>
-					<span title="gebeugte und abgeleitete Formen von Wörtern wie Mehrzahlen, Deklinationen, Konjugationen, zum Beispiel Häuser, gelaufen, fragte, dessen, mir, Notarin, Fuchses">Flexionsformen</span> erlaubt: <input type="checkbox" name="flexion" value="true" id="flexioncheckbox"'.(isset($_POST['flexion']) ? ' checked' : '').'>
-					<input type="submit" name="new" value="Spiel starten" id="newgamesubmit">
-					</form>
-					<script src="newgame.js"></script>';
-			}
+				include_once("newgame.php");
 			elseif (isset($_GET["go"]) and $_GET["go"]=="game")
 				include_once("game.php");
 			elseif (isset($_GET["go"]) and $_GET["go"]=="games")

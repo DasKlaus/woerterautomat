@@ -18,7 +18,6 @@ function pagination(pages)
 	nav.appendChild(pagebutton(">>", pages, page < pages));
 }
 
-/* TODO: make better */
 function calcTimediff(timediff)
 {
 	var activity = "gerade eben";
@@ -47,7 +46,8 @@ function gamedata(response)
 	{
 		var status = 'neu';
 		if (data[i].status == 1) status = 'laufend';
-		else if (data[i].status == 2) status = 'abgeschlossen';
+		if (data[i].status == 2) status = 'voll';
+		else if (data[i].status == 3) status = 'abgeschlossen';
 		
 		var timediff = data[i].starttime;
 		var activity = calcTimediff(timediff);
@@ -71,7 +71,7 @@ function gamedata(response)
 		{
 			var player = data[i].players[j].player || "Gast";
 			players += ' '+player;
-			if (data[i].status == 2) { players += ' ('+data[i].players[j].points+')'; }
+			if (data[i].status == 3) { players += ' ('+data[i].players[j].points+')'; }
 		}
 		gamelink.appendChild(document.createTextNode(players));
 		content.appendChild(gamelink);
