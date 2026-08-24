@@ -3,16 +3,11 @@ header('Content-Type: text/html; charset=UTF-8');
 require_once("config.php");
 require_once("identity.php");
 
-function normalize_letters($string){
-  $upas = Array("ä" => "ae", "ü" => "ue", "ö" => "oe", "Ä" => "Ae", "Ü" => "Ue", "Ö" => "Oe", "ß" => "ss");
-  return strtr($string, $upas);
-  }
-
 $go = $_GET['go'] ?? 'anleitung';
 $message = "";
 if (($_GET["go"] ?? "") == "neu" and isset($_POST["new"]) and ($_POST["website"] ?? "") == "" and $_SESSION['user_id'])
 {
-	$sourceword = preg_replace('/[^a-z]/', '', strtolower(normalize_letters($_POST['word'] ?? '')));
+	$sourceword = preg_replace('/[^\p{L}]/u', '', strtolower($_POST['word'] ?? ''));
 	$reason = identityRestriction();
 	if ($reason !== false)
 		$message = "Das Erstellen von Spielen wurde gesperrt. ".$reason;

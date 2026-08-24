@@ -16,10 +16,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' and $_SESSION['user_id'])
 	if (identityRestriction() !== false) { $_SESSION['display_name'] = ""; }
 	$user = $_SESSION['user_id'];
 	$game = (int)($_POST['game'] ?? 0);
-	$word = mb_strtolower(trim($_POST['word'] ?? ''));
 
 	switch($_POST["action"] ?? "") {
 		case "newword":
+			$word = mb_strtolower(trim($_POST['word'] ?? ''));
 			$sourceword = (string)$mysql->execute_query("select g.source_word from game g
 					join player p on p.game_id = g.id
 					where g.id = ? and p.user_id = ? and p.status <> 2", [$game, $user])->fetch_column();
@@ -35,6 +35,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' and $_SESSION['user_id'])
 			$return = gamestate($mysql, $game, $user);
 			break;
 		case "removeword":
+			$word = mb_strtolower(trim($_POST['word'] ?? ''));
 			$mysql->begin_transaction();
 			$mysql->execute_query("delete from word where game_id = ? and user_id = ? and word = ?", [$game, $user, $word]);
 			recompute($mysql, $game);

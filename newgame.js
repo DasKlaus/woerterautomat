@@ -1,16 +1,7 @@
 document.getElementById('newwordinput').onkeypress = keyhandle;
 
-function toggleUmlautcontrols(selector) {
-	if (selector.value == "de") {
-		document.getElementById("umlautcontrols").classList.remove('hide');
-	}
-	else {
-		document.getElementById("umlautcontrols").classList.add('hide');
-	}
-}
-
 function toggleUmlauts(selector) {
-	substitution = selector.clicked;
+	substitute = selector.checked;
 }
 
 function keyhandle(e) {

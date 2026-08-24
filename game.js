@@ -363,7 +363,7 @@ function keyhandle(e)
 	if (chrCode==0) chrTyped = ' ';
 	  else chrTyped = String.fromCharCode(chrCode).toLowerCase();
 	if (chrCode == 13) { submitword(); }
-	var to_type = (chrTyped in umlauts and substitute == true) ? umlauts[chrTyped] : chrTyped;
+	var to_type = (chrTyped in umlauts && substitute == true) ? umlauts[chrTyped] : chrTyped;
 	var letterspan = undefined;
 	for (var i=0; i<to_type.length; i++) {
 		if (letterspan = findletterspan(to_type[i], true) || letterspan) {

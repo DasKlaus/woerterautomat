@@ -61,7 +61,7 @@ $words = $mysql->execute_query("select word from word where game_id = ? and user
   var isplayer = <?php echo json_encode($mystatus<0); ?>;
   var gamestatus = <?php echo json_encode((int)$currentgame['status']); ?>;
   var language = <?php echo json_encode($currentgame['language']); ?>;
-  var umlauts = <?php echo json_encode($currentgame['umlauts']>0); ?>;
+  substitute = <?php echo json_encode($currentgame['umlauts']>0); ?>;
   var flexion = <?php echo json_encode($currentgame['flexion']>0); ?>;
   var sortmode = 'standard';
   var words = <?php echo json_encode(array_merge([$currentgame['source_word']], array_column($words, 'word'))); ?>;
@@ -77,11 +77,9 @@ $words = $mysql->execute_query("select word from word where game_id = ? and user
   var gamedata;
 
 if (gamestatus == 3) { mystatus = 3; } // TODO: why? should be already 3!
-substitution = umlauts;
 
 writeletters(originalword);
 document.getElementById("anagram").remove(); // TODO: once disctionaries implemented, return function on finished games
-substitute = game[""]
 
 document.addEventListener('DOMContentLoaded', function() {
   if (isplayer || mystatus != 3) { document.getElementById("leave").style.display = 'block'; }
