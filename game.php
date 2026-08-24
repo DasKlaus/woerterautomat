@@ -66,6 +66,7 @@ $words = $mysql->execute_query("select word from word where game_id = ? and user
   var isprivate = <?php echo json_encode($currentgame['private']>0); ?>;
   var maxplayers = <?php echo json_encode($currentgame['maxplayers']); ?>;
   var sortmode = 'standard';
+  var direction = 1;
   var words = <?php echo json_encode(array_merge([$currentgame['source_word']], array_column($words, 'word'))); ?>;
   var wordpoints = [];
   var ownpoints = 0;
@@ -142,12 +143,18 @@ if (maxplayers>0) {
 	<div id="submit" onClick="submitword();">absenden</div>
 </div>
 <div id="wordbox" style="">
-	<div id="sortbuttons" class="modes collapsible sort">
-	<button type="button" class="selected" onClick="select(this); sortmode = 'standard'; sortwords();">standard</button>
-	<button type="button" onClick="select(this); sortmode = 'chrono'; sortwords();">chronologisch</button>
-	<button type="button" onClick="select(this); sortmode = 'alpha'; sortwords();">alphabetisch</button>
-	<button type="button" onClick="select(this); sortmode = 'length'; sortwords();">nach L&auml;nge</button>
-	<button type="button" onClick="select(this); sortmode = 'points'; sortwords();">nach Punkten</button>
+	<div class="collapsible sort">
+		<div id="sortbuttons" class="modes">
+		<button type="button" class="selected" onClick="select(this); sortmode = 'standard'; sortwords();">standard</button>
+		<button type="button" onClick="select(this); sortmode = 'chrono'; sortwords();">chronologisch</button>
+		<button type="button" onClick="select(this); sortmode = 'alpha'; sortwords();">alphabetisch</button>
+		<button type="button" onClick="select(this); sortmode = 'length'; sortwords();">nach L&auml;nge</button>
+		<button type="button" onClick="select(this); sortmode = 'points'; sortwords();">nach Punkten</button>
+		</div>
+		<div id="orderbuttons" class="modes">
+		<button type="button" class="selected" title="aufsteigend" onClick="select(this); direction = 1; sortwords();">&darr;</button>
+		<button type="button" title="absteigend" onClick="select(this); direction = -1; sortwords();">&uarr;</button>
+		</div>
 	</div>
 	<div id="words"></div>
 </div>

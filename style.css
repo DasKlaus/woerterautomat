@@ -66,6 +66,7 @@ input, select {background-color: var(--shade); font-family: var(--ui);}
 .modes > :first-child:before {left: 3px; border-radius: 3px 0 0 3px;}
 .modes > :last-child:before {right: 3px; border-radius: 0 3px 3px 0;}
 .modes > :only-child, .modes > :only-child:before {border-radius: 3px;}
+#orderbuttons {width: 4rem; float: right;}
 
 /* collapse menus for mobile */
 

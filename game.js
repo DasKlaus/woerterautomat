@@ -27,7 +27,7 @@ function submitword()
 		{
 			post({action: "newword", game: game, word: word}, receivedata);
 			words[words.length] = word;
-			sortword(word);
+			sortwords();
 		}
 		else
 		{
@@ -81,7 +81,7 @@ function sortword(word)
 				var child = wordbox.children[0];
 				while (child && !inserted)
 				{
-					if (!isNaN(child.children[0].innerHTML) && child.children[0].innerHTML > word.length) { wordbox.insertBefore(lengthbox, child); inserted = true; }
+					if (!isNaN(child.children[0].innerHTML) && (child.children[0].innerHTML - word.length) * direction > 0) { wordbox.insertBefore(lengthbox, child); inserted = true; }
 					child = child.nextSibling;
 				}
 				if (!inserted)
@@ -107,7 +107,7 @@ function sortword(word)
 				var child = wordbox.children[0];
 				while (child && !inserted)
 				{
-					if (!isNaN(child.children[0].innerHTML) && parseInt(child.children[0].innerHTML) > parseInt(points)) { wordbox.insertBefore(pointsbox, child); inserted = true; }
+					if (!isNaN(child.children[0].innerHTML) && (child.children[0].innerHTML - points) * direction > 0) { wordbox.insertBefore(pointsbox, child); inserted = true; }
 					child = child.nextSibling;
 				}
 				if (!inserted)
@@ -167,6 +167,7 @@ function sortwords()
 			makeplayerboxes();
 		break;
 	}
+	if (direction == -1) { tosort = tosort.slice().reverse(); }
 	for (var i=0; i<tosort.length; i++)
 	{
 		if (mystatus == 3) {sortfinishedword(tosort[i]);}
@@ -180,7 +181,8 @@ function makeplayerboxes()
 	{
 		var playerbox = document.createElement('div');
 		playerbox.id = "player"+i+"words";
-		document.getElementById("words").appendChild(playerbox);
+		var wordbox = document.getElementById("words");
+		wordbox.insertBefore(playerbox, direction == 1 ? null : wordbox.firstChild);
 		var playerboxhead = document.createElement('span');
 		playerboxhead.className = 'startletter';
 		playerboxhead.textContent = allplayersdump[i].player || "Gast";
@@ -232,7 +234,7 @@ function sortfinishedword(word)
 				var child = wordbox.children[0];
 				while (child && !inserted)
 				{
-					if (!isNaN(child.children[0].innerHTML) && child.children[0].innerHTML > word["word"].length) { wordbox.insertBefore(lengthbox, child); inserted = true; }
+					if (!isNaN(child.children[0].innerHTML) && (child.children[0].innerHTML - word["word"].length) * direction > 0) { wordbox.insertBefore(lengthbox, child); inserted = true; }
 					child = child.nextSibling;
 				}
 				if (!inserted)
@@ -258,7 +260,7 @@ function sortfinishedword(word)
 				var child = wordbox.children[0];
 				while (child && !inserted)
 				{
-					if (!isNaN(child.children[0].innerHTML) && parseInt(child.children[0].innerHTML) > parseInt(points)) { wordbox.insertBefore(pointsbox, child); inserted = true; }
+					if (!isNaN(child.children[0].innerHTML) && (child.children[0].innerHTML - points) * direction > 0) { wordbox.insertBefore(pointsbox, child); inserted = true; }
 					child = child.nextSibling;
 				}
 				if (!inserted)
@@ -305,7 +307,8 @@ function makeletterboxes(word)
 		{
 			var startletterbox = document.createElement('div');
 			startletterbox.id = word.charAt(i)+"words";
-			document.getElementById("words").appendChild(startletterbox);
+			var wordbox = document.getElementById("words");
+			wordbox.insertBefore(startletterbox, direction == 1 ? null : wordbox.firstChild);
 			var letter = document.createElement('span');
 			letter.className = 'startletter';
 			letter.innerHTML = word.charAt(i);

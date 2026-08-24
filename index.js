@@ -13,7 +13,7 @@ var mystatus = 2;
 
 function select(button)
   {
-	var buttons = button.closest('#lettersortbuttons, #sortbuttons').getElementsByTagName('button');
+	var buttons = button.closest('#lettersortbuttons, #sortbuttons, #orderbuttons').getElementsByTagName('button');
 	for (var i=0; i<buttons.length; i++)
 	  {
 		buttons[i].classList.toggle('selected', buttons[i] == button);
