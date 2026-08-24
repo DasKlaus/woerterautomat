@@ -36,7 +36,7 @@ CREATE TABLE `player` (
 CREATE TABLE `word` (
 	`game_id` int(10) NOT NULL,
 	`user_id` bigint(20) NOT NULL,
-	`word` varchar(64) NOT NULL,
+	`word` varchar(64) COLLATE utf8mb4_bin NOT NULL,
 	`created_at` datetime NOT NULL,
 	PRIMARY KEY (`game_id`, `user_id`, `word`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
