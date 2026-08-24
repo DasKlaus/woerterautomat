@@ -74,6 +74,7 @@ if (($_GET["go"] ?? "") == "neu" and isset($_POST["new"]) and ($_POST["website"]
 			</div>
 			<?php if (isset($_GET["go"]) and $_GET["go"]=="game" and ($_SESSION['user_id'])) { ?>
 				<div class="collapsible actions">
+					<div id="settings" class="settings"></div>
 					<a id="leave" style="display: none;" onClick="leave();">Spiel verlassen</a>
 					<a id="finish" style="display: none;" onClick="finish();">Spiel abschlie&szlig;en</a>
 				</div>

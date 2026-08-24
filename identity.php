@@ -163,10 +163,10 @@ function identityForm()
 	echo '<h3>Authentifizierungs-Code</h3>
 		<p>Mit dem Code ist ein Wiederanmelden in einem anderen Browser oder nach Ende der Sitzung möglich. Er sollte notiert und nicht weitergegeben werden.</p>';
 	if ($_SESSION['user_id'])
-		echo '<p class="code">'.identityCode().'</p>
-			<p class="warning">Ein neuer Code macht den bisherigen ung&uuml;ltig und beendet den Zugang in allen anderen Browsern.</p>
+		echo '<p class="warning">Ein neuer Code macht den bisherigen ung&uuml;ltig und beendet den Zugang in allen anderen Browsern.</p>
 			<form method="post" class="identity">
-			<button type="submit" name="do" value="newcode">Neuen Code erzeugen</button>
+			  <span class="code">'.identityCode().'</span>
+			  <button type="submit" name="do" value="newcode">Neuen Code erzeugen</button>
 			</form>';
 	echo '<form method="post" class="identity">
 			<input type="text" name="code" value="">

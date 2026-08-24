@@ -36,7 +36,7 @@ input, select {background-color: var(--shade); font-family: var(--ui);}
 	--size: min(6.375rem, max(11.2cqi, calc(100cqi / var(--letters) / .558)));
 	--room: calc(100cqi - var(--letters) * .557 * var(--size) - 12.5rem);}
 #content {grid-area: content; min-width: 0; container-type: inline-size;}
-#lettersortbuttons {grid-area: buttons; align-self: end; margin-top: clamp(-100vh, calc(var(--room) * -1000), 0px); margin-bottom: 10xp;}
+#lettersortbuttons {grid-area: buttons; align-self: end; margin-top: clamp(-100vh, calc(var(--room) * -1000), 0px); margin-bottom: 10px;}
 #letters {grid-area: head; margin-left: clamp(0px, calc(var(--room) * 1000), 12.5rem);
 	color: var(--fg); padding: .25em 0; line-height: .5; cursor: default; overflow-wrap: anywhere; -webkit-user-select: none; user-select: none;}
 #letters span {font-family: var(--display); line-height: .5;}
@@ -123,8 +123,11 @@ input, select {background-color: var(--shade); font-family: var(--ui);}
 .game:hover {background-color: var(--shade-dark);}
 #pagination {display: flex; justify-content: space-between;}
 #pagination a, #pagination span {display: inline-block; width: 22px; padding: 3px; font-size: 12px; text-align: center;}
+
+#menu .settings {flex-wrap: wrap; float: none; margin: -5px -5px 0 -5px;}
 .settings {display: flex; float:right;}
-.settings > * {border: 1px solid; border-radius: 3px; font-family: var(--ui); padding: 0 5px; line-height:26px; margin: 5px;}
+.settings > * {border: 1px solid; border-radius: 3px; flex: fit-content; font-family: var(--ui); 
+	padding: 0 5px; line-height:26px; margin: 5px; text-align: center;}
 
 /* new game */
 
@@ -144,7 +147,7 @@ input, select {background-color: var(--shade); font-family: var(--ui);}
 
 .identity {margin-bottom: 10px;}
 .identity input, .identity button {padding: 3px; border: 1px solid var(--fg); border-radius: 3px; font-size: 16px;}
-.identity input {width: 308px;}
+.identity input, .code {width: 308px;}
 .identity button {width: 170px; background-color: var(--bg); cursor: pointer;}
 .identity button:hover {background-color: var(--shade);}
-.code {font-family: Rounded, monospace; font-size: 16px;}
+.code {font-family: Rounded, monospace; font-size: 16px; display: inline-block;}

@@ -1,6 +1,6 @@
 <?php
 $game = (int)($_GET['game'] ?? 0);
-$currentgame = $mysql->execute_query("select source_word, status, language, umlauts, flexion created_by_name,
+$currentgame = $mysql->execute_query("select source_word, status, language, umlauts, flexion, maxplayers, private, created_by_name,
 		timestampdiff(minute, created_at, now()) as starttime from game where id = ?", [$game])->fetch_assoc();
 if (!$currentgame)
 {
@@ -63,6 +63,8 @@ $words = $mysql->execute_query("select word from word where game_id = ? and user
   var language = <?php echo json_encode($currentgame['language']); ?>;
   substitute = <?php echo json_encode($currentgame['umlauts']>0); ?>;
   var flexion = <?php echo json_encode($currentgame['flexion']>0); ?>;
+  var isprivate = <?php echo json_encode($currentgame['private']>0); ?>;
+  var maxplayers = <?php echo json_encode($currentgame['maxplayers']); ?>;
   var sortmode = 'standard';
   var words = <?php echo json_encode(array_merge([$currentgame['source_word']], array_column($words, 'word'))); ?>;
   var wordpoints = [];
@@ -102,6 +104,36 @@ document.addEventListener('DOMContentLoaded', function() {
   gamedata = setTimeout(poll, pollwait);
   document.addEventListener('visibilitychange', repoll);
 });
+
+/* append settings */ // TODO: do in php?
+var settings = document.getElementById("settings");
+var span = document.createElement('span');
+span.textContent = language.toUpperCase();
+settings.appendChild(span);
+if (substitute) {
+	span = document.createElement('span');
+	span.textContent = "Ä→AE";
+	span.setAttribute('title', 'Umlaute können substituiert werden');
+	settings.appendChild(span);
+}
+if (flexion) {
+	span = document.createElement('span');
+	span.textContent = "⎇";
+	span.setAttribute('title', 'Flexionsformen wie Mehrzahlen, Deklinationen, Konjugationen erlaubt');
+	settings.appendChild(span);
+}
+if (isprivate) {
+	span = document.createElement('span');
+	span.textContent = "⚿";
+	span.setAttribute('title', 'privates Spiel, unsichtbar für andere, zum Einladen URL teilen');
+	settings.appendChild(span);
+}
+if (maxplayers>0) {
+	span = document.createElement('span');
+	span.textContent = "☺≤"+maxplayers;
+	span.setAttribute('title', 'Maximum '+maxplayers+' Spieler');
+	settings.appendChild(span);
+}
 </script>
 
 <div id="inputline" style="">
