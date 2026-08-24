@@ -9,8 +9,10 @@ function playerbutton()
 
 function letterclicked(obj)
   {
-	obj.style.display = "none";
-	document.getElementById("input").value += obj.innerHTML;
+	if (mystatus != 3) {
+	  obj.style.display = "none";
+	  document.getElementById("input").value += obj.innerHTML;
+	}
   }
 
 function resyncletters()
