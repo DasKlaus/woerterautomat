@@ -137,12 +137,12 @@ if (maxplayers>0) {
 }
 </script>
 
-<div id="inputline" style="">
+<div id="inputline">
 	<div id="back" onClick="backspace();">zur&uuml;ck</div>
 	<input type="text" id="input" value="" autofocus>
 	<div id="submit" onClick="submitword();">absenden</div>
 </div>
-<div id="wordbox" style="">
+<div id="wordbox">
 	<div class="collapsible sort">
 		<div id="sortbuttons" class="modes">
 		<button type="button" class="selected" onClick="select(this); sortmode = 'standard'; sortwords();">standard</button>

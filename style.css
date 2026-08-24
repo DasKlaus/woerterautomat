@@ -81,7 +81,8 @@ input, select {background-color: var(--shade); font-family: var(--ui);}
 	#letters, #content {width: 100%;}
 	#menu {display: contents;}
 	#lettersortbuttons {align-self: start;}
-	#wrapper .collapsible {margin: 0 0 10px 0; cursor: pointer;}
+	#wrapper .collapsible {margin: -10px 0; cursor: pointer;}
+	#wordbox .collapsible {float: right; margin: 0;}
 	.collapsible:not(.open) {width: 2.5rem; height: 2.5rem; overflow: hidden;}
 	.collapsible.open:before {background-color: var(--shade);}
 	.collapsible:before {content: var(--icon); display: block; width: 2.5rem; height: 2.5rem;
