@@ -29,6 +29,7 @@ function writeletters(lettersinorder)
 	  {
 		letterbox.innerHTML += (mystatus == 2 ? '<span>' : '<span onClick="letterclicked(this);">')+lettersinorder.charAt(i)+'</span>';
 	  }
+	if (document.getElementById("input")) { resyncletters(); }
   }
 
 function sortstring(word)

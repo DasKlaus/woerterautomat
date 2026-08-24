@@ -87,8 +87,8 @@ document.getElementById("anagram").remove(); // TODO: once disctionaries impleme
 document.addEventListener('DOMContentLoaded', function() {
   if (isplayer || mystatus != 3) { document.getElementById("leave").style.display = 'block'; }
   document.getElementById("input").value = '';
-  document.getElementById('input').onkeypress = keyhandle;
   document.getElementById('input').onkeydown = keydownhandle;
+  document.getElementById('input').oninput = resyncletters;
 
   if (mystatus == 3)
   {

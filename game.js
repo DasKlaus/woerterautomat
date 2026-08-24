@@ -12,17 +12,39 @@ function letterclicked(obj)
 	obj.style.display = "none";
 	document.getElementById("input").value += obj.innerHTML;
   }
-  
+
+function resyncletters()
+  {
+	var inputfield = document.getElementById("input");
+	var spans = document.getElementById("letters").children;
+	for (var i=0; i<spans.length; i++) { spans[i].style.display = 'inline'; }
+	var value = inputfield.value.normalize('NFC').toLowerCase();
+	var accepted = '';
+	for (var i=0; i<value.length; i++)
+	{
+		var needed = (substitute && value[i] in umlauts) ? umlauts[value[i]] : value[i];
+		var used = [];
+		var ok = true;
+		for (var j=0; j<needed.length; j++)
+		{
+			var span = findletterspan(needed[j], true);
+			if (!span) { ok = false; break; }
+			span.style.display = 'none';
+			used.push(span);
+		}
+		if (ok) { accepted += needed; }
+		else { used.forEach(function(span) { span.style.display = 'inline'; }); }
+	}
+	if (inputfield.value != accepted) { inputfield.value = accepted; }
+  }
+
 function submitword()
   {
 	var word = document.getElementById("input").value;
 	if (word.length >2)
 	{
 		document.getElementById("input").value = '';
-		for (i=0; i<document.getElementById("letters").children.length; i++)
-		  {
-			document.getElementById("letters").children[i].style.display = 'inline';
-		  }
+		resyncletters();
 		if (words.indexOf(word) == -1)
 		{
 			post({action: "newword", game: game, word: word}, receivedata);
@@ -337,47 +359,17 @@ function findletterspan(charpressed, none)
 function backspace()
   {
 	var inputfield = document.getElementById("input");
-	if (inputfield.value.length > 0)
-	{
-		var chartrimmed = inputfield.value.substr(inputfield.value.length - 1, inputfield.value.length);
-		inputfield.value = inputfield.value.substr(0, inputfield.value.length - 1);
-		findletterspan(chartrimmed, false).style.display = "inline";
-	}
+	inputfield.value = inputfield.value.slice(0, -1);
+	resyncletters();
   }
 
 function keydownhandle(e)
   {
 	evt = e || event;
-	if (evt.keyCode == 8)
+	if (evt.keyCode == 13)
 	{
 		evt.preventDefault();
-		backspace();
-	}
-  }
-
-function keyhandle(e)
-  {
-	evt = e || event;
-	evt.preventDefault();
-	var chrTyped, chrCode = 0;
-	if (evt.charCode!=null && evt.charCode!=0)       chrCode = evt.charCode;
-	else if (evt.which!=null && evt.which!=0)     chrCode = evt.which;
-	else if (evt.keyCode!=null && evt.keyCode!=0) chrCode = evt.keyCode;
-	if (chrCode==0) chrTyped = ' ';
-	  else chrTyped = String.fromCharCode(chrCode).toLowerCase();
-	if (chrCode == 13) { submitword(); }
-	var to_type = (chrTyped in umlauts && substitute == true) ? umlauts[chrTyped] : chrTyped;
-	var letterspan = undefined;
-	for (var i=0; i<to_type.length; i++) {
-		if (letterspan = findletterspan(to_type[i], true) || letterspan) {
-			letterclicked(letterspan);
-		}
-		else {
-			for (var j=0; j<i; j++) {
-				backspace();
-			}
-			break;
-		}
+		submitword();
 	}
   }
 
@@ -404,6 +396,7 @@ function finish() {
 	mystatus=3;
 	document.getElementById('finish').style.display = 'none';
 	document.getElementById('inputline').style.display = 'none';
+	document.getElementById('input').value = '';
 	writeletters(document.getElementById("letters").textContent);
 	playerbutton();
 	post({action: "finishgame", game: game}, finishdata);
