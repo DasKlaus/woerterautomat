@@ -79,14 +79,18 @@ input, select {background-color: var(--shade); font-family: var(--ui);}
 @media (max-width: 690px) {
 	#wrapper {display: flex; flex-wrap: wrap; gap: 10px; --room: -1px;}
 	#letters, #content {width: 100%;}
+	#letters {padding: 15px 0 5px 0;}
 	#menu {display: contents;}
+	#sortgames {margin: 0 0 0 10px !important; float: right;}
+	#wrapper .collapsible {margin: 0; cursor: pointer;}
 	#lettersortbuttons {align-self: start;}
-	#wrapper .collapsible {margin: -10px 0; cursor: pointer;}
+	#wrapper .collapsible {margin: 0; cursor: pointer;}
 	#wordbox .collapsible {float: right; margin: 0;}
-	.collapsible:not(.open) {width: 2.5rem; height: 2.5rem; overflow: hidden;}
-	.collapsible.open:before {background-color: var(--shade);}
-	.collapsible:before {content: var(--icon); display: block; width: 2.5rem; height: 2.5rem;
-		border: 1px solid var(--fg); border-radius: 3px; font-family: var(--ui); font-size: 24px; line-height: 2.4rem; text-align: center;}
+	.collapsible.open {background: var(--bg); position: fixed; top: 0; bottom: 0; left: 0; right: 0; padding: 20px; z-index: 1; align-self: auto !important;}
+	.collapsible:not(.open) {width: 2.5rem; height: 26px; overflow: hidden;}
+	.collapsible.open:before {background-color: var(--shade); margin-bottom:10px;}
+	.collapsible:before {content: var(--icon); display: block; width: 2.5rem; height: 26px;
+		border: 1px solid var(--fg); border-radius: 3px; font-family: var(--ui); font-size: 24px; line-height: 22px; text-align: center;}
 	.sort {--icon: "\21C5";}
 	.nav {--icon: "\2630";}
 	.actions {--icon: "\2691";}
@@ -95,7 +99,7 @@ input, select {background-color: var(--shade); font-family: var(--ui);}
 
 /* game: letters and input */
 
-#inputline {display: flex; gap: 20px; margin: 10px 0;}
+#inputline {display: flex; gap: 20px; margin-bottom: 10px;}
 #back, #submit {padding: 20px 10px 5px; border: 1px solid var(--fg); border-radius: 3px; font-family: var(--ui);}
 #back:hover, #submit:hover {background-color: var(--shade);}
 #input {flex: 1; min-width: 0; padding: 5px 10px; border: 1px solid var(--fg); border-radius: 3px; font-size: 40px;}
@@ -149,9 +153,8 @@ input, select {background-color: var(--shade); font-family: var(--ui);}
 
 /* identity */
 
-.identity {margin-bottom: 10px;}
-.identity input, .identity button {padding: 3px; border: 1px solid var(--fg); border-radius: 3px; font-size: 16px;}
-.identity input, .code {width: 308px;}
-.identity button {width: 170px; background-color: var(--bg); cursor: pointer;}
+.identity {margin-bottom: 10px; display:flex; column-gap: 5px;}
+.identity .code {overflow-wrap: anywhere; border-color: var(--muted) !important; font-family: Rounded, monospace; font-size: 16px; display: inline-block;}
+.identity input, .identity button, .identity .code {padding: 3px; border: 1px solid var(--fg); border-radius: 3px; font-size: 16px; flex: 1;}
+.identity button {background-color: var(--bg); cursor: pointer;}
 .identity button:hover {background-color: var(--shade);}
-.code {font-family: Rounded, monospace; font-size: 16px; display: inline-block;}
