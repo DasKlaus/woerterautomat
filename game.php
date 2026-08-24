@@ -130,8 +130,8 @@ if (isprivate) {
 }
 if (maxplayers>0) {
 	span = document.createElement('span');
-	span.textContent = "☺≤"+maxplayers;
-	span.setAttribute('title', 'Maximum '+maxplayers+' Spieler');
+	span.textContent = "☺ "+maxplayers;
+	span.setAttribute('title', 'bis zu '+maxplayers+' Spieler');
 	settings.appendChild(span);
 }
 </script>

@@ -20,20 +20,21 @@ function pagination(pages)
 
 function calcTimediff(timediff)
 {
-	var activity = "gerade eben";
+	var tshort = "⁕";
+	var tlong = "gerade eben";
 	if (timediff > 0)
 	{
-		var activity = "vor ";
-		var prettydiff;
+		var time;
 		var unit;
 		var plural;
-		if (timediff > 525600) { prettydiff = Math.round(timediff/525600); unit =" Jahr"; plural = "en"}
-		else if (timediff > 1440) { prettydiff = Math.round(timediff/1440); unit = " Tag"; plural = "en"}
-		else if (timediff > 60) { prettydiff = Math.round(timediff/60); unit = " Stunde"; plural = "n"}
-		else { prettydiff = timediff; unit = " Minute"; plural = "n"}
-		activity += prettydiff + unit + (prettydiff === 1 ? "" : plural)
+		if (timediff > 525600) { time = Math.round(timediff/525600); u = "j"; unit =" Jahr"; plural = "en"}
+		else if (timediff > 1440) { time = Math.round(timediff/1440); u = "d"; unit = " Tag"; plural = "en"}
+		else if (timediff > 60) { time = Math.round(timediff/60); u = "h"; unit = " Stunde"; plural = "n"}
+		else { time = timediff; u = "m"; unit = " Minute"; plural = "n"}
+		var tshort = time + u;
+		var tlong = "gestartet vor " + time + unit + (time === 1 ? "" : plural);
 	}
-	return activity;
+	return [tshort,tlong];
 }
 
 function gamedata(response)
@@ -54,9 +55,22 @@ function gamedata(response)
 		
 		var settings = document.createElement('div');
 		settings.className = 'settings';
+		
 		var span = document.createElement('span');
-		span.textContent = data[i].language.toUpperCase();
+		span.textContent = "○◐●✓"[data[i].status];
+		span.setAttribute('title',["neu","laufend","Spielerzahl erreicht","abgeschlossen"][data[i].status]);
 		settings.appendChild(span);
+		
+		span = document.createElement('span');
+		span.textContent = whenstarted[0];
+		span.setAttribute('title', whenstarted[1]);
+		settings.appendChild(span);
+		
+		span = document.createElement('span');
+		span.textContent = data[i].language.toUpperCase();
+		span.setAttribute('title', "auf "+{de:"Deutsch",en:"Englisch"}[data[i].language]);
+		settings.appendChild(span);
+		
 		if (data[i].umlauts) {
 			span = document.createElement('span');
 			span.textContent = "Ä→AE";
@@ -77,8 +91,8 @@ function gamedata(response)
 		}
 		if (data[i].maxplayers>0) {
 			span = document.createElement('span');
-			span.textContent = "☺≤"+data[i].maxplayers;
-			span.setAttribute('title', 'Maximum '+data[i].maxplayers+' Spieler');
+			span.textContent = "☺"+data[i].maxplayers;
+			span.setAttribute('title', 'bis zu '+data[i].maxplayers+' Spieler');
 			settings.appendChild(span);
 		}
 		
@@ -89,19 +103,23 @@ function gamedata(response)
 		headline.textContent = data[i].word;
 		gamelink.appendChild(headline);
 		gamelink.appendChild(settings);
-		gamelink.appendChild(document.createTextNode('('+status+') gestartet '+whenstarted+' von '+(data[i].starter || "Gast")));
 		gamelink.appendChild(document.createElement('br'));
-		//var players = 'mit';
-		var players = [];
-		for (var j=0; j<data[i].players.length; j++)
-		{
-			var player = data[i].players[j].player || "Gast";
-			if (data[i].status == 3) { player += ' ('+data[i].players[j].points+')'; }
-			players.push(player)
-			/*players += ' '+player;
-			if (data[i].status == 3) { players += ' ('+data[i].players[j].points+')'; }*/
+		
+		var players = document.createElement('span');
+		for (var j=0; j<data[i].players.length; j++) {
+			var player = document.createElement('span');
+			player.className = 'wordspan';
+			player.textContent = data[i].players[j].player || "Gast";
+			if (data[i].status == 3) {
+				var playerpoints = document.createElement('span');
+				playerpoints.className = 'pointspan';
+				playerpoints.textContent = data[i].players[j].points
+				player.appendChild(playerpoints);
+			}
+			players.appendChild(player);
+			players.appendChild(document.createTextNode(' '));
 		}
-		gamelink.appendChild(document.createTextNode(players.join(" ")));
+		gamelink.appendChild(players);
 		content.appendChild(gamelink);
 	}
 }

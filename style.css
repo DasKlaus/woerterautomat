@@ -119,14 +119,16 @@ input, select {background-color: var(--shade); font-family: var(--ui);}
 /* game list */
 
 #games {display: grid; grid-template-columns: repeat(auto-fill, minmax(min(20rem, 100%), 1fr)); gap: 10px;}
-.game {min-height: 78px; padding: 5px; border: 1px solid var(--fg); border-radius: 3px; color: var(--fg); overflow-wrap: anywhere;}
+.game {padding: 5px; border: 1px solid var(--fg); border-radius: 3px; color: var(--fg); overflow-wrap: anywhere;}
+.game h2 {display: inline-block;}
 .game:hover {background-color: var(--shade-dark);}
 #pagination {display: flex; justify-content: space-between;}
 #pagination a, #pagination span {display: inline-block; width: 22px; padding: 3px; font-size: 12px; text-align: center;}
 
 #menu .settings {flex-wrap: wrap; float: none; margin: -5px -5px 0 -5px;}
+#menu .settings > * {border-color: var(--fg)}
 .settings {display: flex; float:right;}
-.settings > * {border: 1px solid; border-radius: 3px; flex: fit-content; font-family: var(--ui); 
+.settings > * {border: 1px solid var(--line); border-radius: 3px; flex: fit-content; font-family: var(--ui); 
 	padding: 0 5px; line-height:26px; margin: 5px; text-align: center;}
 
 /* new game */
