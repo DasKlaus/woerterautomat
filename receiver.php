@@ -1,10 +1,5 @@
 <?php
 header('Content-Type: application/json');
-set_exception_handler(function($e) {
-	ob_end_clean();
-	error_log($e);
-	echo json_encode(["error" => "server error"]);
-});
 ob_start();
 require_once("config.php");
 require_once("identity.php");
