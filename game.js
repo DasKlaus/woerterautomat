@@ -166,8 +166,8 @@ function sortallwordsdump(a,b)
 
 function sortwords()
   {
-	var tosort = words;
-	if (mystatus == 3) {tosort = (sortmode == 'player') ? allwordsdump : uniquewords;}
+	var tosort = words.slice();
+	if (mystatus == 3) {tosort = ((sortmode == 'player') ? allwordsdump : uniquewords).slice();}
 	var worddiv = document.getElementById("words");
 	worddiv.innerHTML = '';
 	switch (sortmode)
