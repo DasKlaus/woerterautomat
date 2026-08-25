@@ -72,7 +72,8 @@ if (($_GET["go"] ?? "") == "neu" and isset($_POST["new"]) and ($_POST["website"]
 				<a href="?go=anleitung"<?php if ($go=='anleitung') echo ' class="selected"'; ?>>Anleitung</a>
 				<a href="?go=impressum"<?php if ($go=='impressum') echo ' class="selected"'; ?>>Impressum</a>
 			</div>
-			<?php if (isset($_GET["go"]) and $_GET["go"]=="game" and ($_SESSION['user_id'])) { ?>
+			<?php // not gated on user_id: guests can view finished games too, and game.php expects these elements to exist
+				if (isset($_GET["go"]) and $_GET["go"]=="game") { ?>
 				<div class="collapsible actions">
 					<div id="settings" class="settings"></div>
 					<a id="leave" style="display: none;" onClick="leave();">Spiel verlassen</a>

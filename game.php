@@ -58,7 +58,8 @@ $words = $mysql->execute_query("select word from word where game_id = ? and user
   var game = <?php echo json_encode($game); ?>;
   var originalword = <?php echo json_encode($currentgame['source_word']); ?>;
   var mystatus = <?php echo json_encode((int)$mystatus); ?>;
-  var isplayer = <?php echo json_encode($mystatus<0); ?>;
+  var selfid = <?php echo json_encode((int)$_SESSION['user_id']); ?>;
+  var isplayer = <?php echo json_encode($mystatus>=0); ?>; // has a player row here, regardless of finish status
   var gamestatus = <?php echo json_encode((int)$currentgame['status']); ?>;
   var language = <?php echo json_encode($currentgame['language']); ?>;
   substitute = <?php echo json_encode($currentgame['umlauts']>0); ?>;
@@ -72,6 +73,7 @@ $words = $mysql->execute_query("select word from word where game_id = ? and user
   var ownpoints = 0;
   var allwordsdump = [];
   var allplayersdump = [];
+  var reactions = [];
   var uniquewords = [];
   var version = -1;
   var pollwait = 5000;
@@ -79,7 +81,7 @@ $words = $mysql->execute_query("select word from word where game_id = ? and user
   var playerstamp = 0;
   var gamedata;
 
-if (gamestatus == 3) { mystatus = 3; } // TODO: why? should be already 3!
+if (gamestatus == 3) { mystatus = 3; } // a guest who never joined still has mystatus -1 even once the game is finished
 
 writeletters(originalword);
 document.getElementById("anagram").remove(); // TODO: once disctionaries implemented, return function on finished games

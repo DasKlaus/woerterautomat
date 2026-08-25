@@ -1,5 +1,6 @@
 DROP TABLE IF EXISTS `games`, `playerstatus`;
 
+DROP TABLE IF EXISTS `reaction`;
 DROP TABLE IF EXISTS `word`;
 DROP TABLE IF EXISTS `player`;
 DROP TABLE IF EXISTS `game`;
@@ -39,4 +40,14 @@ CREATE TABLE `word` (
 	`word` varchar(64) COLLATE utf8mb4_bin NOT NULL,
 	`created_at` datetime NOT NULL,
 	PRIMARY KEY (`game_id`, `user_id`, `word`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE `reaction` (
+	`game_id` int(10) NOT NULL,
+	`word` varchar(64) COLLATE utf8mb4_bin NOT NULL,
+	`reactor_id` bigint(20) NOT NULL,
+	`emoji` varchar(8) NOT NULL,
+	`display_name` varchar(255) NOT NULL,
+	`created_at` datetime NOT NULL,
+	PRIMARY KEY (`game_id`, `word`, `reactor_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;

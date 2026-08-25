@@ -35,7 +35,7 @@ input, select {background-color: var(--shade); font-family: var(--ui);}
 	--letters: 14;
 	--size: min(6.375rem, max(11.2cqi, calc(100cqi / var(--letters) / .558)));
 	--room: calc(100cqi - var(--letters) * .557 * var(--size) - 12.5rem);}
-#content {grid-area: content; min-width: 0; container-type: inline-size;}
+#content {grid-area: content; min-width: 0; container-type: inline-size; overflow-x: hidden;}
 #lettersortbuttons {grid-area: buttons; align-self: end; margin-top: clamp(-100vh, calc(var(--room) * -1000), 0px); margin-bottom: 10px;}
 #letters {grid-area: head; margin-left: clamp(0px, calc(var(--room) * 1000), 12.5rem);
 	color: var(--fg); padding: .25em 0; line-height: .5; cursor: default; overflow-wrap: anywhere; -webkit-user-select: none; user-select: none;}
@@ -106,7 +106,7 @@ input, select {background-color: var(--shade); font-family: var(--ui);}
 
 /* game: word box */
 
-#wordbox {margin: 10px 0; line-height: 22px;}
+#wordbox {position: relative; margin: 10px 0; line-height: 22px;}
 .startletter, .startnumber {margin-right: 10px; font-family: var(--display); font-size: 40px; font-weight: bold;}
 .startletter {text-transform: lowercase;}
 .wordspan {padding: 1px 3px; border: 1px solid var(--line); border-radius: 3px; color: var(--fg); transition: border-color 1s, color 1s;}
@@ -117,6 +117,20 @@ input, select {background-color: var(--shade); font-family: var(--ui);}
 .others {background-color: var(--line); border-color: var(--muted);}
 .deletable:hover {border: 1px solid var(--alert); text-decoration: line-through; text-decoration-color: var(--alert);}
 .pointspan {margin-left: 3px; color: var(--muted); font-size: 10px;}
+.reactionbox {margin-left: 4px;}
+.reactionbadge {margin-right: 1px; font-size: 12px;}
+/* top is intentionally unset: falls back to static position (under the word's own line) instead of #wordbox's */
+.reactionpanel {display: flex; flex-direction: column; align-items: center; gap: 3px; position: absolute; z-index: 2;
+	left: 0; right: 0; margin-top: -3px;
+	padding: 5px; border: 1px solid var(--fg); border-radius: 3px; background-color: var(--bg);
+	opacity: 0; pointer-events: none; transition: opacity .15s;}
+.wordspan:hover .reactionpanel, .reactionbox.open .reactionpanel {opacity: 1; pointer-events: auto; transition-delay: .35s;}
+.reactionbox.open .reactionpanel {transition-delay: 0s;}
+.reactionline {font-size: 12px; color: var(--muted);}
+.reactionpicker {display: flex; gap: 4px;}
+.reactionchoice {padding: 1px 3px; border: 1px solid var(--line); border-radius: 3px; cursor: pointer;}
+.reactionchoice:hover {background-color: var(--shade);}
+.reactionchoice.active {background-color: var(--shade-dark); border-color: var(--fg);}
 
 /* game: players */
 

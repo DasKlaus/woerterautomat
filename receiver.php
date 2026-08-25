@@ -5,6 +5,7 @@ require_once("config.php");
 require_once("identity.php");
 
 $return = null;
+$reactionemoji = ['💪', '🤝', '🤦', '😭', '🤯', '😂', '✨', '❓', '🚫']; // keep in sync with reactionemoji in game.js
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST' and $_SESSION['user_id'])
 {
@@ -72,6 +73,26 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' and $_SESSION['user_id'])
 			$mysql->execute_query("update player set status = 3, activity = now() where game_id = ? and user_id = ?", [$game, $user]);
 			$mysql->execute_query("update game set status = 3
 					where id = ? and not exists (select 1 from player where game_id = ? and status <> 3)", [$game, $game]);
+			touchgame($mysql, $game);
+			$return = finishstate($mysql, $game);
+			break;
+		case "react":
+			$word = mb_strtolower(trim($_POST['word'] ?? ''));
+			$emoji = $_POST['emoji'] ?? '';
+			$exists = $mysql->execute_query("select 1 from word w join player p on p.game_id = w.game_id and p.user_id = ?
+					where w.game_id = ? and w.word = ?", [$user, $game, $word])->fetch_column();
+			if ($exists and in_array($emoji, $reactionemoji, true))
+			{
+				$mysql->execute_query("insert into reaction (game_id, word, reactor_id, emoji, display_name, created_at) values (?, ?, ?, ?, ?, now())
+						on duplicate key update emoji = values(emoji), display_name = values(display_name), created_at = values(created_at)",
+					[$game, $word, $user, $emoji, $_SESSION['display_name']]);
+				touchgame($mysql, $game);
+			}
+			$return = finishstate($mysql, $game);
+			break;
+		case "unreact":
+			$word = mb_strtolower(trim($_POST['word'] ?? ''));
+			$mysql->execute_query("delete from reaction where game_id = ? and word = ? and reactor_id = ?", [$game, $word, $user]);
 			touchgame($mysql, $game);
 			$return = finishstate($mysql, $game);
 			break;
@@ -202,6 +223,8 @@ function finishstate($mysql, $game)
 					where f.game_id = w.game_id and f.word = w.word)) as points
 		from word w join player p on p.game_id = w.game_id and p.user_id = w.user_id
 		where w.game_id = ?", [playercount($mysql, $game), $game])->fetch_all(MYSQLI_ASSOC);
+	$return["reactions"] = $mysql->execute_query("select word, reactor_id, emoji, display_name
+		from reaction where game_id = ? order by created_at", [$game])->fetch_all(MYSQLI_ASSOC);
 	return $return;
 }
 

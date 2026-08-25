@@ -307,10 +307,64 @@ function sortfinishedword(word)
 	if (allplayersdump.length > 2) { wordspan.title = finders.join(', '); }
 	wordspan.textContent = word["word"];
 	wordspan.appendChild(pointspan(word["points"]));
+	var box = reactionbox(word["word"]);
+	if (box) { wordspan.appendChild(box); }
 	sortcontainer.appendChild(wordspan);
 	sortcontainer.appendChild(document.createTextNode(" "));
 }
-  
+
+var reactionemoji = ['💪', '🤝', '🤦', '😭', '🤯', '😂', '✨', '❓', '🚫']; // keep in sync with $reactionemoji in receiver.php
+
+document.addEventListener('click', function() {
+	document.querySelectorAll('.reactionbox.open').forEach(function(box) { box.classList.remove('open'); });
+});
+
+function reactionsFor(word)
+{
+	return reactions.filter(function(r) { return r.word == word; });
+}
+
+function reactionbox(word)
+{
+	var existing = reactionsFor(word);
+	if (existing.length == 0 && !isplayer) { return null; }
+	var box = document.createElement('span');
+	box.className = 'reactionbox';
+	var mine = null;
+	var panel = document.createElement('span');
+	panel.className = 'reactionpanel';
+	existing.forEach(function(r) {
+		var badge = document.createElement('span');
+		badge.className = 'reactionbadge';
+		badge.textContent = r.emoji;
+		badge.title = r.display_name || 'Gast';
+		box.appendChild(badge);
+		var line = document.createElement('span');
+		line.className = 'reactionline';
+		line.textContent = r.emoji + ' ' + (r.display_name || 'Gast');
+		panel.appendChild(line);
+		if (r.reactor_id == selfid) { mine = r.emoji; }
+	});
+	if (isplayer) {
+		var picker = document.createElement('span');
+		picker.className = 'reactionpicker';
+		reactionemoji.forEach(function(emoji) {
+			var choice = document.createElement('span');
+			choice.className = 'reactionchoice' + (emoji == mine ? ' active' : '');
+			choice.textContent = emoji;
+			choice.onclick = function(e) {
+				e.stopPropagation();
+				post({action: (emoji == mine ? 'unreact' : 'react'), game: game, word: word, emoji: emoji}, finishdata);
+			};
+			picker.appendChild(choice);
+		});
+		panel.appendChild(picker);
+	}
+	box.appendChild(panel);
+	box.onclick = function(e) { e.stopPropagation(); box.classList.toggle('open'); };
+	return box;
+}
+
 function lookFor(needle, haystack, param) 
 {
 	for (var i=0; i<haystack.length; i++)
@@ -421,7 +475,6 @@ function post(data, callback)
 
 function poll()
 {
-	if (mystatus == 3 && gamestatus == 3) { return; }
 	gamedata = setTimeout(poll, pollwait);
 	if (document.hidden) { return; }
 	if (mystatus == 3)
@@ -486,6 +539,7 @@ function finishdata(data)
 	allplayersdump = data.players;
 	allwordsdump = data.words;
 	uniquewords = dedupe(data.words);
+	reactions = data.reactions;
 	gamestatus = data.gamestatus;
 	sortwords();
 }
