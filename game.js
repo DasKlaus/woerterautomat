@@ -148,12 +148,17 @@ function sortword(word)
 	wordspan.className = 'wordspan';
 	wordspan.id = word+'word';
 	wordspan.innerHTML = word;
-	if (mystatus != 3) {wordspan.onclick = function() { removeword(wordspan); }; wordspan.className += ' deletable';}
 	if (found != -1)
 	{
 		var span = pointspan(wordpoints[found].points);
 		span.id = word+'points';
 		wordspan.appendChild(span);
+	}
+	if (mystatus != 3) {
+		wordspan.className += ' deletable';
+		var box = reactionbox(word, wordspan);
+		wordspan.appendChild(box);
+		wordspan.onclick = function(e) { e.stopPropagation(); box.classList.toggle('open'); };
 	}
 	sortcontainer.appendChild(wordspan);
 	sortcontainer.appendChild(document.createTextNode(" "));
@@ -316,7 +321,7 @@ function sortfinishedword(word)
 var reactionemoji = ['💪', '🤝', '🤦', '😭', '🤯', '😂', '✨', '❓', '🚫']; // keep in sync with $reactionemoji in receiver.php
 
 document.addEventListener('click', function() {
-	document.querySelectorAll('.reactionbox.open').forEach(function(box) { box.classList.remove('open'); });
+	document.querySelectorAll('.popout.open').forEach(function(box) { box.classList.remove('open'); });
 });
 
 function reactionsFor(word)
@@ -324,15 +329,20 @@ function reactionsFor(word)
 	return reactions.filter(function(r) { return r.word == word; });
 }
 
-function reactionbox(word)
+// wordspan is only passed for a still-deletable (active-game) word: it adds a delete choice
+// and makes the whole word (not just the badges) open the popout, since there may be no badges yet
+function reactionbox(word, wordspan)
 {
 	var existing = reactionsFor(word);
-	if (existing.length == 0 && !isplayer) { return null; }
+	// reacting is only offered once this player has personally finished, so seeing others'
+	// reactions on your own still-active words is an incentive to finish, not an option yet
+	var canreact = isplayer && mystatus == 3;
+	if (existing.length == 0 && !canreact && !wordspan) { return null; }
 	var box = document.createElement('span');
-	box.className = 'reactionbox';
+	box.className = 'popout';
 	var mine = null;
 	var panel = document.createElement('span');
-	panel.className = 'reactionpanel';
+	panel.className = 'popoutpanel';
 	existing.forEach(function(r) {
 		var badge = document.createElement('span');
 		badge.className = 'reactionbadge';
@@ -345,19 +355,28 @@ function reactionbox(word)
 		panel.appendChild(line);
 		if (r.reactor_id == selfid) { mine = r.emoji; }
 	});
-	if (isplayer) {
+	if (canreact || wordspan) {
 		var picker = document.createElement('span');
 		picker.className = 'reactionpicker';
-		reactionemoji.forEach(function(emoji) {
-			var choice = document.createElement('span');
-			choice.className = 'reactionchoice' + (emoji == mine ? ' active' : '');
-			choice.textContent = emoji;
-			choice.onclick = function(e) {
-				e.stopPropagation();
-				post({action: (emoji == mine ? 'unreact' : 'react'), game: game, word: word, emoji: emoji}, finishdata);
-			};
-			picker.appendChild(choice);
-		});
+		if (canreact) {
+			reactionemoji.forEach(function(emoji) {
+				var choice = document.createElement('span');
+				choice.className = 'popoutchoice' + (emoji == mine ? ' active' : '');
+				choice.textContent = emoji;
+				choice.onclick = function(e) {
+					e.stopPropagation();
+					post({action: (emoji == mine ? 'unreact' : 'react'), game: game, word: word, emoji: emoji}, finishdata);
+				};
+				picker.appendChild(choice);
+			});
+		}
+		if (wordspan) {
+			var del = document.createElement('span');
+			del.className = 'popoutchoice alert';
+			del.textContent = 'löschen';
+			del.onclick = function(e) { e.stopPropagation(); removeword(wordspan); };
+			picker.appendChild(del);
+		}
 		panel.appendChild(picker);
 	}
 	box.appendChild(panel);
@@ -550,17 +569,19 @@ function receivedata(data)
 	playerstamp = Date.now();
 	version = data.version;
 	wordpoints = data.words;
+	reactions = data.reactions;
 	var changed = false;
 	ownpoints = 0;
 	for (var i=0; i<data.words.length; i++)
 	{
 		ownpoints += data.words[i].points;
+		var wordspan = document.getElementById(data.words[i].word+"word");
 		var span = document.getElementById(data.words[i].word+'points');
 		if (!span)
 		{
 			span = pointspan(data.words[i].points);
 			span.id = data.words[i].word+'points';
-			document.getElementById(data.words[i].word+"word").appendChild(span);
+			wordspan.appendChild(span);
 		}
 		else if (span.textContent != data.words[i].points)
 		{
@@ -568,6 +589,13 @@ function receivedata(data)
 			colortransition(data.words[i].word+"word");
 			changed = true;
 		}
+		var oldbox = wordspan.querySelector('.popout');
+		var wasopen = oldbox && oldbox.classList.contains('open');
+		if (oldbox) { wordspan.removeChild(oldbox); }
+		var newbox = reactionbox(data.words[i].word, wordspan);
+		if (wasopen) { newbox.classList.add('open'); }
+		wordspan.appendChild(newbox);
+		wordspan.onclick = function(box) { return function(e) { e.stopPropagation(); box.classList.toggle('open'); }; }(newbox);
 	}
 	writeplayers(data.players);
 	if (changed && sortmode == 'points') { sortwords(); }

@@ -115,22 +115,24 @@ input, select {background-color: var(--shade); font-family: var(--ui);}
 .unique {font-weight: bold;}
 .shared {background-color: var(--shade);}
 .others {background-color: var(--line); border-color: var(--muted);}
-.deletable:hover {border: 1px solid var(--alert); text-decoration: line-through; text-decoration-color: var(--alert);}
+.deletable {cursor: pointer;}
 .pointspan {margin-left: 3px; color: var(--muted); font-size: 10px;}
-.reactionbox {margin-left: 4px;}
-.reactionbadge {margin-right: 1px; font-size: 12px;}
+.reactionbadge {margin-left: 4px; font-size: 12px;}
 /* top is intentionally unset: falls back to static position (under the word's own line) instead of #wordbox's */
-.reactionpanel {display: flex; flex-direction: column; align-items: center; gap: 3px; position: absolute; z-index: 2;
+/* margin lives on .reactionbadge, not .popout: .popout is present on every reactable word even with zero
+   reactions (for the picker/delete choice), and any margin there would still cost real width on every word */
+.popoutpanel {display: flex; flex-direction: column; align-items: center; gap: 3px; position: absolute; z-index: 2;
 	left: 0; right: 0; margin-top: -3px;
-	padding: 5px; border: 1px solid var(--fg); border-radius: 3px; background-color: var(--bg);
-	opacity: 0; pointer-events: none; transition: opacity .15s;}
-.wordspan:hover .reactionpanel, .reactionbox.open .reactionpanel {opacity: 1; pointer-events: auto; transition-delay: .35s;}
-.reactionbox.open .reactionpanel {transition-delay: 0s;}
+	padding: 0 5px; border: 0 solid var(--fg); border-radius: 3px; background-color: var(--bg);
+	opacity: 0; max-height: 0; overflow: hidden; pointer-events: none; transition: opacity .15s, max-height .15s, padding .15s, border-width .15s;}
+.wordspan:hover .popoutpanel, .popout.open .popoutpanel {opacity: 1; max-height: 200px; padding: 5px; border-width: 1px; pointer-events: auto; transition-delay: .35s;}
+.popout.open .popoutpanel {transition-delay: 0s;}
 .reactionline {font-size: 12px; color: var(--muted);}
-.reactionpicker {display: flex; gap: 4px;}
-.reactionchoice {padding: 1px 3px; border: 1px solid var(--line); border-radius: 3px; cursor: pointer;}
-.reactionchoice:hover {background-color: var(--shade);}
-.reactionchoice.active {background-color: var(--shade-dark); border-color: var(--fg);}
+.reactionpicker {display: flex; flex-wrap: wrap; justify-content: center; gap: 4px;}
+.popoutchoice {padding: 1px 3px; border: 1px solid var(--line); border-radius: 3px; cursor: pointer;}
+.popoutchoice:hover {background-color: var(--shade);}
+.popoutchoice.active {background-color: var(--shade-dark); border-color: var(--fg);}
+.popoutchoice.alert {border-color: var(--alert); color: var(--alert);}
 
 /* game: players */
 

@@ -79,8 +79,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' and $_SESSION['user_id'])
 		case "react":
 			$word = mb_strtolower(trim($_POST['word'] ?? ''));
 			$emoji = $_POST['emoji'] ?? '';
+			// reacting requires having personally finished, same as the picker only being shown then
 			$exists = $mysql->execute_query("select 1 from word w join player p on p.game_id = w.game_id and p.user_id = ?
-					where w.game_id = ? and w.word = ?", [$user, $game, $word])->fetch_column();
+					where w.game_id = ? and w.word = ? and p.status = 3", [$user, $game, $word])->fetch_column();
 			if ($exists and in_array($emoji, $reactionemoji, true))
 			{
 				$mysql->execute_query("insert into reaction (game_id, word, reactor_id, emoji, display_name, created_at) values (?, ?, ?, ?, ?, now())
@@ -88,13 +89,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' and $_SESSION['user_id'])
 					[$game, $word, $user, $emoji, $_SESSION['display_name']]);
 				touchgame($mysql, $game);
 			}
-			$return = finishstate($mysql, $game);
+			$return = reactionresponse($mysql, $game, $user);
 			break;
 		case "unreact":
 			$word = mb_strtolower(trim($_POST['word'] ?? ''));
 			$mysql->execute_query("delete from reaction where game_id = ? and word = ? and reactor_id = ?", [$game, $word, $user]);
 			touchgame($mysql, $game);
-			$return = finishstate($mysql, $game);
+			$return = reactionresponse($mysql, $game, $user);
 			break;
 		default: break;
 	}
@@ -126,6 +127,10 @@ else
 				case 'own':
 					$where = "where game.created_by = ? or exists (select 1 from player m where m.game_id = game.id and m.user_id = ?)";
 					$params = [$user, $user];
+					break;
+				case 'all':
+					$where = "where not game.private or exists (select 1 from player m where m.game_id = game.id and m.user_id = ?)";
+					$params = [$user];
 					break;
 				case 'new':
 					$where = "where game.status = 0 and (not game.private or exists (select 1 from player m where m.game_id = game.id and m.user_id = ?))";
@@ -207,7 +212,16 @@ function gamestate($mysql, $game, $user)
 			char_length(w.word) * (? - (select count(*) from word f
 					where f.game_id = w.game_id and f.word = w.word)) as points
 		from word w where w.game_id = ? and w.user_id = ?", [playercount($mysql, $game), $game, $user])->fetch_all(MYSQLI_ASSOC);
+	$return["reactions"] = $mysql->execute_query("select r.word, r.reactor_id, r.emoji, r.display_name
+		from reaction r join word w on w.game_id = r.game_id and w.word = r.word
+		where r.game_id = ? and w.user_id = ?", [$game, $user])->fetch_all(MYSQLI_ASSOC);
 	return $return;
+}
+
+function reactionresponse($mysql, $game, $user)
+{
+	$status = (int)$mysql->execute_query("select status from player where game_id = ? and user_id = ?", [$game, $user])->fetch_column();
+	return ($status == 3) ? finishstate($mysql, $game) : gamestate($mysql, $game, $user);
 }
 
 function finishstate($mysql, $game)
