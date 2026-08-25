@@ -5,7 +5,7 @@ require_once("config.php");
 require_once("identity.php");
 
 $return = null;
-$reactionemoji = ['💪', '🤝', '🤦', '😭', '🤯', '😂', '✨', '❓', '🚫']; // keep in sync with reactionemoji in game.js
+$reactionemoji = ['💪', '👍', '🤦', '😭', '🤯', '😂', '✨', '❓', '🚫']; // keep in sync with reactionemoji in game.js
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST' and $_SESSION['user_id'])
 {
@@ -145,10 +145,13 @@ else
 					$params = [$user];
 					break;
 			}
-			$window = " order by created_at desc, id desc limit 20 offset ".(20 * (max(1, (int)($_GET['page'] ?? 1)) - 1));
+			$sortcolumn = ['activity' => 'last_activity_at', 'created' => 'created_at', 'alpha' => 'source_word', 'length' => 'char_length(source_word)']
+				[$_GET['sort'] ?? ''] ?? 'last_activity_at';
+			$sortdir = ($_GET['dir'] ?? '') === 'asc' ? 'asc' : 'desc';
+			$window = " order by ".$sortcolumn." ".$sortdir.", id ".$sortdir." limit 20 offset ".(20 * (max(1, (int)($_GET['page'] ?? 1)) - 1));
 			$return["pages"] = (int)ceil($mysql->execute_query("select count(*) from game ".$where, $params)->fetch_column() / 20);
 			$return["games"] = $mysql->execute_query("select id, source_word as word, status, language, umlauts, flexion, private, maxplayers,
-					created_by_name as starter, timestampdiff(minute, created_at, now()) as starttime
+					created_by_name as starter, timestampdiff(minute, last_activity_at, now()) as activitytime
 				from game ".$where.$window, $params)->fetch_all(MYSQLI_ASSOC);
 			$players = $mysql->execute_query("select p.game_id, p.display_name as player, p.points
 				from player p join (select id from game ".$where.$window.") g on g.id = p.game_id

@@ -318,7 +318,7 @@ function sortfinishedword(word)
 	sortcontainer.appendChild(document.createTextNode(" "));
 }
 
-var reactionemoji = ['💪', '🤝', '🤦', '😭', '🤯', '😂', '✨', '❓', '🚫']; // keep in sync with $reactionemoji in receiver.php
+var reactionemoji = ['💪', '👍', '🤦', '😭', '🤯', '😂', '✨', '❓', '🚫']; // keep in sync with $reactionemoji in receiver.php
 
 document.addEventListener('click', function() {
 	document.querySelectorAll('.popout.open').forEach(function(box) { box.classList.remove('open'); });

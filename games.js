@@ -1,7 +1,7 @@
 function pagebutton(label, target, enabled)
 {
 	var button = document.createElement(enabled ? 'a' : 'span');
-	if (enabled) { button.href = '?go=games&mode='+mode+'&page='+target; }
+	if (enabled) { button.href = '?go=games&mode='+mode+'&sort='+sort+'&dir='+dir+'&page='+target; }
 	button.textContent = label;
 	return button;
 }
@@ -21,7 +21,7 @@ function pagination(pages)
 function calcTimediff(timediff)
 {
 	var tshort = "⁕";
-	var tlong = "gerade eben";
+	var tlong = "gerade eben aktiv";
 	if (timediff > 0)
 	{
 		var time;
@@ -32,7 +32,7 @@ function calcTimediff(timediff)
 		else if (timediff > 60) { time = Math.round(timediff/60); u = "h"; unit = " Stunde"; plural = "n"}
 		else { time = timediff; u = "m"; unit = " Minute"; plural = "n"}
 		var tshort = time + u;
-		var tlong = "gestartet vor " + time + unit + (time === 1 ? "" : plural);
+		var tlong = "zuletzt aktiv vor " + time + unit + (time === 1 ? "" : plural);
 	}
 	return [tshort,tlong];
 }
@@ -50,7 +50,7 @@ function gamedata(response)
 		else if (data[i].status == 2) status = 'voll';
 		else if (data[i].status == 3) status = 'abgeschlossen';
 		
-		var timediff = data[i].starttime;
+		var timediff = data[i].activitytime;
 		var whenstarted = calcTimediff(timediff);
 		
 		var settings = document.createElement('div');
@@ -126,7 +126,7 @@ function gamedata(response)
 
 function listgames()
 {
-	fetch("receiver.php?action=showgames&mode="+mode+"&page="+page)
+	fetch("receiver.php?action=showgames&mode="+mode+"&sort="+sort+"&dir="+dir+"&page="+page)
 		.then(function(response) { return response.json(); })
 		.then(gamedata);
 }

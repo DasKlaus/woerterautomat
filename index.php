@@ -53,7 +53,7 @@ if (($_GET["go"] ?? "") == "neu" and isset($_POST["new"]) and ($_POST["website"]
 	<body>
 	<div id="wrapper">
 		<h1 id="letters">woerterautomat</h1>
-		<div id="lettersortbuttons" class="collapsible sort">
+		<div id="lettersortbuttons" class="collapsible shuffle">
 			<div class="modes">
 			<button type="button" onClick="select(this); writeletters(randomstring(originalword));">mischen</button>
 			<button id="anagram" type="button" onClick="select(this); writeletters(anagram(target, prepared_words));">sortieren</button>

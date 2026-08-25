@@ -35,7 +35,7 @@ input, select {background-color: var(--shade); font-family: var(--ui);}
 	--letters: 14;
 	--size: min(6.375rem, max(11.2cqi, calc(100cqi / var(--letters) / .558)));
 	--room: calc(100cqi - var(--letters) * .557 * var(--size) - 12.5rem);}
-#content {grid-area: content; min-width: 0; container-type: inline-size; overflow-x: hidden;}
+#content {grid-area: content; min-width: 0; container-type: inline-size;}
 #lettersortbuttons {grid-area: buttons; align-self: end; margin-top: clamp(-100vh, calc(var(--room) * -1000), 0px); margin-bottom: 10px;}
 #letters {grid-area: head; margin-left: clamp(0px, calc(var(--room) * 1000), 12.5rem);
 	color: var(--fg); padding: .25em 0; line-height: .5; cursor: default; overflow-wrap: anywhere; -webkit-user-select: none; user-select: none;}
@@ -66,6 +66,7 @@ input, select {background-color: var(--shade); font-family: var(--ui);}
 .modes > :first-child:before {left: 3px; border-radius: 3px 0 0 3px;}
 .modes > :last-child:before {right: 3px; border-radius: 0 3px 3px 0;}
 .modes > :only-child, .modes > :only-child:before {border-radius: 3px;}
+.modegroup {display: flex; gap: 10px;}
 #orderbuttons {width: 4rem; float: right;}
 
 /* collapse menus for mobile */
@@ -78,10 +79,11 @@ input, select {background-color: var(--shade); font-family: var(--ui);}
 
 @media (max-width: 690px) {
 	#wrapper {display: flex; flex-wrap: wrap; gap: 10px; --room: -1px;}
+	#content {position: relative;}
 	#letters, #content {width: 100%;}
 	#letters {padding: 15px 0 5px 0;}
 	#menu {display: contents;}
-	#sortgames {margin: 0 0 0 10px !important; float: right;}
+	#sortgames {position: absolute; right: 0; top: -36px;}
 	#wrapper .collapsible {margin: 0; cursor: pointer;}
 	#lettersortbuttons {align-self: start;}
 	#wrapper .collapsible {margin: 0; cursor: pointer;}
@@ -92,6 +94,7 @@ input, select {background-color: var(--shade); font-family: var(--ui);}
 	.collapsible:before {content: var(--icon); display: block; width: 2.5rem; height: 26px;
 		border: 1px solid var(--fg); border-radius: 3px; font-family: var(--ui); font-size: 24px; line-height: 22px; text-align: center;}
 	.sort {--icon: "\21C5";}
+	.shuffle {--icon: "\21C4";}
 	.nav {--icon: "\2630";}
 	.actions {--icon: "\2691";}
 	.players {--icon: "\263A";}
@@ -144,6 +147,7 @@ input, select {background-color: var(--shade); font-family: var(--ui);}
 .game {padding: 5px; border: 1px solid var(--fg); border-radius: 3px; color: var(--fg); overflow-wrap: anywhere;}
 .game h2 {display: inline-block;}
 .game:hover {background-color: var(--shade-dark);}
+.game .wordspan {line-height: 1.5em;}
 #pagination {display: flex; justify-content: space-between;}
 #pagination a, #pagination span {display: inline-block; width: 22px; padding: 3px; font-size: 12px; text-align: center;}
 

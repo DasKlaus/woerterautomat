@@ -146,6 +146,7 @@ if (maxplayers>0) {
 </div>
 <div id="wordbox">
 	<div class="collapsible sort">
+		<div class="modegroup">
 		<div id="sortbuttons" class="modes">
 		<button type="button" class="selected" onClick="select(this); sortmode = 'standard'; sortwords();">standard</button>
 		<button type="button" onClick="select(this); sortmode = 'chrono'; sortwords();">chronologisch</button>
@@ -156,6 +157,7 @@ if (maxplayers>0) {
 		<div id="orderbuttons" class="modes">
 		<button type="button" class="selected" title="aufsteigend" onClick="select(this); direction = 1; sortwords();">&darr;</button>
 		<button type="button" title="absteigend" onClick="select(this); direction = -1; sortwords();">&uarr;</button>
+		</div>
 		</div>
 	</div>
 	<div id="words"></div>
