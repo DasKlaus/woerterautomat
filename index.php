@@ -104,7 +104,7 @@ if (($_GET["go"] ?? "") == "neu" and isset($_POST["new"]) and ($_POST["website"]
 			elseif (isset($_GET["go"]) and $_GET["go"]=="game")
 				include_once("game.php");
 			elseif (isset($_GET["go"]) and $_GET["go"]=="games")
-				include_once("allGames.php");
+				include_once("games.php");
 			else # $_GET["go"]=="anleitung" doubles as start page
 			{
 				echo '<h2>Anleitung</h2>
