@@ -227,7 +227,7 @@ function dedupe(rows)
 	{
 		if (!byword[rows[i].word])
 		{
-			byword[rows[i].word] = {word: rows[i].word, points: rows[i].points, finders: []};
+			byword[rows[i].word] = {word: rows[i].word, user_id: rows[i].user_id, points: rows[i].points, finders: []};
 			list.push(byword[rows[i].word]);
 		}
 		byword[rows[i].word].finders.push(rows[i].player || "Gast");
@@ -274,7 +274,8 @@ function sortfinishedword(word)
 			sortcontainer = document.getElementById(word["word"].length+"words");
 		break;
 		case 'points':
-			var points = word["points"];
+			// an unfound word carries no points and always heads the order, so it skips the search for its place
+			var points = (word["points"] === undefined) ? "∞" : word["points"];
 			if (!document.getElementById(points+"words"))
 			{
 				var pointsbox = document.createElement('div');
@@ -283,10 +284,10 @@ function sortfinishedword(word)
 				number.className = 'startnumber';
 				number.innerHTML = points;
 				pointsbox.appendChild(number);
-				
+
 				var wordbox = document.getElementById("words");
 				var inserted = false;
-				var child = wordbox.children[0];
+				var child = (points === "∞") ? null : wordbox.children[0];
 				while (child && !inserted)
 				{
 					if (!isNaN(child.children[0].innerHTML) && (child.children[0].innerHTML - points) * direction > 0) { wordbox.insertBefore(pointsbox, child); inserted = true; }
@@ -294,7 +295,7 @@ function sortfinishedword(word)
 				}
 				if (!inserted)
 				{
-					wordbox.appendChild(pointsbox);
+					wordbox.insertBefore(pointsbox, (points === "∞" && direction == -1) ? wordbox.firstChild : null);
 				}
 			}
 			sortcontainer = document.getElementById(points+"words");
@@ -303,15 +304,23 @@ function sortfinishedword(word)
 			sortcontainer = document.getElementById("player"+lookFor(word["user_id"], allplayersdump, 'user_id')+"words");
 		break;
 	}
-	var finders = uniquewords[lookFor(word["word"], uniquewords, 'word')].finders;
 	var wordspan = document.createElement('span');
 	wordspan.className = 'wordspan';
-	if (finders.length == 1) { wordspan.className += ' unique'; }
-	if (words.indexOf(word["word"]) == -1) { wordspan.className += ' others'; }
-	else if (finders.length > 1) { wordspan.className += ' shared'; }
-	if (allplayersdump.length > 2) { wordspan.title = finders.join(', '); }
 	wordspan.textContent = word["word"];
-	wordspan.appendChild(pointspan(word["points"]));
+	if (word["user_id"] == -1)
+	{
+		wordspan.className += ' unfound';
+		wordspan.title = "Wörterbuch";
+	}
+	else
+	{
+		var finders = uniquewords[lookFor(word["word"], uniquewords, 'word')].finders;
+		if (finders.length == 1) { wordspan.className += ' unique'; }
+		if (words.indexOf(word["word"]) == -1) { wordspan.className += ' others'; }
+		else if (finders.length > 1) { wordspan.className += ' shared'; }
+		if (playerlist.length > 2) { wordspan.title = finders.join(', '); }
+		wordspan.appendChild(pointspan(word["points"]));
+	}
 	var box = reactionbox(word["word"]);
 	if (box) { wordspan.appendChild(box); }
 	sortcontainer.appendChild(wordspan);
@@ -474,6 +483,7 @@ function finish() {
 	document.getElementById('input').value = '';
 	writeletters(document.getElementById("letters").textContent);
 	playerbutton();
+	document.querySelector("#lettersortbuttons .modes").appendChild(anagrambutton);
 	post({action: "finishgame", game: game}, finishdata);
 }
 
@@ -555,9 +565,12 @@ function finishdata(data)
 	playerstamp = Date.now();
 	version = data.version;
 	writeplayers(data.players);
-	allplayersdump = data.players;
-	allwordsdump = data.words;
-	uniquewords = dedupe(data.words);
+	solution = data.solution;
+	var found = data.words.map(function(row) { return row.word; });
+	allplayersdump = data.players.concat([{player: "Wörterbuch", user_id: -1}]);
+	allwordsdump = data.words.concat(solution.filter(function(word) { return found.indexOf(word) == -1; })
+		.map(function(word) { return {word: word, user_id: -1, player: "Wörterbuch"}; }));
+	uniquewords = dedupe(allwordsdump);
 	reactions = data.reactions;
 	gamestatus = data.gamestatus;
 	sortwords();

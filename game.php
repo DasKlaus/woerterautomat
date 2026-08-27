@@ -74,6 +74,7 @@ $words = $mysql->execute_query("select word from word where game_id = ? and user
   var allwordsdump = [];
   var allplayersdump = [];
   var reactions = [];
+  var solution = [];
   var uniquewords = [];
   var version = -1;
   var pollwait = 5000;
@@ -84,7 +85,10 @@ $words = $mysql->execute_query("select word from word where game_id = ? and user
 if (gamestatus == 3) { mystatus = 3; } // a guest who never joined still has mystatus -1 even once the game is finished
 
 writeletters(originalword);
-document.getElementById("anagram").remove(); // TODO: once disctionaries implemented, return function on finished games
+// kept out of the DOM rather than hidden while playing: gone, its neighbour rounds off as an only child
+var anagrambutton = document.getElementById("anagram");
+anagrambutton.onclick = function() { select(this); writeletters(anagram(originalword, prepare(solution))); };
+if (mystatus != 3) { anagrambutton.remove(); }
 
 document.addEventListener('DOMContentLoaded', function() {
   if (isplayer || mystatus != 3) { document.getElementById("leave").style.display = 'block'; }

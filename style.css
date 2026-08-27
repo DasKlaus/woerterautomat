@@ -118,6 +118,7 @@ input, select {background-color: var(--shade); font-family: var(--ui);}
 .unique {font-weight: bold;}
 .shared {background-color: var(--shade);}
 .others {background-color: var(--line); border-color: var(--muted);}
+.unfound {background-color: var(--fg); border-color: var(--fg); color: var(--bg);}
 .deletable {cursor: pointer;}
 .pointspan {margin-left: 3px; color: var(--muted); font-size: 10px;}
 .reactionbadge {margin-left: 4px; font-size: 12px;}

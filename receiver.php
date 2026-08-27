@@ -14,15 +14,61 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' and $_SESSION['user_id'])
 	$game = (int)($_POST['game'] ?? 0);
 
 	switch($_POST["action"] ?? "") {
+		case "creategame":
+			if (($_POST["website"] ?? "") != "") { $return["error"] = "Das Spiel konnte nicht erstellt werden."; break; }
+			$sourceword = preg_replace('/[^\p{L}]/u', '', mb_strtolower($_POST['word'] ?? ''));
+			$reason = identityRestriction();
+			if ($reason !== false)
+				$return["error"] = "Das Erstellen von Spielen wurde gesperrt. ".$reason;
+			elseif (mb_strlen($sourceword) < 3)
+				$return["error"] = "Gib ein Wort mit mindestens drei Buchstaben ein.";
+			elseif (mb_strlen($sourceword) > 64)
+				$return["error"] = "Das Wort ist zu lang. Mehr als 64 Buchstaben sind nicht möglich.";
+			else
+			{
+				$recent = $mysql->execute_query("select sum(created_at > now() - interval 1 minute) as lastminute, count(*) as lasthour
+					from game where created_by = ? and created_at > now() - interval 1 hour", [$user])->fetch_assoc();
+				if ($recent['lastminute'] > 0)
+					$return["error"] = "Du hast gerade eben ein Spiel gestartet. Warte eine Minute, bevor du das nächste startest.";
+				elseif ($recent['lasthour'] >= 10)
+					$return["error"] = "Du hast in der letzten Stunde zehn Spiele gestartet. Versuch es später noch einmal.";
+				else
+				{
+					$flexion = (isset($_POST['flexion'])) ? 1 : 0;
+					$umlauts = (isset($_POST['umlauts'])) ? 1 : 0;
+					$private = (isset($_POST['private'])) ? 1 : 0;
+					$players = (int)($_POST['players'] ?? 0);
+					$language = in_array($_POST['language'] ?? '', ['de', 'en'], true) ? $_POST['language'] : 'de';
+					$mysql->execute_query("insert into game (source_word, language, flexion, umlauts, private, maxplayers, created_by, created_by_name, created_at, last_activity_at)
+						values (?, ?, ?, ?, ?, ?, ?, ?, now(), now())", [$sourceword, $language, $flexion, $umlauts, $private, $players, $user, $_SESSION['display_name']]);
+					$id = $mysql->insert_id;
+					$mysql->execute_query("insert into player (game_id, user_id, display_name, joined_at, activity) values (?, ?, ?, now(), now())",
+						[$id, $user, $_SESSION['display_name']]);
+					require_once("dictionary.php");
+					generatesolution($mysql, $dictionary, $id, $language, $umlauts, $flexion, $sourceword);
+					$return["game"] = $id;
+				}
+			}
+			break;
 		case "newword":
 			$word = mb_strtolower(trim($_POST['word'] ?? ''));
-			$sourceword = (string)$mysql->execute_query("select g.source_word from game g
+			$currentgame = $mysql->execute_query("select g.source_word, g.language, g.umlauts, g.flexion from game g
 					join player p on p.game_id = g.id
-					where g.id = ? and p.user_id = ? and p.status <> 2", [$game, $user])->fetch_column();
-			if (mb_strlen($word) > 2 and possible($word, $sourceword))
+					where g.id = ? and p.user_id = ? and p.status <> 2", [$game, $user])->fetch_assoc();
+			if (mb_strlen($word) > 2 and $currentgame and possible($word, $currentgame['source_word']))
 			{
 				$mysql->begin_transaction();
 				$mysql->execute_query("insert ignore into word (game_id, user_id, word, created_at) values (?, ?, ?, now())", [$game, $user, $word]);
+				if (!$mysql->execute_query("select 1 from solution where game_id = ? and word = ?", [$game, $word])->fetch_column())
+				{
+					require_once("dictionary.php");
+					$emoji = wordcheck($dictionary, $currentgame['language'], $word, $currentgame['umlauts'], $currentgame['flexion']);
+					if ($emoji)
+					{
+						$mysql->execute_query("insert ignore into reaction (game_id, word, reactor_id, emoji, display_name, created_at)
+							values (?, ?, -1, ?, 'Wörterbuch', now())", [$game, $word, $emoji]);
+					}
+				}
 				recompute($mysql, $game);
 				touchplayer($mysql, $game, $user);
 				touchgame($mysql, $game);
@@ -60,6 +106,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' and $_SESSION['user_id'])
 			$mysql->execute_query("delete from player where game_id = ? and user_id = ?", [$game, $user]);
 			if (playercount($mysql, $game) == 0)
 			{
+				$mysql->execute_query("delete from solution where game_id = ?", [$game]);
 				$mysql->execute_query("delete from game where id = ?", [$game]);
 			}
 			else
@@ -80,8 +127,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' and $_SESSION['user_id'])
 			$word = mb_strtolower(trim($_POST['word'] ?? ''));
 			$emoji = $_POST['emoji'] ?? '';
 			// reacting requires having personally finished, same as the picker only being shown then
-			$exists = $mysql->execute_query("select 1 from word w join player p on p.game_id = w.game_id and p.user_id = ?
-					where w.game_id = ? and w.word = ? and p.status = 3", [$user, $game, $word])->fetch_column();
+			$exists = $mysql->execute_query("select 1 from player p where p.game_id = ? and p.user_id = ? and p.status = 3
+					and (exists (select 1 from word w where w.game_id = p.game_id and w.word = ?)
+						or exists (select 1 from solution s where s.game_id = p.game_id and s.word = ?))",
+				[$game, $user, $word, $word])->fetch_column();
 			if ($exists and in_array($emoji, $reactionemoji, true))
 			{
 				$mysql->execute_query("insert into reaction (game_id, word, reactor_id, emoji, display_name, created_at) values (?, ?, ?, ?, ?, now())
@@ -243,6 +292,7 @@ function finishstate($mysql, $game)
 		order by w.created_at, w.word", [playercount($mysql, $game), $game])->fetch_all(MYSQLI_ASSOC);
 	$return["reactions"] = $mysql->execute_query("select word, reactor_id, emoji, display_name
 		from reaction where game_id = ? order by created_at", [$game])->fetch_all(MYSQLI_ASSOC);
+	$return["solution"] = array_column($mysql->execute_query("select word from solution where game_id = ?", [$game])->fetch_all(MYSQLI_ASSOC), 'word');
 	return $return;
 }
 

@@ -4,6 +4,21 @@ function toggleUmlauts(selector) {
 	substitute = selector.checked;
 }
 
+function creategame(form) {
+	var data = new URLSearchParams(new FormData(form));
+	data.append("action", "creategame");
+	fetch("receiver.php", {method: "POST", body: data})
+		.then(function(response) { return response.json(); })
+		.then(function(answer) {
+			if (answer.game) { window.location = "?go=game&game=" + answer.game; }
+			else
+			{
+				document.getElementById("newgameerror").textContent = answer.error;
+				document.getElementById("newgameerror").classList.remove("hide");
+			}
+		});
+}
+
 function keyhandle(e) {
 	evt = e || event;
 	var chrTyped, chrCode = 0;

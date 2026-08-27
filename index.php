@@ -4,42 +4,6 @@ require_once("config.php");
 require_once("identity.php");
 
 $go = $_GET['go'] ?? 'anleitung';
-$message = "";
-if (($_GET["go"] ?? "") == "neu" and isset($_POST["new"]) and ($_POST["website"] ?? "") == "" and $_SESSION['user_id'])
-{
-	$sourceword = preg_replace('/[^\p{L}]/u', '', strtolower($_POST['word'] ?? ''));
-	$reason = identityRestriction();
-	if ($reason !== false)
-		$message = "Das Erstellen von Spielen wurde gesperrt. ".$reason;
-	elseif (strlen($sourceword) < 3)
-		$message = "Gib ein Wort mit mindestens drei Buchstaben ein.";
-	elseif (strlen($sourceword) > 64)
-		$message = "Das Wort ist zu lang. Mehr als 64 Buchstaben sind nicht möglich.";
-	else
-	{
-		$recent = $mysql->execute_query("select sum(created_at > now() - interval 1 minute) as lastminute, count(*) as lasthour
-			from game where created_by = ? and created_at > now() - interval 1 hour", [$_SESSION['user_id']])->fetch_assoc();
-		if ($recent['lastminute'] > 0)
-			$message = "Du hast gerade eben ein Spiel gestartet. Warte eine Minute, bevor du das nächste startest.";
-		elseif ($recent['lasthour'] >= 10)
-			$message = "Du hast in der letzten Stunde zehn Spiele gestartet. Versuch es später noch einmal.";
-		else
-		{
-			$flexion = (isset($_POST['flexion'])) ? 1 : 0;
-			$umlauts = (isset($_POST['umlauts'])) ? 1 : 0;
-			$private = (isset($_POST['private'])) ? 1 : 0;
-			$players = ($_POST['players'] ?? 0);
-			$language = ($_POST['language'] ?? 'de');
-			$mysql->execute_query("insert into game (source_word, language, flexion, umlauts, private, maxplayers, created_by, created_by_name, created_at, last_activity_at)
-				values (?, ?, ?, ?, ?, ?, ?, ?, now(), now())", [$sourceword, $language, $flexion, $umlauts, $private, $players, $_SESSION['user_id'], $_SESSION['display_name']]);
-			$id = $mysql->insert_id;
-			$mysql->execute_query("insert into player (game_id, user_id, display_name, joined_at, activity) values (?, ?, ?, now(), now())",
-				[$id, $_SESSION['user_id'], $_SESSION['display_name']]);
-			header("Location: ?go=game&game=".$id);
-			exit();
-		}
-	}
-}
 ?>
 <!DOCTYPE html>
 <html lang="de">
