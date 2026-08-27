@@ -239,7 +239,8 @@ function finishstate($mysql, $game)
 			char_length(w.word) * (? - (select count(*) from word f
 					where f.game_id = w.game_id and f.word = w.word)) as points
 		from word w join player p on p.game_id = w.game_id and p.user_id = w.user_id
-		where w.game_id = ?", [playercount($mysql, $game), $game])->fetch_all(MYSQLI_ASSOC);
+		where w.game_id = ?
+		order by w.created_at, w.word", [playercount($mysql, $game), $game])->fetch_all(MYSQLI_ASSOC);
 	$return["reactions"] = $mysql->execute_query("select word, reactor_id, emoji, display_name
 		from reaction where game_id = ? order by created_at", [$game])->fetch_all(MYSQLI_ASSOC);
 	return $return;
