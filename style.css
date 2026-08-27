@@ -176,8 +176,10 @@ input, select {background-color: var(--shade); font-family: var(--ui);}
 
 /* identity */
 
-.identity {margin-bottom: 10px; display:flex; column-gap: 5px;}
-.identity .code {overflow-wrap: anywhere; border-color: var(--muted) !important; font-family: Rounded, monospace; font-size: 16px; display: inline-block;}
-.identity input, .identity button, .identity .code {padding: 3px; border: 1px solid var(--fg); border-radius: 3px; font-size: 16px; flex: 1;}
+.identity {margin-bottom: 10px; display: grid; grid-auto-flow: column; grid-auto-columns: minmax(0, 1fr); column-gap: 5px;}
+.identity input, .identity button {padding: 3px; border: 1px solid var(--fg); border-radius: 3px; font-size: 16px; min-width: 0;}
+.identity .codebox {display: flex; column-gap: 5px;}
+.identity .code {border-color: var(--muted); font-family: Rounded, monospace; width: 100%;}
+.identity .copy {flex: none; aspect-ratio: 1; font-size: 18px; line-height: 1;}
 .identity button {background-color: var(--bg); cursor: pointer;}
 .identity button:hover {background-color: var(--shade);}

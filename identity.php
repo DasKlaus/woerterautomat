@@ -165,13 +165,17 @@ function identityForm()
 	if ($_SESSION['user_id'])
 		echo '<p class="warning">Ein neuer Code macht den bisherigen ung&uuml;ltig und beendet den Zugang in allen anderen Browsern.</p>
 			<form method="post" class="identity">
-			  <span class="code">'.identityCode().'</span>
+			  <div class="codebox">
+			    <input type="text" class="code" value="'.htmlspecialchars(identityCode(), ENT_QUOTES, 'UTF-8').'" readonly>
+			    <button type="button" class="copy" title="Code kopieren" onclick="this.previousElementSibling.select(); navigator.clipboard.writeText(this.previousElementSibling.value);">⧉</button>
+			  </div>
 			  <button type="submit" name="do" value="newcode">Neuen Code erzeugen</button>
 			</form>';
-	echo '<form method="post" class="identity">
-			<input type="text" name="code" value="">
-			<button type="submit" name="do" value="usecode">Mit Code anmelden</button>
-		</form>';
+	if (!$_SESSION['user_id']) 
+		echo '<form method="post" class="identity">
+				<input type="text" name="code" value="">
+				<button type="submit" name="do" value="usecode">Mit Code anmelden</button>
+			</form>';
 	if ($_SESSION['user_id'])
 		echo '<h3>Abmelden</h3>
 			<p class="warning">Ohne den Code ist der Zugang zu Name und Historie nach dem Abmelden dauerhaft verloren.</p>
