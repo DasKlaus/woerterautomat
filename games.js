@@ -37,6 +37,15 @@ function calcTimediff(timediff)
 	return [tshort,tlong];
 }
 
+function difficulty(solutions)
+{
+	if (solutions < 50) { return "·"; }
+	if (solutions < 200) { return "⁎"; }
+	if (solutions < 500) { return "⁑"; }
+	if (solutions < 1000) { return "⁂"; }
+	return "✳";
+}
+
 function gamedata(response)
 {
 	pagination(response.pages);
@@ -70,7 +79,12 @@ function gamedata(response)
 		span.textContent = data[i].language.toUpperCase();
 		span.setAttribute('title', "auf "+{de:"Deutsch",en:"Englisch"}[data[i].language]);
 		settings.appendChild(span);
-		
+		if (data[i].solutions >= 0) {
+			span = document.createElement('span');
+			span.textContent = difficulty(data[i].solutions);
+			span.setAttribute('title', data[i].solutions+' enthaltene Wörter');
+			settings.appendChild(span);
+		}
 		if (data[i].umlauts) {
 			span = document.createElement('span');
 			span.textContent = "Ä→AE";
@@ -110,6 +124,7 @@ function gamedata(response)
 			var player = document.createElement('span');
 			player.className = 'wordspan';
 			player.textContent = data[i].players[j].player || "Gast";
+			if (data[i].players[j].status == 3) { player.appendChild(document.createTextNode(" ✓")); }
 			if (data[i].status == 3) {
 				var playerpoints = document.createElement('span');
 				playerpoints.className = 'pointspan';
