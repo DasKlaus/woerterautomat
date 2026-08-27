@@ -44,6 +44,10 @@ input, select {background-color: var(--shade); font-family: var(--ui);}
 
 #menu {grid-area: menu; align-self: start; position: sticky; top: 0; overflow-wrap: anywhere;
 	max-height: calc(100dvh - 2rem); overflow-y: auto; padding: 0 6px 6px 0;}
+/* a defined width takes the menu's scrollbar out of overlay mode, where it takes no layout space
+   and sits on top of the buttons instead of shortening them */
+#menu::-webkit-scrollbar {width: 8px;}
+#menu::-webkit-scrollbar-thumb {border-radius: 3px; background-color: var(--line);}
 #menu a, #pagination a {position: relative; display: block; margin-bottom: 10px; padding: 3px;
 	border: 1px solid var(--fg); border-radius: 3px; background-color: var(--bg); color: var(--fg);
 	font-family: var(--ui); font-size: 16px; cursor: pointer;}
@@ -113,8 +117,7 @@ input, select {background-color: var(--shade); font-family: var(--ui);}
 #wordbox {position: relative; margin: 10px 0; line-height: 22px;}
 .startletter, .startnumber {margin-right: 10px; font-family: var(--display); font-size: 40px; font-weight: bold;}
 .startletter {text-transform: lowercase;}
-.wordspan {padding: 1px 3px; border: 1px solid var(--line); border-radius: 3px; color: var(--fg); transition: border-color 1s, color 1s;}
-.wordspan {white-space: nowrap;}
+.wordspan {padding: 1px 3px; border: 1px solid var(--line); border-radius: 3px; color: var(--fg); transition: border-color 1s, color 1s; white-space: nowrap;}
 .fadeIn {border: 1px solid var(--alert); color: var(--alert); transition: border-color 0s, color 0s;}
 .fadeOut {border: 1px solid var(--line); color: var(--fg); transition: border-color 1s, color 1s;}
 .unique {font-weight: bold;}
