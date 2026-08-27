@@ -49,9 +49,8 @@ function submitword()
 		resyncletters();
 		if (words.indexOf(word) == -1)
 		{
+			// the word is placed by receivedata, not here: only the server knows its points, which points sorting needs
 			post({action: "newword", game: game, word: word}, receivedata);
-			words[words.length] = word;
-			sortwords();
 		}
 		else
 		{
@@ -585,6 +584,9 @@ function receivedata(data)
 	version = data.version;
 	wordpoints = data.words;
 	reactions = data.reactions;
+	var added = false;
+	data.words.forEach(function(row) { if (words.indexOf(row.word) == -1) { words.push(row.word); added = true; } });
+	if (added) { sortwords(); }
 	var changed = false;
 	ownpoints = 0;
 	for (var i=0; i<data.words.length; i++)

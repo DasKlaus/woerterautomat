@@ -114,6 +114,7 @@ input, select {background-color: var(--shade); font-family: var(--ui);}
 .startletter, .startnumber {margin-right: 10px; font-family: var(--display); font-size: 40px; font-weight: bold;}
 .startletter {text-transform: lowercase;}
 .wordspan {padding: 1px 3px; border: 1px solid var(--line); border-radius: 3px; color: var(--fg); transition: border-color 1s, color 1s;}
+.wordspan {white-space: nowrap;}
 .fadeIn {border: 1px solid var(--alert); color: var(--alert); transition: border-color 0s, color 0s;}
 .fadeOut {border: 1px solid var(--line); color: var(--fg); transition: border-color 1s, color 1s;}
 .unique {font-weight: bold;}
@@ -123,9 +124,6 @@ input, select {background-color: var(--shade); font-family: var(--ui);}
 .deletable {cursor: pointer;}
 .pointspan {margin-left: 3px; color: var(--muted); font-size: 10px;}
 .reactionbadge {margin-left: 4px; font-size: 12px;}
-/* top is intentionally unset: falls back to static position (under the word's own line) instead of #wordbox's */
-/* margin lives on .reactionbadge, not .popout: .popout is present on every reactable word even with zero
-   reactions (for the picker/delete choice), and any margin there would still cost real width on every word */
 .popoutpanel {display: flex; flex-direction: column; align-items: center; gap: 3px; position: absolute; z-index: 2;
 	left: 0; right: 0; margin-top: -3px;
 	padding: 0 5px; border: 0 solid var(--fg); border-radius: 3px; background-color: var(--bg);
