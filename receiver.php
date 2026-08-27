@@ -14,39 +14,54 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' and $_SESSION['user_id'])
 	$game = (int)($_POST['game'] ?? 0);
 
 	switch($_POST["action"] ?? "") {
+		// both halves of the two-stage button: identical validation and the same solution query,
+		// so creation never has to trust that a check ran, let alone what it found
+		case "checkgame":
 		case "creategame":
-			if (($_POST["website"] ?? "") != "") { $return["error"] = "Das Spiel konnte nicht erstellt werden."; break; }
+			if (($_POST["website"] ?? "") != "") { $return = ["message" => "Das Spiel konnte nicht erstellt werden.", "style" => "warning"]; break; }
 			$sourceword = preg_replace('/[^\p{L}]/u', '', mb_strtolower($_POST['word'] ?? ''));
 			$reason = identityRestriction();
 			if ($reason !== false)
-				$return["error"] = "Das Erstellen von Spielen wurde gesperrt. ".$reason;
+				$return = ["message" => "Das Erstellen von Spielen wurde gesperrt. ".$reason, "style" => "warning"];
 			elseif (mb_strlen($sourceword) < 3)
-				$return["error"] = "Gib ein Wort mit mindestens drei Buchstaben ein.";
+				$return = ["message" => "Gib ein Wort mit mindestens drei Buchstaben ein.", "style" => "warning"];
 			elseif (mb_strlen($sourceword) > 64)
-				$return["error"] = "Das Wort ist zu lang. Mehr als 64 Buchstaben sind nicht möglich.";
+				$return = ["message" => "Das Wort ist zu lang. Mehr als 64 Buchstaben sind nicht möglich.", "style" => "warning"];
 			else
 			{
-				$recent = $mysql->execute_query("select sum(created_at > now() - interval 1 minute) as lastminute, count(*) as lasthour
-					from game where created_by = ? and created_at > now() - interval 1 hour", [$user])->fetch_assoc();
-				if ($recent['lastminute'] > 0)
-					$return["error"] = "Du hast gerade eben ein Spiel gestartet. Warte eine Minute, bevor du das nächste startest.";
-				elseif ($recent['lasthour'] >= 10)
-					$return["error"] = "Du hast in der letzten Stunde zehn Spiele gestartet. Versuch es später noch einmal.";
+				$flexion = (isset($_POST['flexion'])) ? 1 : 0;
+				$umlauts = (isset($_POST['umlauts'])) ? 1 : 0;
+				$language = in_array($_POST['language'] ?? '', ['de', 'en'], true) ? $_POST['language'] : 'de';
+				require_once("dictionary.php");
+				$words = solutionwords($dictionary, $language, $umlauts, $flexion, $sourceword);
+				$count = is_null($words) ? -1 : count($words);
+				if ($count > 5000)
+					$return = ["message" => $count." mögliche Wörter. Die Begrenzung liegt bei 5000.", "style" => "warning"];
+				elseif ($_POST["action"] == "checkgame")
+					$return = ["message" => ($count < 0) ? "Für diese Sprache gibt es noch kein Wörterbuch. Das Spiel kann trotzdem gestartet werden."
+							: $count." mögliche Wörter.",
+						"style" => ($count < 50 or $count > 500) ? "caution" : "", "ok" => true];
 				else
 				{
-					$flexion = (isset($_POST['flexion'])) ? 1 : 0;
-					$umlauts = (isset($_POST['umlauts'])) ? 1 : 0;
-					$private = (isset($_POST['private'])) ? 1 : 0;
-					$players = (int)($_POST['players'] ?? 0);
-					$language = in_array($_POST['language'] ?? '', ['de', 'en'], true) ? $_POST['language'] : 'de';
-					$mysql->execute_query("insert into game (source_word, language, flexion, umlauts, private, maxplayers, created_by, created_by_name, created_at, last_activity_at)
-						values (?, ?, ?, ?, ?, ?, ?, ?, now(), now())", [$sourceword, $language, $flexion, $umlauts, $private, $players, $user, $_SESSION['display_name']]);
-					$id = $mysql->insert_id;
-					$mysql->execute_query("insert into player (game_id, user_id, display_name, joined_at, activity) values (?, ?, ?, now(), now())",
-						[$id, $user, $_SESSION['display_name']]);
-					require_once("dictionary.php");
-					generatesolution($mysql, $dictionary, $id, $language, $umlauts, $flexion, $sourceword);
-					$return["game"] = $id;
+					$recent = $mysql->execute_query("select sum(created_at > now() - interval 1 minute) as lastminute, count(*) as lasthour
+						from game where created_by = ? and created_at > now() - interval 1 hour", [$user])->fetch_assoc();
+					if ($recent['lastminute'] > 0)
+						$return = ["message" => "Du hast gerade eben ein Spiel gestartet. Warte eine Minute, bevor du das nächste startest.", "style" => "warning"];
+					elseif ($recent['lasthour'] >= 10)
+						$return = ["message" => "Du hast in der letzten Stunde zehn Spiele gestartet. Versuch es später noch einmal.", "style" => "warning"];
+					else
+					{
+						$private = (isset($_POST['private'])) ? 1 : 0;
+						$players = (int)($_POST['players'] ?? 0);
+						$mysql->execute_query("insert into game (source_word, language, flexion, umlauts, private, maxplayers, solutions, created_by, created_by_name, created_at, last_activity_at)
+							values (?, ?, ?, ?, ?, ?, ?, ?, ?, now(), now())",
+							[$sourceword, $language, $flexion, $umlauts, $private, $players, $count, $user, $_SESSION['display_name']]);
+						$id = $mysql->insert_id;
+						$mysql->execute_query("insert into player (game_id, user_id, display_name, joined_at, activity) values (?, ?, ?, now(), now())",
+							[$id, $user, $_SESSION['display_name']]);
+						if ($words) { savesolution($mysql, $id, $words); }
+						$return["game"] = $id;
+					}
 				}
 			}
 			break;

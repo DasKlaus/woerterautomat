@@ -1,5 +1,5 @@
 :root {
-	--fg: #000; --bg: #fff; --shade: #eee; --shade-dark: #ddd; --line: #bbb; --muted: #999; --alert: #f66;
+	--fg: #000; --bg: #fff; --shade: #eee; --shade-dark: #ddd; --line: #bbb; --muted: #999; --alert: #f66; --caution: #eb3;
 	--body: Arial, sans-serif; --ui: Rounded, Arial, sans-serif; --display: ScrambleMixed, sans-serif;
 }
 
@@ -16,6 +16,7 @@ h3 {font-family: var(--ui); font-size: 20px; font-weight: normal;}
 p {margin-bottom: 10px;}
 input, select {background-color: var(--shade); font-family: var(--ui);}
 .warning {color: var(--alert);}
+.caution {color: var(--caution);}
 .hp {position: absolute; left: -9999px;}
 .hide {display: none;}
 

@@ -15,9 +15,11 @@ function dictionaryhas($dictionary, $language)
 		where table_schema = database() and table_name = ?", [$language])->fetch_column();
 }
 
-function generatesolution($mysql, $dictionary, $game, $language, $umlauts, $flexion, $sourceword)
+// null, not an empty list, when the language has no dictionary: a game with nothing to find and a
+// game nothing can be said about are not the same thing, and game.solutions keeps them apart as -1
+function solutionwords($dictionary, $language, $umlauts, $flexion, $sourceword)
 {
-	if (!dictionaryhas($dictionary, $language)) { return; }
+	if (!dictionaryhas($dictionary, $language)) { return null; }
 	$mode = $umlauts ? 'clean' : 'word';
 	$letters = array_count_values(mb_str_split($sourceword));
 	$wrongletters = "`$mode`";
@@ -32,8 +34,12 @@ function generatesolution($mysql, $dictionary, $game, $language, $umlauts, $flex
 	}
 	$conditions = ["inflected <= ?", "char_length(`$mode`) between 3 and ?", "`$mode` <> ?", "char_length($wrongletters) = 0", ...$caps];
 	$params = [$flexion, mb_strlen($sourceword), $sourceword, ...array_keys($letters), ...$capparams];
-	$words = array_column($dictionary->execute_query("select distinct `$mode` as word from `$language`
+	return array_column($dictionary->execute_query("select distinct `$mode` as word from `$language`
 		where ".implode(" and ", $conditions), $params)->fetch_all(MYSQLI_ASSOC), 'word');
+}
+
+function savesolution($mysql, $game, $words)
+{
 	foreach (array_chunk($words, 500) as $chunk)
 	{
 		$values = [];

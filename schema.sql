@@ -9,6 +9,7 @@ DROP TABLE IF EXISTS `game`;
 CREATE TABLE `game` (
 	`id` int(10) NOT NULL AUTO_INCREMENT,
 	`source_word` varchar(64) NOT NULL,
+	`solutions` int(10) NOT NULL DEFAULT -1,
 	`language` varchar(10) NOT NULL DEFAULT 'de',
 	`umlauts` tinyint(1) NOT NULL DEFAULT 0,
 	`flexion` tinyint(1) NOT NULL DEFAULT 0,

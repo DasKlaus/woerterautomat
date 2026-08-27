@@ -566,10 +566,12 @@ function finishdata(data)
 	version = data.version;
 	writeplayers(data.players);
 	solution = data.solution;
+	if (!solution.length) { anagrambutton.remove(); } // no dictionary for this language, or nothing in the word
 	var found = data.words.map(function(row) { return row.word; });
-	allplayersdump = data.players.concat([{player: "Wörterbuch", user_id: -1}]);
-	allwordsdump = data.words.concat(solution.filter(function(word) { return found.indexOf(word) == -1; })
-		.map(function(word) { return {word: word, user_id: -1, player: "Wörterbuch"}; }));
+	var unfound = solution.filter(function(word) { return found.indexOf(word) == -1; })
+		.map(function(word) { return {word: word, user_id: -1, player: "Wörterbuch"}; });
+	allplayersdump = data.players.concat(unfound.length ? [{player: "Wörterbuch", user_id: -1}] : []);
+	allwordsdump = data.words.concat(unfound);
 	uniquewords = dedupe(allwordsdump);
 	reactions = data.reactions;
 	gamestatus = data.gamestatus;
