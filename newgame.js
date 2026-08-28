@@ -1,14 +1,27 @@
 document.getElementById('newwordinput').onkeypress = keyhandle;
-document.getElementById('newwordinput').oninput = invalidate;
+document.getElementById('newwordinput').oninput = inputhandle;
+
+function inputhandle() {
+	var inputfield = document.getElementById("newwordinput");
+	var value = inputfield.value.normalize('NFC')
+	var lower = value.toLowerCase();
+	var accepted = '';
+	for (var i=0; i<lower.length; i++) {
+		accepted += (substitute && lower[i] in umlauts) ? umlauts[lower[i]] : lower[i];
+	}
+	if (inputfield.value != accepted) { inputfield.value = accepted; }
+	invalidate;
+}
 
 var checked = false;
 
 function toggleUmlauts(selector) {
 	substitute = selector.checked;
+	inputhandle();
 	invalidate();
 }
 
-// only the four fields the solution depends on invalidate a check; private and the player limit do not
+// only the four fields the solution depends on invalidate a check;
 function invalidate() {
 	checked = false;
 	document.getElementById("newgamesubmit").textContent = "Spiel prüfen";
