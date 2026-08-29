@@ -15,12 +15,11 @@ function dictionaryhas($dictionary, $language)
 		where table_schema = database() and table_name = ?", [$language])->fetch_column();
 }
 
-// null, not an empty list, when the language has no dictionary: a game with nothing to find and a
-// game nothing can be said about are not the same thing, and game.solutions keeps them apart as -1
+// null when the language has no dictionary, game.solutions keeps that as -1
 function solutionwords($dictionary, $language, $umlauts, $flexion, $sourceword)
 {
 	if (!dictionaryhas($dictionary, $language)) { return null; }
-	$mode = $umlauts ? 'clean' : 'word';
+	$mode = $umlauts ? 'clean' : 'match';
 	$letters = array_count_values(mb_str_split($sourceword));
 	$wrongletters = "`$mode`";
 	$caps = [];
@@ -32,7 +31,7 @@ function solutionwords($dictionary, $language, $umlauts, $flexion, $sourceword)
 		$capparams[] = $letter;
 		$capparams[] = $count;
 	}
-	$conditions = ["inflected <= ?", "char_length(`$mode`) between 3 and ?", "`$mode` <> ?", "char_length($wrongletters) = 0", ...$caps];
+	$conditions = ["strict = 0", "inflected <= ?", "char_length(`$mode`) between 3 and ?", "`$mode` <> ?", "char_length($wrongletters) = 0", ...$caps];
 	$params = [$flexion, mb_strlen($sourceword), $sourceword, ...array_keys($letters), ...$capparams];
 	return array_column($dictionary->execute_query("select distinct `$mode` as word from `$language`
 		where ".implode(" and ", $conditions), $params)->fetch_all(MYSQLI_ASSOC), 'word');
@@ -48,15 +47,17 @@ function savesolution($mysql, $game, $words)
 	}
 }
 
-// only asked for a word the solution does not hold: one query per relaxation the game withholds,
-// flexion first because it takes precedence where both would let the word through. `word <> ?` is
-// what makes the second query mean "only reachable through substitution" rather than "known at all"
 function wordcheck($dictionary, $language, $word, $umlauts, $flexion)
 {
 	if (!dictionaryhas($dictionary, $language)) { return ""; }
-	if (!$flexion and $dictionary->execute_query("select 1 from `$language` where (word = ? or clean = ?) and inflected = 1",
+	$mode = $umlauts ? 'clean' : 'match';
+	if ($dictionary->execute_query("select 1 from `$language` where `$mode` = ? and strict = 1 and inflected <= ?",
+		[$word, $flexion])->fetch_column()) { return "❕"; }
+	if (!$flexion and $dictionary->execute_query("select 1 from `$language` where (`match` = ? or clean = ?) and inflected = 1 and strict = 0",
 		[$word, $word])->fetch_column()) { return "⎇"; }
-	if (!$umlauts and $dictionary->execute_query("select 1 from `$language` where clean = ? and word <> ? and inflected <= ?",
+	if (!$umlauts and $dictionary->execute_query("select 1 from `$language` where clean = ? and `match` <> ? and inflected <= ? and strict = 0",
 		[$word, $word, $flexion])->fetch_column()) { return "Ä→AE"; }
+	if ($dictionary->execute_query("select 1 from `$language` where (`match` = ? or clean = ?) and strict = 1",
+		[$word, $word])->fetch_column()) { return "❕"; }
 	return "❗";
 }
