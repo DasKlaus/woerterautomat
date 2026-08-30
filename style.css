@@ -133,6 +133,11 @@ input, select {background-color: var(--shade); font-family: var(--ui);}
 	opacity: 0; max-height: 0; overflow: hidden; pointer-events: none; transition: opacity .15s, max-height .15s, padding .15s, border-width .15s;}
 .wordspan:hover .popoutpanel, .popout.open .popoutpanel {opacity: 1; max-height: 200px; padding: 5px; border-width: 1px; pointer-events: auto; transition-delay: .35s;}
 .popout.open .popoutpanel {transition-delay: 0s;}
+@supports (anchor-name: --a) {
+	/* without support the left/right: 0 above stays, and the panel spans the whole word box */
+	.wordspan {anchor-name: --word; anchor-scope: --word;}
+	.popoutpanel {position-anchor: --word; width: max-content; max-width: 100%; justify-self: anchor-center;}
+}
 .reactionline {font-size: 12px; color: var(--muted);}
 .reactionpicker {display: flex; flex-wrap: wrap; justify-content: center; gap: 4px;}
 .popoutchoice {padding: 1px 3px; border: 1px solid var(--line); border-radius: 3px; cursor: pointer;}
