@@ -40,7 +40,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' and $_SESSION['user_id'])
 				elseif ($_POST["action"] == "checkgame")
 					$return = ["message" => ($count < 0) ? "Für diese Sprache gibt es noch kein Wörterbuch. Das Spiel kann trotzdem gestartet werden."
 							: $count." mögliche Wörter.",
-						"style" => ($count < 50 or $count > 500) ? "caution" : "", "ok" => true];
+						"style" => ($count < 50 or $count > 500) ? "caution" : "", "ok" => true, "solutions" => $count];
 				else
 				{
 					$recent = $mysql->execute_query("select sum(created_at > now() - interval 1 minute) as lastminute, count(*) as lasthour

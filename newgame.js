@@ -25,7 +25,16 @@ function toggleUmlauts(selector) {
 function invalidate() {
 	checked = false;
 	document.getElementById("newgamesubmit").textContent = "Spiel prüfen";
+	document.getElementById("difficulty").className = "hide";
 	say("", "hide");
+}
+
+function difficulty(solutions) {
+	if (solutions < 50) { return "·"; }
+	if (solutions < 200) { return "⁎"; }
+	if (solutions < 500) { return "⁑"; }
+	if (solutions < 1000) { return "⁂"; }
+	return "✳";
 }
 
 function say(text, style) {
@@ -46,6 +55,12 @@ function creategame(form) {
 			{
 				checked = true;
 				document.getElementById("newgamesubmit").textContent = "Spiel starten";
+				if (answer.solutions >= 0) {
+					var mark = document.getElementById("difficulty");
+					mark.textContent = difficulty(answer.solutions);
+					mark.setAttribute("title", answer.solutions + " mögliche Wörter");
+					mark.className = "";
+				}
 			}
 		});
 }

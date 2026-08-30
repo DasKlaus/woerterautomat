@@ -73,10 +73,30 @@ $go = $_GET['go'] ?? 'anleitung';
 			else # $_GET["go"]=="anleitung" doubles as start page
 			{
 				echo '<h2>Anleitung</h2>
-					<p>Bilde aus den Buchstaben des Wortes m&ouml;glichst viele andere W&ouml;rter.
+					<p>Bilde aus den Buchstaben des Ausgangswortes m&ouml;glichst viele andere W&ouml;rter.
 					Jedes Wort bringt so viele Punkte, wie es Buchstaben hat, multipliziert mit der Anzahl der Mitspieler, die es nicht gefunden haben.</p>
 					<p>Die Auswertung wird angezeigt, wenn du das Spiel abschließt. Es ist erst dann wirklich beendet, wenn alle Spieler abgeschlossen haben.</p>
-					<p>Du kannst Mitspieler einladen, indem du die Spiel-URL mit ihnen teilst.</p>';
+					<p>Du kannst Mitspieler einladen, indem du die Spiel-URL mit ihnen teilst.</p>
+					<h3>Spieleinstellungen</h3>
+					<dl class="legend">
+						<dt>DE&nbsp;&nbsp;EN</dt><dd>Sprache des W&ouml;rterbuchs</dd>
+						<dt>&Auml;&rarr;AE</dt><dd>Umlaute substituieren: SS statt &szlig;, AE statt &Auml; etc.</dd>
+						<dt>&#9095;</dt><dd>Flexionsformen erlauben: gebeugte und abgeleitete Formen von Wörtern wie Mehrzahlen, Deklinationen, Konjugationen, zum Beispiel Häuser, gelaufen, fragte, dessen, mir, Notarin, Fuchses</dd>
+						<dt>&#9919;</dt><dd>privates Spiel: unsichtbar f&uuml;r andere (zum Einladen URL teilen)</dd>
+						<dt>&#9786;</dt><dd>Spielerzahl begrenzen, ohne Angabe unbegrenzt</dd>
+						<dt>&middot; &#8270; &#8273; &#8258; &#10035;</dt><dd>Anzahl der m&ouml;glichen W&ouml;rter (wird beim Pr&uuml;fen ermittelt)</dd>
+						<dt></dt><dd>&middot; <50, &nbsp;&nbsp;&#8270; 50-199, &nbsp;&nbsp;&#8273; 200-499, &nbsp;&nbsp;&#8258; 500-999, &nbsp;&nbsp;&#10035;>=1000</dd>
+					</dl>
+					<h3>Reaktionen</h3>
+					<p>Nach Spielabschluss können Spieler die Wörter anderer Spieler und mögliche Lösungen aus dem Wörterbuch sehen. Auf diese können sie mit Emoji reagieren: 💪👍🤦😭🤯😂✨❓🚫</p>
+					<p>Einige Reaktionen werden automatisch vom Wörterbuch hinzugefügt:</p>
+					<dl class="legend">
+						<dt>❗</dt><dd>Wort nicht gefunden.</dd>
+						<dt>❕</dt><dd>Wort als selten, regional oder dergleichen gekennzeichnet.</dd>
+						<dt>Ä→AE</dt><dd>Wort wäre erlaubt, wenn Umlautsubstitution aktiviert wäre.</dd>
+						<dt>⎇</dt><dd>Wort wäre erlaubt, wenn Flexionsformen erlaubt wären.</dd>
+					</dl>
+					<p>Das Wörterbuch ist ein Import von wiktionary.org und kann stellenweise unvollständig, falsch oder inkorrekt als Flexionsform/selten gekennzeichnet sein.</p>';
 			}
 			?>
 		</div>

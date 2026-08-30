@@ -1,5 +1,5 @@
 :root {
-	--fg: #000; --bg: #fff; --shade: #eee; --shade-dark: #ddd; --line: #bbb; --muted: #999; --alert: #f66; --caution: #eb3;
+	--fg: #000; --bg: #fff; --shade: #eee; --shade-dark: #ddd; --line: #bbb; --faint: #ccc; --muted: #999; --alert: #f66; --caution: #eb3;
 	--body: Arial, sans-serif; --ui: Rounded, Arial, sans-serif; --display: ScrambleMixed, sans-serif;
 }
 
@@ -17,7 +17,6 @@ p {margin-bottom: 10px;}
 input, select {background-color: var(--shade); font-family: var(--ui);}
 .warning {color: var(--alert);}
 .caution {color: var(--caution);}
-.hp {position: absolute; left: -9999px;}
 .hide {display: none;}
 
 /* layout */
@@ -199,16 +198,37 @@ input, select {background-color: var(--shade); font-family: var(--ui);}
 /* new game */
 
 #newwordinput {border-radius: 3px; width: 100%; margin: 10px 0 40px; padding: 10px; font-family: var(--display); font-size: min(6.375rem, 11.2cqi);}
-#controlgrid {display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 12rem), 1fr)); gap: 0 20px;}
-.controls {display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: center; margin-bottom: 10px;}
-.controls label {padding-right: 5px;}
-.controls input, .controls select, #newgamesubmit {border-radius: 3px; font-family: var(--ui); font-size: 16px; padding: 3px; width: 100px; 
-	border: 1px solid var(--fg); background: var(--bg); color: var(--fg);}
-.controls input[type="checkbox"] {height: 26px; margin: 0;}
-#newgamesubmit {position: relative; width: 100%;}
+/* the game list's setting symbols, made operable: each label is the whole control and :has() reads
+   the input it wraps back out as the label's own styling. That input has to stay a real checkbox —
+   only an unchecked one is left out of the POST — and has to stay focusable, so it is moved out of
+   sight rather than hidden, which would drop it out of the tab order along with the label. */
+
+#gamesettings {float: none; flex-wrap: wrap; justify-content: center; align-items: center; margin: 0 -5px 10px;}
+#gamesettings > * {flex: none;} /* the list view stretches its symbols over the card, a form row must not */
+#gamesettings label {color: var(--faint); border-color: var(--faint); cursor: pointer;}
+#gamesettings label :not([type="number"]), .hp {position: absolute; left: -9999px;}
+/* set beats unset by the same contrast everywhere in the row, so a choice among values needs no
+   second idiom: its options are ordinary symbols too, only with their touching edges joined.
+   The set one is positioned so its darker border paints over the muted neighbour it overlaps. */
+#gamesettings label:has(:checked), #gamesettings label:has([type="number"]:not(:placeholder-shown))
+	{position: relative; border-color: var(--fg); color: var(--fg);}
+#gamesettings label:has(:focus-visible) {outline: 1px solid var(--fg);}
+#gamesettings [type="number"] {width: 2.5em; margin-left: 3px; border: none; border-bottom: 1px solid currentColor;
+	background: none; color: inherit; font-family: inherit; line-height: normal; vertical-align: middle;}
+#gamesettings .segment {margin-left: -1px; margin-right: 0; border-radius: 0;}
+#gamesettings .segment:not(.segment + .segment) {margin-left: 5px; border-radius: 3px 0 0 3px;}
+#gamesettings .segment:not(:has(+ .segment)) {margin-right: 5px; border-radius: 0 3px 3px 0;}
+
+.legend {display: grid; grid-template-columns: auto 1fr; gap: 5px 10px; margin: 20px 0 10px;}
+.legend dt {font-family: var(--ui); text-align: center;}
+
+/* the only stretchable thing in the row, so it takes whatever the symbols leave and drops to a line
+   of its own once that is under 7em — where the symbols, now with nothing to stretch beside them,
+   are what justify-content centres */
+#newgamesubmit {position: relative; flex: 1 0 7em; border: 1px solid var(--fg); border-radius: 3px;
+	background: var(--bg); color: var(--fg); font-family: var(--ui); font-size: 16px; cursor: pointer;}
 #newgamesubmit:before {content: ""; position: absolute; z-index: -1; inset: 3px -5px -5px 3px; border: 1px solid var(--fg); border-radius: 3px;}
 #newgamesubmit:active:before {background-color: var(--fg);}
-@media (min-width: 1000px) {#controlgrid {grid-template-columns: repeat(3, minmax(0, 1fr));}}
 
 /* identity */
 
