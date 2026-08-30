@@ -47,6 +47,23 @@ function savesolution($mysql, $game, $words)
 	}
 }
 
+// the game's own spelling answers first; the other one is only tried when it has nothing to say, so
+// a root taken from another entry's forms still resolves where the game substituted its umlauts away
+function lookup($dictionary, $language, $word, $umlauts)
+{
+	if (!dictionaryhas($dictionary, $language)) { return []; }
+	foreach ($umlauts ? ['clean', 'match'] : ['match', 'clean'] as $mode)
+	{
+		$rows = $dictionary->execute_query("select word, sounds, senses, forms from `$language` where `$mode` = ?", [$word])->fetch_all(MYSQLI_ASSOC);
+		if ($rows)
+		{
+			return array_map(fn($row) => ['word' => $row['word'], 'sounds' => json_decode($row['sounds']),
+				'senses' => json_decode($row['senses']), 'forms' => json_decode($row['forms'])], $rows);
+		}
+	}
+	return [];
+}
+
 function wordcheck($dictionary, $language, $word, $umlauts, $flexion)
 {
 	if (!dictionaryhas($dictionary, $language)) { return ""; }

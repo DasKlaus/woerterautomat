@@ -130,20 +130,51 @@ input, select {background-color: var(--shade); font-family: var(--ui);}
 .popoutpanel {display: flex; flex-direction: column; align-items: center; gap: 3px; position: absolute; z-index: 2;
 	left: 0; right: 0; margin-top: -3px;
 	padding: 0 5px; border: 0 solid var(--fg); border-radius: 3px; background-color: var(--bg);
-	opacity: 0; max-height: 0; overflow: hidden; pointer-events: none; transition: opacity .15s, max-height .15s, padding .15s, border-width .15s;}
-.wordspan:hover .popoutpanel, .popout.open .popoutpanel {opacity: 1; max-height: 200px; padding: 5px; border-width: 1px; pointer-events: auto; transition-delay: .35s;}
+	color: var(--fg); font-weight: normal; /* the word's own .unique or .unfound must not reach the panel */
+	opacity: 0; max-height: 0; overflow: hidden; pointer-events: none; transition: opacity .15s, padding .15s, border-width .15s;}
+.wordspan:hover .popoutpanel, .popout.open .popoutpanel {opacity: 1; max-height: none; padding: 5px; border-width: 1px; pointer-events: auto; transition-delay: .35s;}
 .popout.open .popoutpanel {transition-delay: 0s;}
 @supports (anchor-name: --a) {
-	/* without support the left/right: 0 above stays, and the panel spans the whole word box */
+	/* without support the panel still spans the whole word box. Only the panel on screen resolves an anchor */
 	.wordspan {anchor-name: --word; anchor-scope: --word;}
-	.popoutpanel {position-anchor: --word; width: max-content; max-width: 100%; justify-self: anchor-center;}
+	.wordspan:hover .popoutpanel, .popout.open .popoutpanel {position-anchor: --word; width: max-content; max-width: 100%; justify-self: anchor-center;}
 }
 .reactionline {font-size: 12px; color: var(--muted);}
-.reactionpicker {display: flex; flex-wrap: wrap; justify-content: center; gap: 4px;}
-.popoutchoice {padding: 1px 3px; border: 1px solid var(--line); border-radius: 3px; cursor: pointer;}
-.popoutchoice:hover {background-color: var(--shade);}
-.popoutchoice.active {background-color: var(--shade-dark); border-color: var(--fg);}
-.popoutchoice.alert {border-color: var(--alert); color: var(--alert);}
+.popoutrow {display: flex; flex-wrap: wrap; justify-content: center; gap: 4px 10px;}
+/* both panels are opaque and their own stacking context, so the backdrop .modes draws in a :before
+   would fall behind them; as a shadow it sits behind the button and still in front of the panel */
+:is(.popoutpanel, #lookup) .modes {width: auto; margin: 0;}
+:is(.popoutpanel, #lookup) .modes > * {box-shadow: 4px 4px 0 -1px var(--bg), 4px 4px var(--fg);}
+:is(.popoutpanel, #lookup) .modes > :before {content: none;}
+:is(.popoutpanel, #lookup) .modes > :is(:hover, :active) {box-shadow: 4px 4px var(--fg);}
+:is(.popoutpanel, #lookup) .modes > .selected {box-shadow: 4px 4px var(--line);}
+
+/* game: dictionary */
+
+#lookup {display: flex; flex-direction: column; position: fixed; z-index: 3; top: 50%; left: 50%; transform: translate(-50%, -50%);
+	width: min(34rem, 100vw - 2rem); max-height: 80dvh;
+	border: 1px solid var(--fg); border-radius: 3px; background-color: var(--bg);}
+@media (max-width: 690px) {
+	#lookup {inset: 0; transform: none; width: auto; max-height: none; border: 0; border-radius: 0;}
+}
+#lookupbar {display: flex; align-items: center; gap: 10px; padding: 10px 15px; border-bottom: 1px solid var(--line);}
+#lookupbar h1 {flex: 1; min-width: 0; --size: 40px; overflow-wrap: anywhere;}
+#lookupbar span {flex: none; width: 26px; border: 1px solid var(--fg); border-radius: 3px;
+	font-family: var(--ui); font-size: 16px; line-height: 24px; text-align: center; cursor: pointer;}
+#lookupbar span:hover {background-color: var(--shade);}
+#lookupbody {overflow-y: auto; overscroll-behavior: contain; padding: 15px;}
+#lookupbody::-webkit-scrollbar {width: 8px;}
+#lookupbody::-webkit-scrollbar-thumb {border-radius: 3px; background-color: var(--line);}
+.lookuphead {margin: 15px 0 5px; border-bottom: 1px solid var(--shade-dark); font-family: var(--ui); font-size: 12px; color: var(--muted);}
+.lookuphead:first-child {margin-top: 0;}
+#lookup .wordspan {font-size: 11px; color: var(--muted);}
+.tag, .formline {font-size: 11px; color: var(--muted);}
+.tag {font-style: italic;} /* only the tags themselves: a marker beside them is not an oblique word */
+.ipaline, .rootline {display: flex; flex-wrap: wrap; align-items: baseline; gap: 6px; margin-bottom: 3px;}
+.formline {margin-left: 12px;}
+.sense {margin-bottom: 4px; padding-left: 1.8em; text-indent: -1.8em;}
+.sense .num {display: inline-block; width: 1.8em; text-indent: 0; font-size: 12px; color: var(--muted);}
+.subsense {margin-left: 1.8em;}
 
 /* game: players */
 

@@ -59,12 +59,12 @@ function submitword()
 	}
   }
 
-function removeword(wordspan)
+function removeword(word)
   {
-	var word = wordspan.id.substr(0, wordspan.id.indexOf("word"));
-	post({action: "removeword", game: game, word: word}, receivedata);
+	post({action: "removeword", game: game, word: word}, mystatus == 3 ? finishdata : receivedata);
 	words.splice(words.indexOf(word), 1);
-	wordspan.parentNode.removeChild(wordspan);
+	// a finished game redraws every word from the response, an active one only ever adds to what is there
+	if (mystatus != 3) { document.getElementById(word+"word").remove(); }
   }
 
 function pointspan(points)
@@ -155,9 +155,9 @@ function sortword(word)
 	}
 	if (mystatus != 3) {
 		wordspan.className += ' deletable';
-		var box = reactionbox(word, wordspan);
+		var box = reactionbox(word, true);
 		wordspan.appendChild(box);
-		wordspan.onclick = function(e) { e.stopPropagation(); box.classList.toggle('open'); };
+		wordspan.onclick = function(e) { togglepopout(e, box); };
 	}
 	sortcontainer.appendChild(wordspan);
 	sortcontainer.appendChild(document.createTextNode(" "));
@@ -229,6 +229,8 @@ function dedupe(rows)
 			byword[rows[i].word] = {word: rows[i].word, user_id: rows[i].user_id, points: rows[i].points, finders: []};
 			list.push(byword[rows[i].word]);
 		}
+		// the own row wins the merged entry's user_id, so a shared word still counts as this player's
+		if (rows[i].user_id == selfid) { byword[rows[i].word].user_id = selfid; }
 		byword[rows[i].word].finders.push(rows[i].player || "Gast");
 	}
 	return list;
@@ -320,76 +322,219 @@ function sortfinishedword(word)
 		if (playerlist.length > 2) { wordspan.title = finders.join(', '); }
 		wordspan.appendChild(pointspan(word["points"]));
 	}
-	var box = reactionbox(word["word"]);
-	if (box) { wordspan.appendChild(box); }
+	var box = reactionbox(word["word"], word["user_id"] == selfid);
+	if (box)
+	{
+		wordspan.appendChild(box);
+		wordspan.onclick = function(e) { togglepopout(e, box); };
+	}
 	sortcontainer.appendChild(wordspan);
 	sortcontainer.appendChild(document.createTextNode(" "));
 }
 
 var reactionemoji = ['💪', '👍', '🤦', '😭', '🤯', '😂', '✨', '❓', '🚫']; // keep in sync with $reactionemoji in receiver.php
 
-document.addEventListener('click', function() {
-	document.querySelectorAll('.popout.open').forEach(function(box) { box.classList.remove('open'); });
+document.addEventListener('click', function(e) {
+	closepopouts();
+	if (!e.target.closest("#lookup")) { closelookup(); }
 });
+
+// a tap never reaches the listener above, since the word stops the click to keep its own panel open
+function togglepopout(e, box)
+{
+	e.stopPropagation();
+	closepopouts(box);
+	closelookup();
+	box.classList.toggle('open');
+}
+
+function closepopouts(keep)
+{
+	document.querySelectorAll('.popout.open').forEach(function(box) { if (box != keep) { box.classList.remove('open'); } });
+}
+
+function closelookup()
+{
+	var panel = document.getElementById("lookup");
+	if (panel) { panel.remove(); }
+}
 
 function reactionsFor(word)
 {
 	return reactions.filter(function(r) { return r.word == word; });
 }
 
-// wordspan is only passed for a still-deletable (active-game) word: it adds a delete choice
-// and makes the whole word (not just the badges) open the popout, since there may be no badges yet
-function reactionbox(word, wordspan)
+// deletable is set for this player's own words, whose panel keeps offering removal after finishing:
+// it only ever costs the player points, and it is the one way to undo a mistyped word
+function reactionbox(word, deletable)
 {
 	var existing = reactionsFor(word);
-	// reacting is only offered once this player has personally finished, so seeing others'
-	// reactions on your own still-active words is an incentive to finish, not an option yet
+	// reacting and looking up are only offered once this player has personally finished
 	var canreact = isplayer && mystatus == 3;
-	if (existing.length == 0 && !canreact && !wordspan) { return null; }
-	var box = document.createElement('span');
-	box.className = 'popout';
+	if (existing.length == 0 && !canreact && !deletable) { return null; }
+	var box = element('span', 'popout');
 	var mine = null;
-	var panel = document.createElement('span');
-	panel.className = 'popoutpanel';
+	var panel = element('span', 'popoutpanel');
 	existing.forEach(function(r) {
-		var badge = document.createElement('span');
-		badge.className = 'reactionbadge';
-		badge.textContent = r.emoji;
+		var badge = element('span', 'reactionbadge', r.emoji);
 		badge.title = r.display_name || 'Gast';
 		box.appendChild(badge);
-		var line = document.createElement('span');
-		line.className = 'reactionline';
-		line.textContent = r.emoji + ' ' + (r.display_name || 'Gast');
-		panel.appendChild(line);
+		panel.appendChild(element('span', 'reactionline', r.emoji + ' ' + (r.display_name || 'Gast')));
 		if (r.reactor_id == selfid) { mine = r.emoji; }
 	});
-	if (canreact || wordspan) {
-		var picker = document.createElement('span');
-		picker.className = 'reactionpicker';
-		if (canreact) {
-			reactionemoji.forEach(function(emoji) {
-				var choice = document.createElement('span');
-				choice.className = 'popoutchoice' + (emoji == mine ? ' active' : '');
-				choice.textContent = emoji;
-				choice.onclick = function(e) {
-					e.stopPropagation();
-					post({action: (emoji == mine ? 'unreact' : 'react'), game: game, word: word, emoji: emoji}, finishdata);
-				};
-				picker.appendChild(choice);
-			});
-		}
-		if (wordspan) {
-			var del = document.createElement('span');
-			del.className = 'popoutchoice alert';
-			del.textContent = 'löschen';
-			del.onclick = function(e) { e.stopPropagation(); removeword(wordspan); };
-			picker.appendChild(del);
-		}
-		panel.appendChild(picker);
+	var row = element('span', 'popoutrow');
+	if (canreact) {
+		var picker = element('span', 'modes');
+		reactionemoji.forEach(function(emoji) {
+			var choice = element('span', emoji == mine ? 'selected' : '', emoji);
+			choice.onclick = function(e) {
+				e.stopPropagation();
+				post({action: (emoji == mine ? 'unreact' : 'react'), game: game, word: word, emoji: emoji}, finishdata);
+			};
+			picker.appendChild(choice);
+		});
+		row.appendChild(picker);
 	}
+	var actions = element('span', 'modes');
+	// the dictionary answers for every word it did not object to, and for its own unfound ones
+	if (canreact && solution.length && lookFor('❗', existing, 'emoji') == -1) {
+		var look = element('span', '', '🔍');
+		look.onclick = function(e) { e.stopPropagation(); box.classList.remove('open'); lookuphistory = []; lookup(word); };
+		actions.appendChild(look);
+	}
+	if (deletable) {
+		var del = element('span', '', '❌');
+		del.onclick = function(e) { e.stopPropagation(); removeword(word); };
+		actions.appendChild(del);
+	}
+	if (actions.children.length) { row.appendChild(actions); }
+	if (row.children.length) { panel.appendChild(row); }
 	box.appendChild(panel);
-	box.onclick = function(e) { e.stopPropagation(); box.classList.toggle('open'); };
 	return box;
+}
+
+var lookuphistory = [];
+
+function lookup(word)
+{
+	get("receiver.php?action=lookup&game="+game+"&word="+encodeURIComponent(word), function(entries) { writelookup(word, entries); });
+}
+
+function writelookup(word, entries)
+{
+	var panel = document.getElementById("lookup");
+	if (!panel)
+	{
+		panel = element('div');
+		panel.id = "lookup";
+		document.body.appendChild(panel);
+	}
+	panel.innerHTML = "";
+	var bar = element('div');
+	bar.id = "lookupbar";
+	if (lookuphistory.length)
+	{
+		var back = element('span', '', '←');
+		back.onclick = function() { lookup(lookuphistory.pop()); };
+		bar.appendChild(back);
+	}
+	bar.appendChild(element('h1', '', word));
+	var close = element('span', '', '✕');
+	close.onclick = closelookup;
+	bar.appendChild(close);
+	panel.appendChild(bar);
+
+	var body = element('div');
+	body.id = "lookupbody";
+	panel.appendChild(body);
+	if (!entries.length) { body.appendChild(element('div', 'tag', 'kein Eintrag')); }
+	entries.forEach(function(entry) {
+		// a game substituting umlauts can match two spellings at once, and each is an entry of its own
+		if (entries.length > 1) { body.appendChild(element('h3', '', entry.word)); }
+		var sounds = entry.sounds || [];
+		var senses = entry.senses || [];
+		// a spelling can be a form of several roots at once, and is one entry in the dictionary for each of them
+		var roots = group((entry.forms || []).filter(function(form) { return form.root != word; }), function(form) { return form.root; });
+
+		if (sounds.length) { body.appendChild(element('div', 'lookuphead', 'Aussprache')); }
+		group(sounds, function(sound) { return labels(sound).join(); }).forEach(function(g) {
+			var line = element('div', 'ipaline');
+			labels(g.items[0]).forEach(function(label) { line.appendChild(element('span', 'wordspan', label)); });
+			line.appendChild(document.createTextNode(g.items.map(function(sound) { return sound.ipa; }).join(' · ')));
+			body.appendChild(line);
+		});
+
+		if (senses.length) { body.appendChild(element('div', 'lookuphead', 'Bedeutungen')); }
+		// glosses are a path, not a list: senses sharing their first one are one meaning with several readings
+		group(senses, function(sense) { return sense.glosses[0]; }).forEach(function(g, i) {
+			body.appendChild(senseline(g.items[0].glosses.length == 1 ? g.items[0] : {}, (i+1)+".", g.key, ''));
+			var letters = 0;
+			g.items.forEach(function(sense) {
+				if (sense.glosses.length > 1)
+				{
+					body.appendChild(senseline(sense, "abcdefghijklmnopqrstuvwxyz".charAt(letters++)+".",
+						sense.glosses.slice(1).join(': '), ' subsense'));
+				}
+			});
+		});
+
+		if (roots.length) { body.appendChild(element('div', 'lookuphead', 'Form von')); }
+		roots.forEach(function(g) {
+			var line = element('div', 'rootline');
+			line.appendChild(element('b', '', g.key));
+			var button = element('span', 'modes');
+			var look = element('span', '', '🔍');
+			look.onclick = function() { lookuphistory.push(word); lookup(g.key); };
+			button.appendChild(look);
+			line.appendChild(button);
+			body.appendChild(line);
+			g.items.forEach(function(form) {
+				var formline = element('div', 'formline', marker(form));
+				formline.appendChild(element('span', 'tag', ' '+labels(form).join(', ')));
+				body.appendChild(formline);
+			});
+		});
+	});
+}
+
+function senseline(sense, num, gloss, level)
+{
+	var line = element('div', 'sense'+level);
+	line.appendChild(element('span', 'num', num));
+	line.appendChild(document.createTextNode(marker(sense)));
+	if (labels(sense).length) { line.appendChild(element('span', 'tag', ' '+labels(sense).join(', '))); }
+	line.appendChild(document.createTextNode(' '+gloss));
+	return line;
+}
+
+function labels(item)
+{
+	return (item.tags || []).concat(item.note || []);
+}
+
+// the same two symbols the Wörterbuch reactions use: ❕ for what no game accepts, ⎇ for a flexion
+function marker(item)
+{
+	return (item.strict ? '❕' : '') + (item.inflected ? '⎇' : '');
+}
+
+function group(list, key)
+{
+	var groups = [];
+	list.forEach(function(item) {
+		var found = lookFor(key(item), groups, 'key');
+		if (found == -1) { groups.push({key: key(item), items: [item]}); }
+		else { groups[found].items.push(item); }
+	});
+	return groups;
+}
+
+function element(tag, className, text)
+{
+	var node = document.createElement(tag);
+	if (className) { node.className = className; }
+	if (text) { node.textContent = text; }
+	return node;
 }
 
 function lookFor(needle, haystack, param) 
@@ -609,10 +754,10 @@ function receivedata(data)
 		var oldbox = wordspan.querySelector('.popout');
 		var wasopen = oldbox && oldbox.classList.contains('open');
 		if (oldbox) { wordspan.removeChild(oldbox); }
-		var newbox = reactionbox(data.words[i].word, wordspan);
+		var newbox = reactionbox(data.words[i].word, true);
 		if (wasopen) { newbox.classList.add('open'); }
 		wordspan.appendChild(newbox);
-		wordspan.onclick = function(box) { return function(e) { e.stopPropagation(); box.classList.toggle('open'); }; }(newbox);
+		wordspan.onclick = function(box) { return function(e) { togglepopout(e, box); }; }(newbox);
 	}
 	writeplayers(data.players);
 	if (changed && sortmode == 'points') { sortwords(); }

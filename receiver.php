@@ -99,7 +99,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' and $_SESSION['user_id'])
 			touchplayer($mysql, $game, $user);
 			touchgame($mysql, $game);
 			$mysql->commit();
-			$return = gamestate($mysql, $game, $user);
+			$return = playerstate($mysql, $game, $user);
 			break;
 		case "joingame":
 			$mysql->begin_transaction();
@@ -153,13 +153,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' and $_SESSION['user_id'])
 					[$game, $word, $user, $emoji, $_SESSION['display_name']]);
 				touchgame($mysql, $game);
 			}
-			$return = reactionresponse($mysql, $game, $user);
+			$return = playerstate($mysql, $game, $user);
 			break;
 		case "unreact":
 			$word = mb_strtolower(trim($_POST['word'] ?? ''));
 			$mysql->execute_query("delete from reaction where game_id = ? and word = ? and reactor_id = ?", [$game, $word, $user]);
 			touchgame($mysql, $game);
-			$return = reactionresponse($mysql, $game, $user);
+			$return = playerstate($mysql, $game, $user);
 			break;
 		default: break;
 	}
@@ -178,6 +178,11 @@ else
 		case "finishrequest":
 			if (version($mysql, $game) === $version) { ob_end_clean(); http_response_code(304); exit; }
 			$return = finishstate($mysql, $game);
+			break;
+		case "lookup":
+			require_once("dictionary.php");
+			$currentgame = $mysql->execute_query("select language, umlauts from game where id = ?", [$game])->fetch_assoc() ?: ['language' => '', 'umlauts' => 0];
+			$return = lookup($dictionary, $currentgame['language'], mb_strtolower(trim($_GET['word'] ?? '')), $currentgame['umlauts']);
 			break;
 		case "showgames":
 			$where = "";
@@ -285,7 +290,7 @@ function gamestate($mysql, $game, $user)
 	return $return;
 }
 
-function reactionresponse($mysql, $game, $user)
+function playerstate($mysql, $game, $user)
 {
 	$status = (int)$mysql->execute_query("select status from player where game_id = ? and user_id = ?", [$game, $user])->fetch_column();
 	return ($status == 3) ? finishstate($mysql, $game) : gamestate($mysql, $game, $user);
