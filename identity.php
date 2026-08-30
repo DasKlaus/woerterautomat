@@ -33,6 +33,7 @@ if (!$_SESSION['user_id'] and strlen($_COOKIE['code'] ?? '') == 32)
 }
 switch ($_POST['do'] ?? '')
 {
+	case "namecookie":
 	case "name":
 		identify();
 		if (identityRestriction() !== false)
@@ -45,6 +46,7 @@ switch ($_POST['do'] ?? '')
 			$identitymessage = "Der Name wurde auf 32 Zeichen gekürzt.";
 		$identity->execute_query("update user set display_name = ?, last_seen_at = now() where id = ?", [$name, $_SESSION['user_id']]);
 		$_SESSION['display_name'] = $name;
+		if ($_POST['do'] == "namecookie") { identityRemember(identityCode()); }
 		break;
 	case "remember":
 		identify();
@@ -143,14 +145,21 @@ function identityForm()
 	if ($reason !== false)
 		echo '<p class="warning">Die Namensänderung wurde gesperrt. '.htmlspecialchars((string)$reason, ENT_QUOTES, 'UTF-8').'</p>';
 	else
-		echo '
-		<p>Der Name ist für alle sichtbar. Beleidigendes, Privates oder Anstößiges ist nicht zulässig, Verstöße können über das Impressum gemeldet werden. Unzulässige Namen werden ohne Ankündigung anonymisiert.</p>
-		<form method="post" class="identity">
-			<input type="text" name="name" value="'.htmlspecialchars($_SESSION['display_name'], ENT_QUOTES, 'UTF-8').'">
-			<button type="submit" name="do" value="name">Name &auml;ndern</button>
-		</form>';
-	if ($_SESSION['user_id'])
+		echo '<p>Der Name ist für alle sichtbar. Beleidigendes, Privates oder Anstößiges ist nicht zulässig, Verstöße können über das Impressum gemeldet werden. Unzulässige Namen werden ohne Ankündigung anonymisiert.</p>';
+	if (!$_SESSION['user_id'])
+		echo '<p>Ein Cookie h&auml;lt die Anmeldung auf diesem Ger&auml;t ein Jahr lang und verl&auml;ngert sich bei jedem Besuch. Ohne Cookie endet die Anmeldung mit der Sitzung.</p>
+			<form method="post" class="identity">
+				<input type="text" name="name" value="">
+				<button type="submit" name="do" value="name">Name setzen</button>
+				<button type="submit" name="do" value="namecookie">Name und Cookie setzen</button>
+			</form>';
+	else
 	{
+		if ($reason === false)
+			echo '<form method="post" class="identity">
+				<input type="text" name="name" value="'.htmlspecialchars($_SESSION['display_name'], ENT_QUOTES, 'UTF-8').'">
+				<button type="submit" name="do" value="name">Name &auml;ndern</button>
+			</form>';
 		echo '<h3>Angemeldet bleiben</h3>
 			<p>Ein Cookie h&auml;lt die Anmeldung auf diesem Ger&auml;t ein Jahr lang und verl&auml;ngert sich bei jedem Besuch. Ohne Cookie endet die Anmeldung mit der Sitzung.</p>
 			<form method="post" class="identity">';
@@ -162,6 +171,11 @@ function identityForm()
 	}
 	echo '<h3>Authentifizierungs-Code</h3>
 		<p>Mit dem Code ist ein Wiederanmelden in einem anderen Browser oder nach Ende der Sitzung möglich. Er sollte notiert und nicht weitergegeben werden.</p>';
+	if (!$_SESSION['user_id']) 
+		echo '<form method="post" class="identity">
+				<input type="text" name="code" value="">
+				<button type="submit" name="do" value="usecode">Mit Code anmelden</button>
+			</form>';
 	if ($_SESSION['user_id'])
 		echo '<p class="warning">Ein neuer Code macht den bisherigen ung&uuml;ltig und beendet den Zugang in allen anderen Browsern.</p>
 			<form method="post" class="identity">
@@ -170,14 +184,8 @@ function identityForm()
 			    <button type="button" class="copy" title="Code kopieren" onclick="this.previousElementSibling.select(); navigator.clipboard.writeText(this.previousElementSibling.value);">⧉</button>
 			  </div>
 			  <button type="submit" name="do" value="newcode">Neuen Code erzeugen</button>
-			</form>';
-	if (!$_SESSION['user_id']) 
-		echo '<form method="post" class="identity">
-				<input type="text" name="code" value="">
-				<button type="submit" name="do" value="usecode">Mit Code anmelden</button>
-			</form>';
-	if ($_SESSION['user_id'])
-		echo '<h3>Abmelden</h3>
+			</form>
+			<h3>Abmelden</h3>
 			<p class="warning">Ohne den Code ist der Zugang zu Name und Historie nach dem Abmelden dauerhaft verloren.</p>
 			<form method="post" class="identity">
 			<button type="submit" name="do" value="logout" onclick="return confirm(\'Ohne den Code ist der Zugang zu Name und Historie dauerhaft verloren. Wirklich abmelden?\');">Abmelden</button>

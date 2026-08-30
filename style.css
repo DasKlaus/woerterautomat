@@ -132,7 +132,7 @@ input, select {background-color: var(--shade); font-family: var(--ui);}
 	padding: 0 5px; border: 0 solid var(--fg); border-radius: 3px; background-color: var(--bg);
 	color: var(--fg); font-weight: normal; /* the word's own .unique or .unfound must not reach the panel */
 	opacity: 0; max-height: 0; overflow: hidden; pointer-events: none; transition: opacity .15s, padding .15s, border-width .15s;}
-.wordspan:hover .popoutpanel, .popout.open .popoutpanel {opacity: 1; max-height: none; padding: 5px; border-width: 1px; pointer-events: auto; transition-delay: .35s;}
+.wordspan:hover .popoutpanel, .popout.open .popoutpanel {opacity: 1; max-height: none; padding: 5px 10px 10px 5px; border-width: 1px; pointer-events: auto; transition-delay: .35s;}
 .popout.open .popoutpanel {transition-delay: 0s;}
 @supports (anchor-name: --a) {
 	/* without support the panel still spans the whole word box. Only the panel on screen resolves an anchor */

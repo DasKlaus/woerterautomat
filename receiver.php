@@ -190,7 +190,7 @@ else
 			switch($_GET['mode'] ?? 'relevant')
 			{
 				case 'relevant':
-					$where = "where (game.status < 2 and not game.private) or exists (select 1 from player m where m.game_id = game.id and m.user_id = ?)";
+					$where = "where ((game.status < 2 and not game.private) or exists (select 1 from player m where m.game_id = game.id and m.user_id = ?)) and (game.status < 3 or game.last_activity_at > now() - interval 1 day)";
 					$params = [$user];
 					break;
 				case 'own':

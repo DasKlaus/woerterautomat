@@ -319,7 +319,6 @@ function sortfinishedword(word)
 		if (finders.length == 1) { wordspan.className += ' unique'; }
 		if (words.indexOf(word["word"]) == -1) { wordspan.className += ' others'; }
 		else if (finders.length > 1) { wordspan.className += ' shared'; }
-		if (playerlist.length > 2) { wordspan.title = finders.join(', '); }
 		wordspan.appendChild(pointspan(word["points"]));
 	}
 	var box = reactionbox(word["word"], word["user_id"] == selfid);
@@ -375,9 +374,12 @@ function reactionbox(word, deletable)
 	var box = element('span', 'popout');
 	var mine = null;
 	var panel = element('span', 'popoutpanel');
+	if (playerlist.length > 2) {
+		var finders = uniquewords[lookFor(word, uniquewords, 'word')].finders;
+		panel.appendChild(element('span', 'reactionline', finders.includes("Wörterbuch") ? 'Nicht gefunden' : 'Gefunden von ' + finders.join(', ') )); 
+	}
 	existing.forEach(function(r) {
 		var badge = element('span', 'reactionbadge', r.emoji);
-		badge.title = r.display_name || 'Gast';
 		box.appendChild(badge);
 		panel.appendChild(element('span', 'reactionline', r.emoji + ' ' + (r.display_name || 'Gast')));
 		if (r.reactor_id == selfid) { mine = r.emoji; }
