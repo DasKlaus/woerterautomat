@@ -34,6 +34,7 @@ if (!$_SESSION['user_id'] and strlen($_COOKIE['code'] ?? '') == 32)
 switch ($_POST['do'] ?? '')
 {
 	case "namecookie":
+	case "renameall":
 	case "name":
 		identify();
 		if (identityRestriction() !== false)
@@ -148,7 +149,7 @@ function identityForm()
 		echo '<p>Der Name ist für alle sichtbar. Beleidigendes, Privates oder Anstößiges ist nicht zulässig, Verstöße können über das Impressum gemeldet werden. Unzulässige Namen werden ohne Ankündigung anonymisiert.</p>';
 	if (!$_SESSION['user_id'])
 		echo '<p>Ein Cookie h&auml;lt die Anmeldung auf diesem Ger&auml;t ein Jahr lang und verl&auml;ngert sich bei jedem Besuch. Ohne Cookie endet die Anmeldung mit der Sitzung.</p>
-			<form method="post" class="identity">
+			<form method="post" class="identity namechange">
 				<input type="text" name="name" value="">
 				<button type="submit" name="do" value="name">Name setzen</button>
 				<button type="submit" name="do" value="namecookie">Name und Cookie setzen</button>
@@ -156,9 +157,10 @@ function identityForm()
 	else
 	{
 		if ($reason === false)
-			echo '<form method="post" class="identity">
+			echo '<form method="post" class="identity namechange">
 				<input type="text" name="name" value="'.htmlspecialchars($_SESSION['display_name'], ENT_QUOTES, 'UTF-8').'">
 				<button type="submit" name="do" value="name">Name &auml;ndern</button>
+				<button type="submit" name="do" value="renameall">Name r&uuml;ckwirkend &auml;ndern</button>
 			</form>';
 		echo '<h3>Angemeldet bleiben</h3>
 			<p>Ein Cookie h&auml;lt die Anmeldung auf diesem Ger&auml;t ein Jahr lang und verl&auml;ngert sich bei jedem Besuch. Ohne Cookie endet die Anmeldung mit der Sitzung.</p>

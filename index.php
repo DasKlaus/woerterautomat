@@ -3,6 +3,13 @@ header('Content-Type: text/html; charset=UTF-8');
 require_once("config.php");
 require_once("identity.php");
 
+if (($_POST['do'] ?? '') == 'renameall' and $_SESSION['user_id'])
+{
+	$mysql->execute_query("update player set display_name = ? where user_id = ?", [$_SESSION['display_name'], $_SESSION['user_id']]);
+	$mysql->execute_query("update reaction set display_name = ? where reactor_id = ?", [$_SESSION['display_name'], $_SESSION['user_id']]);
+	$mysql->execute_query("update game set created_by_name = ? where created_by = ?", [$_SESSION['display_name'], $_SESSION['user_id']]);
+}
+
 $go = $_GET['go'] ?? 'anleitung';
 ?>
 <!DOCTYPE html>
