@@ -67,6 +67,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' and $_SESSION['user_id'])
 			break;
 		case "newword":
 			$word = mb_strtolower(trim($_POST['word'] ?? ''));
+			// three words the dictionary rejected within a minute stop the guessing; the block lifts as the oldest leaves the window
+			$_SESSION['wrongwords'] = array_values(array_filter($_SESSION['wrongwords'] ?? [], fn($t) => $t > time() - 60));
+			if (count($_SESSION['wrongwords']) >= 3)
+			{
+				$return = gamestate($mysql, $game, $user);
+				$return['blocked'] = 60 - (time() - $_SESSION['wrongwords'][0]);
+				break;
+			}
 			$currentgame = $mysql->execute_query("select g.source_word, g.language, g.umlauts, g.flexion from game g
 					join player p on p.game_id = g.id
 					where g.id = ? and p.user_id = ? and p.status <> 2", [$game, $user])->fetch_assoc();
@@ -82,6 +90,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' and $_SESSION['user_id'])
 					{
 						$mysql->execute_query("insert ignore into reaction (game_id, word, reactor_id, emoji, display_name, created_at)
 							values (?, ?, -1, ?, 'Wörterbuch', now())", [$game, $word, $emoji]);
+						$_SESSION['wrongwords'][] = time();
 					}
 				}
 				recompute($mysql, $game);

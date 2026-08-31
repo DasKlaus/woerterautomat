@@ -42,21 +42,35 @@ function resyncletters()
 
 function submitword()
   {
-	var word = document.getElementById("input").value;
-	if (word.length >2)
+	var inputfield = document.getElementById("input");
+	var word = inputfield.value;
+	if (word.length >2 && !inputfield.disabled)
 	{
-		document.getElementById("input").value = '';
+		inputfield.value = '';
 		resyncletters();
 		if (words.indexOf(word) == -1)
 		{
 			// the word is placed by receivedata, not here: only the server knows its points, which points sorting needs
-			post({action: "newword", game: game, word: word}, receivedata);
+			post({action: "newword", game: game, word: word}, function(data) {
+				receivedata(data);
+				// the rejected word comes back into the field, so waiting it out costs no retyping
+				if (data.blocked) { inputfield.value = word; resyncletters(); countdown(data.blocked); }
+			});
 		}
 		else
 		{
 			colortransition(word+"word");
 		}
 	}
+  }
+
+function countdown(seconds)
+  {
+	var line = document.getElementById("gamemessage");
+	document.getElementById("input").disabled = seconds > 0;
+	line.textContent = seconds > 0 ? "Zu viele nicht erlaubte Wörter probiert, warte "+seconds+" Sekunden!" : "";
+	line.className = seconds > 0 ? "warning" : "hide";
+	if (seconds > 0) { setTimeout(function() { countdown(seconds-1); }, 1000); }
   }
 
 function removeword(word)
@@ -311,7 +325,6 @@ function sortfinishedword(word)
 	if (word["user_id"] == -1)
 	{
 		wordspan.className += ' unfound';
-		wordspan.title = "Wörterbuch";
 	}
 	else
 	{
@@ -374,7 +387,7 @@ function reactionbox(word, deletable)
 	var box = element('span', 'popout');
 	var mine = null;
 	var panel = element('span', 'popoutpanel');
-	if (playerlist.length > 2) {
+	if (playerlist.length > 2 && mystatus == 3) {
 		var finders = uniquewords[lookFor(word, uniquewords, 'word')].finders;
 		panel.appendChild(element('span', 'reactionline', finders.includes("Wörterbuch") ? 'Nicht gefunden' : 'Gefunden von ' + finders.join(', ') )); 
 	}
