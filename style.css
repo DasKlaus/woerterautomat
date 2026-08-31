@@ -178,6 +178,9 @@ input, select {background-color: var(--shade); font-family: var(--ui);}
 /* game: players */
 
 .playerdiv {margin: 10px 0; padding: 3px; border: 1px solid var(--fg); border-radius: 3px;}
+/* hangs off the box above it, close enough to cover its rounded bottom corners, so the pair reads as
+   one card and only the button carries the menu backdrop */
+#menu .forcefinish {margin-top: -13px; border-top: none; border-top-left-radius: 0; border-top-right-radius: 0;}
 
 /* game list */
 

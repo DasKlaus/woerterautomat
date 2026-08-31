@@ -77,6 +77,9 @@ $go = $_GET['go'] ?? 'anleitung';
 					Jedes Wort bringt so viele Punkte, wie es Buchstaben hat, multipliziert mit der Anzahl der Mitspieler, die es nicht gefunden haben.</p>
 					<p>Die Auswertung wird angezeigt, wenn du das Spiel abschließt. Es ist erst dann wirklich beendet, wenn alle Spieler abgeschlossen haben.</p>
 					<p>Du kannst Mitspieler einladen, indem du die Spiel-URL mit ihnen teilst.</p>
+					<p>Ist ein Zeitlimit gesetzt und war ein Spieler l&auml;nger als dieses nicht aktiv, kann jeder, der selbst schon abgeschlossen hat,
+					das Spiel f&uuml;r diesen Spieler abschlie&szlig;en. In der Spieler&uuml;bersicht erscheint dann ein Knopf mit &#9200;&#65038;,
+					in der Spiele&uuml;bersicht steht das Symbol neben dem Namen.</p>
 					<h3>Spieleinstellungen</h3>
 					<dl class="legend">
 						<dt>DE&nbsp;&nbsp;EN</dt><dd>Sprache des W&ouml;rterbuchs</dd>
@@ -84,6 +87,7 @@ $go = $_GET['go'] ?? 'anleitung';
 						<dt>&#9095;</dt><dd>Flexionsformen erlauben: gebeugte und abgeleitete Formen von Wörtern wie Mehrzahlen, Deklinationen, Konjugationen, zum Beispiel Häuser, gelaufen, fragte, dessen, mir, Notarin, Fuchses</dd>
 						<dt>&#9919;</dt><dd>privates Spiel: unsichtbar f&uuml;r andere (zum Einladen URL teilen)</dd>
 						<dt>&#9786;</dt><dd>Spielerzahl begrenzen, ohne Angabe unbegrenzt</dd>
+						<dt>&#9203;&#65038; &#128336;&#65038; &#128467;&#65038; &#128197;&#65038;</dt><dd>Zeitlimit f&uuml;r Inaktivit&auml;t in Minuten, Stunden, Tagen oder Monaten, ohne Angabe unbegrenzt</dd>
 						<dt>&middot; &#8270; &#8273; &#8258; &#10035;</dt><dd>Anzahl der m&ouml;glichen W&ouml;rter (wird beim Pr&uuml;fen ermittelt)</dd>
 						<dt></dt><dd>&middot; <50, &nbsp;&nbsp;&#8270; 50-199, &nbsp;&nbsp;&#8273; 200-499, &nbsp;&nbsp;&#8258; 500-999, &nbsp;&nbsp;&#10035;>=1000</dd>
 					</dl>

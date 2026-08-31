@@ -6,6 +6,18 @@ document.onclick = function(event)
 var umlauts = {"ä":"ae", "ö":"oe", "ü":"ue", "ß":"ss", "å":"aa", "æ":"ae", "ø":"oe", "ё":"e"};
 var substitute = false;
 
+// the time limit is stored as minutes and is always a count times one of these factors, so the
+// largest one that divides it evenly is the unit it was entered in. Lives here rather than beside
+// the other settings symbols because the game view and the game list both render it.
+function limittext(minutes)
+{
+	var count = minutes, symbol = "⏳︎", unit = "Minute", plural = "n";
+	if (minutes % 43200 == 0) { count = minutes/43200; symbol = "📅︎"; unit = "Monat"; plural = "en"; }
+	else if (minutes % 1440 == 0) { count = minutes/1440; symbol = "🗓︎"; unit = "Tag"; plural = "en"; }
+	else if (minutes % 60 == 0) { count = minutes/60; symbol = "🕐︎"; unit = "Stunde"; plural = "n"; }
+	return [count+symbol, "kann nach "+count+" "+unit+(count == 1 ? "" : plural)+" Inaktivität einseitig geschlossen werden"];
+}
+
 // sort letters
 
 var originalword = "woerterautomat";

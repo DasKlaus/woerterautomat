@@ -75,8 +75,15 @@ function gamedata(response)
 		}
 		if (data[i].maxplayers>0) {
 			span = document.createElement('span');
-			span.textContent = "☺"+data[i].maxplayers;
+			span.textContent = data[i].maxplayers+"☺";
 			span.setAttribute('title', 'bis zu '+data[i].maxplayers+' Spieler');
+			settings.appendChild(span);
+		}
+		if (data[i].timelimit>0) {
+			var limit = limittext(data[i].timelimit);
+			span = document.createElement('span');
+			span.textContent = limit[0];
+			span.setAttribute('title', limit[1]);
 			settings.appendChild(span);
 		}
 		if (data[i].flexion) {
@@ -128,6 +135,7 @@ function gamedata(response)
 			player.className = 'wordspan';
 			player.textContent = data[i].players[j].player || "Gast";
 			if (data[i].players[j].status == 3) { player.appendChild(document.createTextNode(" ✓")); }
+			else if (data[i].timelimit > 0 && data[i].players[j].last_activity >= data[i].timelimit) { player.appendChild(document.createTextNode(" ⏰︎")); }
 			if (data[i].status == 3) {
 				var playerpoints = document.createElement('span');
 				playerpoints.className = 'pointspan';

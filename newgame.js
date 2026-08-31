@@ -21,6 +21,13 @@ function toggleUmlauts(selector) {
 	invalidate();
 }
 
+// a unit says nothing without a number and a number nothing without a unit, so the two are set and
+// cleared together; assigning to the radio group as a whole is what unchecks all of it
+function timeunit(input) {
+	if (input.value == "") { input.form.unit.value = ""; }
+	else if (input.form.unit.value == "") { input.form.unit.value = "1440"; }
+}
+
 // only the four fields the solution depends on invalidate a check;
 function invalidate() {
 	checked = false;

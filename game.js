@@ -715,6 +715,26 @@ function writeplayers(list)
 		meta.appendChild(document.createTextNode(activity));
 		playerdiv.appendChild(meta);
 		players.appendChild(playerdiv);
+		// only a player who has finished, and only against one who has outsat the limit; the payload
+		// carrying a user_id at all is finishstate, which is the only one this player can be seeing
+		if (isplayer && mystatus == 3 && list[i].status != 3
+			&& timelimit > 0 && list[i].last_activity + elapsed >= timelimit)
+		{
+			var force = document.createElement('a');
+			force.className = 'forcefinish';
+			force.textContent = "⏰︎ abschließen";
+			force.onclick = function(id, name, since) { return function() { forcefinish(id, name, since); }; }
+				(list[i].user_id, playername, list[i].last_activity + elapsed);
+			players.appendChild(force);
+		}
+	}
+}
+
+function forcefinish(id, name, since)
+{
+	if (confirm(name+" war zuletzt "+timeago(since)+" aktiv. Das Spiel für "+name+" abschließen?"))
+	{
+		post({action: "forcefinish", game: game, player: id}, finishdata);
 	}
 }
 

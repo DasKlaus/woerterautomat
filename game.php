@@ -1,6 +1,6 @@
 <?php
 $game = (int)($_GET['game'] ?? 0);
-$currentgame = $mysql->execute_query("select source_word, status, language, umlauts, flexion, maxplayers, private, created_by_name,
+$currentgame = $mysql->execute_query("select source_word, status, language, umlauts, flexion, maxplayers, timelimit, private, created_by_name,
 		timestampdiff(minute, created_at, now()) as starttime from game where id = ?", [$game])->fetch_assoc();
 if (!$currentgame)
 {
@@ -66,6 +66,7 @@ $words = $mysql->execute_query("select word from word where game_id = ? and user
   var flexion = <?php echo json_encode($currentgame['flexion']>0); ?>;
   var isprivate = <?php echo json_encode($currentgame['private']>0); ?>;
   var maxplayers = <?php echo json_encode($currentgame['maxplayers']); ?>;
+  var timelimit = <?php echo json_encode((int)$currentgame['timelimit']); ?>;
   var sortmode = 'standard';
   var direction = 1;
   var words = <?php echo json_encode(array_merge([$currentgame['source_word']], array_column($words, 'word'))); ?>;
@@ -137,8 +138,15 @@ if (isprivate) {
 }
 if (maxplayers>0) {
 	span = document.createElement('span');
-	span.textContent = "☺ "+maxplayers;
+	span.textContent = maxplayers+"☺";
 	span.setAttribute('title', 'bis zu '+maxplayers+' Spieler');
+	settings.appendChild(span);
+}
+if (timelimit>0) {
+	var limit = limittext(timelimit);
+	span = document.createElement('span');
+	span.textContent = limit[0];
+	span.setAttribute('title', limit[1]);
 	settings.appendChild(span);
 }
 </script>

@@ -15,6 +15,7 @@ CREATE TABLE `game` (
 	`flexion` tinyint(1) NOT NULL DEFAULT 0,
 	`private` tinyint(1) NOT NULL DEFAULT 0,
 	`maxplayers` int(10) NOT NULL DEFAULT 0,
+	`timelimit` int(10) NOT NULL DEFAULT 10080,
 	`status` tinyint(3) NOT NULL DEFAULT 0,
 	`version` int(10) NOT NULL DEFAULT 0,
 	`created_by` bigint(20) NOT NULL,

@@ -53,9 +53,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' and $_SESSION['user_id'])
 					{
 						$private = (isset($_POST['private'])) ? 1 : 0;
 						$players = (int)($_POST['players'] ?? 0);
-						$mysql->execute_query("insert into game (source_word, language, flexion, umlauts, private, maxplayers, solutions, created_by, created_by_name, created_at, last_activity_at)
-							values (?, ?, ?, ?, ?, ?, ?, ?, ?, now(), now())",
-							[$sourceword, $language, $flexion, $umlauts, $private, $players, $count, $user, $_SESSION['display_name']]);
+						$unit = in_array($_POST['unit'] ?? '', ['1', '60', '1440', '43200'], true) ? (int)$_POST['unit'] : 1440;
+						$timelimit = (int)($_POST['timelimit'] ?? 0) * $unit;
+						$mysql->execute_query("insert into game (source_word, language, flexion, umlauts, private, maxplayers, timelimit, solutions, created_by, created_by_name, created_at, last_activity_at)
+							values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, now(), now())",
+							[$sourceword, $language, $flexion, $umlauts, $private, $players, $timelimit, $count, $user, $_SESSION['display_name']]);
 						$id = $mysql->insert_id;
 						$mysql->execute_query("insert into player (game_id, user_id, display_name, joined_at, activity) values (?, ?, ?, now(), now())",
 							[$id, $user, $_SESSION['display_name']]);
@@ -114,13 +116,19 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' and $_SESSION['user_id'])
 			$mysql->begin_transaction();
 			$mysql->execute_query("insert ignore into player (game_id, user_id, display_name, joined_at, activity)
 					select ?, ?, ?, now(), now() from game where id = ? and status < 2", [$game, $user, $_SESSION['display_name'], $game]);
-			touchplayer($mysql, $game, $user);
-			$mysql->execute_query("update game set status = 1
-					where id = ? and status = 0 and (select count(*) from player where game_id = ?) > 1", [$game, $game]);
-			$mysql->execute_query("update game set status = 2
-					where id = ? and (select count(*) from player where game_id = ?) = maxplayers", [$game, $game]);
-			recompute($mysql, $game);
-			touchgame($mysql, $game);
+			// every page load posts this, so only a row that was really inserted counts as an action:
+			// reopening a game refreshes the name it shows and nothing else
+			$joined = $mysql->affected_rows > 0;
+			$mysql->execute_query("update player set display_name = ? where game_id = ? and user_id = ?", [$_SESSION['display_name'], $game, $user]);
+			if ($joined)
+			{
+				$mysql->execute_query("update game set status = 1
+						where id = ? and status = 0 and (select count(*) from player where game_id = ?) > 1", [$game, $game]);
+				$mysql->execute_query("update game set status = 2
+						where id = ? and (select count(*) from player where game_id = ?) = maxplayers", [$game, $game]);
+				recompute($mysql, $game);
+				touchgame($mysql, $game);
+			}
 			$mysql->commit();
 			$return = gamestate($mysql, $game, $user);
 			break;
@@ -142,6 +150,21 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' and $_SESSION['user_id'])
 			break;
 		case "finishgame":
 			$mysql->execute_query("update player set status = 3, activity = now() where game_id = ? and user_id = ?", [$game, $user]);
+			$mysql->execute_query("update game set status = 3
+					where id = ? and not exists (select 1 from player where game_id = ? and status <> 3)", [$game, $game]);
+			touchgame($mysql, $game);
+			$return = finishstate($mysql, $game);
+			break;
+		// the whole permission check is the where clause: an actor who has finished, a target who has not,
+		// and a limit the target's last action has outlived
+		case "forcefinish":
+			$target = (int)($_POST['player'] ?? 0);
+			$mysql->execute_query("update player t
+					join game g on g.id = t.game_id
+					join player a on a.game_id = t.game_id and a.user_id = ? and a.status = 3
+				set t.status = 3
+				where t.game_id = ? and t.user_id = ? and t.status <> 3
+					and g.timelimit > 0 and t.activity < now() - interval g.timelimit minute", [$user, $game, $target]);
 			$mysql->execute_query("update game set status = 3
 					where id = ? and not exists (select 1 from player where game_id = ? and status <> 3)", [$game, $game]);
 			touchgame($mysql, $game);
@@ -228,10 +251,11 @@ else
 			$sortdir = ($_GET['dir'] ?? '') === 'asc' ? 'asc' : 'desc';
 			$window = " order by ".$sortcolumn." ".$sortdir.", id ".$sortdir." limit 20 offset ".(20 * (max(1, (int)($_GET['page'] ?? 1)) - 1));
 			$return["pages"] = (int)ceil($mysql->execute_query("select count(*) from game ".$where, $params)->fetch_column() / 20);
-			$return["games"] = $mysql->execute_query("select id, source_word as word, status, language, umlauts, flexion, private, maxplayers, solutions,
+			$return["games"] = $mysql->execute_query("select id, source_word as word, status, language, umlauts, flexion, private, maxplayers, timelimit, solutions,
 					created_by_name as starter, timestampdiff(minute, last_activity_at, now()) as activitytime
 				from game ".$where.$window, $params)->fetch_all(MYSQLI_ASSOC);
-			$players = $mysql->execute_query("select p.game_id, p.display_name as player, p.points, p.status
+			$players = $mysql->execute_query("select p.game_id, p.display_name as player, p.points, p.status,
+					timestampdiff(minute, p.activity, now()) as last_activity
 				from player p join (select id from game ".$where.$window.") g on g.id = p.game_id
 				order by p.joined_at", $params)->fetch_all(MYSQLI_ASSOC);
 			$bygame = [];
