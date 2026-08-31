@@ -82,21 +82,22 @@ $go = $_GET['go'] ?? 'anleitung';
 				echo '<h2>Anleitung</h2>
 					<p>Bilde aus den Buchstaben des Ausgangswortes m&ouml;glichst viele andere W&ouml;rter.
 					Jedes Wort bringt so viele Punkte, wie es Buchstaben hat, multipliziert mit der Anzahl der Mitspieler, die es nicht gefunden haben.</p>
-					<p>Die Auswertung wird angezeigt, wenn du das Spiel abschließt. Es ist erst dann wirklich beendet, wenn alle Spieler abgeschlossen haben.</p>
+					<p>Die Auswertung wird nach Abschließen angezeigt. Es ist erst dann wirklich beendet, wenn alle Spieler abgeschlossen haben.</p>
 					<p>Du kannst Mitspieler einladen, indem du die Spiel-URL mit ihnen teilst.</p>
-					<p>Ist ein Zeitlimit gesetzt und war ein Spieler l&auml;nger als dieses nicht aktiv, kann jeder, der selbst schon abgeschlossen hat,
-					das Spiel f&uuml;r diesen Spieler abschlie&szlig;en. In der Spieler&uuml;bersicht erscheint dann ein Knopf mit &#9200;&#65038;,
-					in der Spiele&uuml;bersicht steht das Symbol neben dem Namen.</p>
 					<h3>Spieleinstellungen</h3>
 					<dl class="legend">
 						<dt>DE&nbsp;&nbsp;EN</dt><dd>Sprache des W&ouml;rterbuchs</dd>
 						<dt>&Auml;&rarr;AE</dt><dd>Umlaute substituieren: SS statt &szlig;, AE statt &Auml; etc.</dd>
-						<dt>&#9095;</dt><dd>Flexionsformen erlauben: gebeugte und abgeleitete Formen von Wörtern wie Mehrzahlen, Deklinationen, Konjugationen, zum Beispiel Häuser, gelaufen, fragte, dessen, mir, Notarin, Fuchses</dd>
+						<dt>&#9095;</dt><dd>Flexionsformen erlauben: gebeugte und abgeleitete Formen von Wörtern wie Mehrzahlen, Deklinationen, Konjugationen<br>
+							zum Beispiel Häuser, gelaufen, fragte, dessen, mir, Notarin, Fuchses</dd>
 						<dt>&#9919;</dt><dd>privates Spiel: unsichtbar f&uuml;r andere (zum Einladen URL teilen)</dd>
 						<dt>&#9786;</dt><dd>Spielerzahl begrenzen, ohne Angabe unbegrenzt</dd>
-						<dt>&#9203;&#65038; &#128336;&#65038; &#128467;&#65038; &#128197;&#65038;</dt><dd>Zeitlimit f&uuml;r Inaktivit&auml;t in Minuten, Stunden, Tagen oder Monaten, ohne Angabe unbegrenzt</dd>
-						<dt>&middot; &#8270; &#8273; &#8258; &#10035;</dt><dd>Anzahl der m&ouml;glichen W&ouml;rter (wird beim Pr&uuml;fen ermittelt)</dd>
-						<dt></dt><dd>&middot; <50, &nbsp;&nbsp;&#8270; 50-199, &nbsp;&nbsp;&#8273; 200-499, &nbsp;&nbsp;&#8258; 500-999, &nbsp;&nbsp;&#10035;>=1000</dd>
+						<dt>&#9203;&#65038; &#128336;&#65038; &#128467;&#65038; &#128197;&#65038;</dt><dd>Zeitlimit f&uuml;r Inaktivit&auml;t, ab der das Spiel durch Mitspieler beendet werden kann<br>
+							&#9203;&#65038; Minuten &nbsp;&nbsp; &#128336;&#65038; Stunden &nbsp;&nbsp; &#128467;&#65038; Tage &nbsp;&nbsp; &#128197;&#65038; Monate, ohne Angabe unbegrenzt</dd>
+						<dt>&middot; &#8270; &#8273; &#8258; &#10035;</dt><dd>Anzahl der m&ouml;glichen W&ouml;rter<br>
+								&middot; <50, &nbsp;&nbsp; &#8270; 50-199, &nbsp;&nbsp; &#8273; 200-499, &nbsp;&nbsp; &#8258; 500-999, &nbsp;&nbsp; &#10035;>=1000</dd>
+						<dt>○◐●✓</dt><dd>Spielstatus<br>
+							○ neu (noch kein Beitritt) &nbsp;&nbsp; ◐ laufend (mehrere Spieler beigetreten) &nbsp;&nbsp; ● voll (keine weiteren Beitritte möglich) &nbsp;&nbsp; ✓ abgeschlossen</dd>
 					</dl>
 					<h3>Reaktionen</h3>
 					<p>Nach Spielabschluss können Spieler die Wörter anderer Spieler und mögliche Lösungen aus dem Wörterbuch sehen. Auf diese können sie mit Emoji reagieren: 💪👍🤦😭🤯😂✨❓🚫</p>
@@ -107,7 +108,13 @@ $go = $_GET['go'] ?? 'anleitung';
 						<dt>Ä→AE</dt><dd>Wort wäre erlaubt, wenn Umlautsubstitution aktiviert wäre.</dd>
 						<dt>⎇</dt><dd>Wort wäre erlaubt, wenn Flexionsformen erlaubt wären.</dd>
 					</dl>
-					<p>Das Wörterbuch ist ein Import von wiktionary.org und kann stellenweise unvollständig, falsch oder inkorrekt als Flexionsform/selten gekennzeichnet sein.</p>';
+					<p>Das Wörterbuch ist ein Import von wiktionary.org und kann stellenweise unvollständig, falsch oder inkorrekt (nicht) als Flexionsform/selten gekennzeichnet sein.</p>
+					<h3>Sonstige</h3>
+					<dl class="legend">
+						<dt>🔍</dt><dd>Wort nachschlagen (nur nach Spielabschluss möglich)</dd>
+						<dt>❌</dt><dd>Wort löschen</dd>
+						<dt>&#9200;&#65038;</dt><dd>Spieler war über das Zeitlimit hinaus nicht aktiv; das Spiel kann durch andere für ihn beendet werden.</dd>
+					</dl>';
 			}
 			?>
 		</div>
