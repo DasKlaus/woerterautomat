@@ -33,7 +33,7 @@ function solutionwords($dictionary, $language, $umlauts, $flexion, $sourceword)
 	}
 	$conditions = ["strict = 0", "inflected <= ?", "char_length(`$mode`) between 3 and ?", "`$mode` <> ?", "char_length($wrongletters) = 0", ...$caps];
 	$params = [$flexion, mb_strlen($sourceword), $sourceword, ...array_keys($letters), ...$capparams];
-	return array_column($dictionary->execute_query("select distinct `$mode` as word from `$language`
+	return array_column($dictionary->execute_query("select distinct `$mode` as word from `$language` force index (`{$mode}_scan`)
 		where ".implode(" and ", $conditions), $params)->fetch_all(MYSQLI_ASSOC), 'word');
 }
 
@@ -64,17 +64,25 @@ function lookup($dictionary, $language, $word, $umlauts)
 	return [];
 }
 
+// one equality per column to allow using its index
+function spelled($dictionary, $language, $word, $rest)
+{
+	foreach (['match', 'clean'] as $column)
+	{
+		if ($dictionary->execute_query("select 1 from `$language` where `$column` = ? and $rest", [$word])->fetch_column()) { return true; }
+	}
+	return false;
+}
+
 function wordcheck($dictionary, $language, $word, $umlauts, $flexion)
 {
 	if (!dictionaryhas($dictionary, $language)) { return ""; }
 	$mode = $umlauts ? 'clean' : 'match';
 	if ($dictionary->execute_query("select 1 from `$language` where `$mode` = ? and strict = 1 and inflected <= ?",
 		[$word, $flexion])->fetch_column()) { return "❕"; }
-	if (!$flexion and $dictionary->execute_query("select 1 from `$language` where (`match` = ? or clean = ?) and inflected = 1 and strict = 0",
-		[$word, $word])->fetch_column()) { return "⎇"; }
+	if (!$flexion and spelled($dictionary, $language, $word, "inflected = 1 and strict = 0")) { return "⎇"; }
 	if (!$umlauts and $dictionary->execute_query("select 1 from `$language` where clean = ? and `match` <> ? and inflected <= ? and strict = 0",
 		[$word, $word, $flexion])->fetch_column()) { return "Ä→AE"; }
-	if ($dictionary->execute_query("select 1 from `$language` where (`match` = ? or clean = ?) and strict = 1",
-		[$word, $word])->fetch_column()) { return "❕"; }
+	if (spelled($dictionary, $language, $word, "strict = 1")) { return "❕"; }
 	return "❗";
 }

@@ -30,7 +30,9 @@ function timeunit(input) {
 // only the four fields the solution depends on invalidate a check;
 function invalidate() {
 	checked = false;
-	document.getElementById("newgamesubmit").textContent = "Spiel prüfen";
+	var button = document.getElementById("newgamesubmit");
+	button.disabled = false;
+	button.textContent = "Spiel prüfen";
 	document.getElementById("difficulty").className = "hide";
 	say("", "hide");
 }
@@ -49,18 +51,24 @@ function say(text, style) {
 	line.className = style;
 }
 
+// the dictionary query can take seconds, so the button waits, and its own disabled state doubles as
+// the marker for that wait: an invalidation clears it, and a reply arriving after that is stale
 function creategame(form) {
+	var button = document.getElementById("newgamesubmit");
+	var release = function() { button.disabled = false; button.textContent = checked ? "Spiel starten" : "Spiel prüfen"; };
 	var data = new URLSearchParams(new FormData(form));
 	data.append("action", checked ? "creategame" : "checkgame");
+	button.textContent = checked ? "wird gestartet …" : "wird geprüft …";
+	button.disabled = true;
 	fetch("receiver.php", {method: "POST", body: data})
 		.then(function(response) { return response.json(); })
 		.then(function(answer) {
+			if (!button.disabled) { return; }
 			if (answer.game) { window.location = "?go=game&game=" + answer.game; return; }
 			say(answer.message, answer.style);
 			if (answer.ok)
 			{
 				checked = true;
-				document.getElementById("newgamesubmit").textContent = "Spiel starten";
 				if (answer.solutions >= 0) {
 					var mark = document.getElementById("difficulty");
 					mark.textContent = difficulty(answer.solutions);
@@ -68,7 +76,9 @@ function creategame(form) {
 					mark.className = "";
 				}
 			}
-		});
+			release();
+		})
+		.catch(function() { say("Der Server hat nicht geantwortet.", "warning"); release(); });
 }
 
 function keyhandle(e) {
