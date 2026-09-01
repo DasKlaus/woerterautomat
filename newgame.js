@@ -10,7 +10,7 @@ function inputhandle() {
 		accepted += (substitute && lower[i] in umlauts) ? umlauts[lower[i]] : lower[i];
 	}
 	if (inputfield.value != accepted) { inputfield.value = accepted; }
-	invalidate;
+	invalidate();
 }
 
 var checked = false;
@@ -18,7 +18,6 @@ var checked = false;
 function toggleUmlauts(selector) {
 	substitute = selector.checked;
 	inputhandle();
-	invalidate();
 }
 
 // a unit says nothing without a number and a number nothing without a unit, so the two are set and
