@@ -98,6 +98,12 @@ function gamedata(response)
 			span.setAttribute('title', 'Umlaute können substituiert werden');
 			settings.appendChild(span);
 		}
+		if (data[i].dictionary) {
+			span = document.createElement('span');
+			span.textContent = "🕮";
+			span.setAttribute('title', 'nur Wörter aus dem Wörterbuch bringen Punkte');
+			settings.appendChild(span);
+		}
 		if (data[i].solutions >= 0) {
 			span = document.createElement('span');
 			span.textContent = difficulty(data[i].solutions);

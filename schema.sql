@@ -13,6 +13,7 @@ CREATE TABLE `game` (
 	`language` varchar(10) NOT NULL DEFAULT 'de',
 	`umlauts` tinyint(1) NOT NULL DEFAULT 0,
 	`flexion` tinyint(1) NOT NULL DEFAULT 0,
+	`dictionary` tinyint(1) NOT NULL DEFAULT 0,
 	`private` tinyint(1) NOT NULL DEFAULT 0,
 	`maxplayers` int(10) NOT NULL DEFAULT 0,
 	`timelimit` int(10) NOT NULL DEFAULT 10080,

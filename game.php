@@ -1,6 +1,6 @@
 <?php
 $game = (int)($_GET['game'] ?? 0);
-$currentgame = $mysql->execute_query("select source_word, status, language, umlauts, flexion, maxplayers, timelimit, private, created_by_name,
+$currentgame = $mysql->execute_query("select source_word, status, language, umlauts, flexion, dictionary, maxplayers, timelimit, private, created_by_name,
 		timestampdiff(minute, created_at, now()) as starttime from game where id = ?", [$game])->fetch_assoc();
 if (!$currentgame)
 {
@@ -64,6 +64,7 @@ $words = $mysql->execute_query("select word from word where game_id = ? and user
   var language = <?php echo json_encode($currentgame['language']); ?>;
   substitute = <?php echo json_encode($currentgame['umlauts']>0); ?>;
   var flexion = <?php echo json_encode($currentgame['flexion']>0); ?>;
+  var dictionaryonly = <?php echo json_encode($currentgame['dictionary']>0); ?>;
   var isprivate = <?php echo json_encode($currentgame['private']>0); ?>;
   var maxplayers = <?php echo json_encode($currentgame['maxplayers']); ?>;
   var timelimit = <?php echo json_encode((int)$currentgame['timelimit']); ?>;
@@ -128,6 +129,12 @@ if (flexion) {
 	span = document.createElement('span');
 	span.textContent = "⎇";
 	span.setAttribute('title', 'Flexionsformen wie Mehrzahlen, Deklinationen, Konjugationen erlaubt');
+	settings.appendChild(span);
+}
+if (dictionaryonly) {
+	span = document.createElement('span');
+	span.textContent = "🕮";
+	span.setAttribute('title', 'nur Wörter aus dem Wörterbuch bringen Punkte');
 	settings.appendChild(span);
 }
 if (isprivate) {

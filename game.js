@@ -136,7 +136,7 @@ function sortword(word)
 				pointsbox.id = points+"words";
 				var number = document.createElement('span');
 				number.className = 'startnumber';
-				number.innerHTML = points;
+				number.innerHTML = (points < 0) ? "–" : points;
 				pointsbox.appendChild(number);
 				
 				var wordbox = document.getElementById("words");
@@ -144,7 +144,8 @@ function sortword(word)
 				var child = wordbox.children[0];
 				while (child && !inserted)
 				{
-					if (!isNaN(child.children[0].innerHTML) && (child.children[0].innerHTML - points) * direction > 0) { wordbox.insertBefore(pointsbox, child); inserted = true; }
+					var boxpoints = parseInt(child.id);
+					if (!isNaN(boxpoints) && (boxpoints - points) * direction > 0) { wordbox.insertBefore(pointsbox, child); inserted = true; }
 					child = child.nextSibling;
 				}
 				if (!inserted)
@@ -163,6 +164,8 @@ function sortword(word)
 	wordspan.innerHTML = word;
 	if (found != -1)
 	{
+		// -1 is the payload's way of saying the dictionary rules this word out; css hides its pointspan
+		if (wordpoints[found].points < 0) { wordspan.className += ' unscored'; }
 		var span = pointspan(wordpoints[found].points);
 		span.id = word+'points';
 		wordspan.appendChild(span);
@@ -297,7 +300,7 @@ function sortfinishedword(word)
 				pointsbox.id = points+"words";
 				var number = document.createElement('span');
 				number.className = 'startnumber';
-				number.innerHTML = points;
+				number.innerHTML = (points < 0) ? "–" : points;
 				pointsbox.appendChild(number);
 
 				var wordbox = document.getElementById("words");
@@ -305,7 +308,8 @@ function sortfinishedword(word)
 				var child = (points === "∞") ? null : wordbox.children[0];
 				while (child && !inserted)
 				{
-					if (!isNaN(child.children[0].innerHTML) && (child.children[0].innerHTML - points) * direction > 0) { wordbox.insertBefore(pointsbox, child); inserted = true; }
+					var boxpoints = parseInt(child.id);
+					if (!isNaN(boxpoints) && (boxpoints - points) * direction > 0) { wordbox.insertBefore(pointsbox, child); inserted = true; }
 					child = child.nextSibling;
 				}
 				if (!inserted)
@@ -332,6 +336,7 @@ function sortfinishedword(word)
 		if (finders.length == 1) { wordspan.className += ' unique'; }
 		if (words.indexOf(word["word"]) == -1) { wordspan.className += ' others'; }
 		else if (finders.length > 1) { wordspan.className += ' shared'; }
+		if (word["points"] < 0) { wordspan.className += ' unscored'; }
 		wordspan.appendChild(pointspan(word["points"]));
 	}
 	var box = reactionbox(word["word"], word["user_id"] == selfid);
@@ -769,8 +774,9 @@ function receivedata(data)
 	ownpoints = 0;
 	for (var i=0; i<data.words.length; i++)
 	{
-		ownpoints += data.words[i].points;
+		ownpoints += Math.max(0, data.words[i].points);
 		var wordspan = document.getElementById(data.words[i].word+"word");
+		wordspan.classList.toggle('unscored', data.words[i].points < 0);
 		var span = document.getElementById(data.words[i].word+'points');
 		if (!span)
 		{

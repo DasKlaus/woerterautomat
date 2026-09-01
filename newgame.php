@@ -11,6 +11,7 @@
 		<label class="segment" title="englisches W&ouml;rterbuch"><input type="radio" name="language" value="en" onchange="invalidate();">EN</label>
 		<label title="Umlaute substituieren"><input type="checkbox" name="umlauts" value="true" onchange="toggleUmlauts(this);">&Auml;&rarr;AE</label>
 		<label title="Flexionsformen erlauben"><input type="checkbox" name="flexion" value="true" onchange="invalidate();">&#9095;</label>
+		<label title="nur W&ouml;rterbuch-W&ouml;rter werten"><input type="checkbox" name="dictionary" value="true">&#128366;</label>
 		<label title="privates Spiel"><input type="checkbox" name="private" value="true">&#9919;</label>
 		<label title="Spielerzahl begrenzen">&#9786;<input type="number" name="players" id="playersinput" value="" min="0" max="99" placeholder=" "></label>
 		<label class="segment" title="Zeitlimit f&uuml;r Inaktivit&auml;t"><input type="number" name="timelimit" id="timelimitinput" value="" min="0" max="99" placeholder=" " oninput="timeunit(this);"></label>
@@ -26,6 +27,7 @@
 	<dt>DE&nbsp;&nbsp;EN</dt><dd>Sprache des W&ouml;rterbuchs</dd>
 	<dt>&Auml;&rarr;AE</dt><dd>Umlaute substituieren: SS statt &szlig;, AE statt &Auml; etc.</dd>
 	<dt>&#9095;</dt><dd>Flexionsformen erlauben: gebeugte und abgeleitete Formen von Wörtern wie Mehrzahlen, Deklinationen, Konjugationen, zum Beispiel Häuser, gelaufen, fragte, dessen, mir, Notarin, Fuchses</dd>
+	<dt>&#128366;</dt><dd>nur W&ouml;rterbuch-W&ouml;rter werten: W&ouml;rter, die das W&ouml;rterbuch nicht kennt, k&ouml;nnen weiterhin eingegeben werden und erscheinen im Ergebnis, bringen aber keine Punkte &mdash; es sei denn, ein zweiter Fund oder ein 👍 spricht daf&uuml;r</dd>
 	<dt>&#9919;</dt><dd>privates Spiel: unsichtbar f&uuml;r andere (zum Einladen URL teilen)</dd>
 	<dt>&#9786;</dt><dd>Spielerzahl begrenzen, ohne Angabe unbegrenzt</dd>
 	<dt>&#9203;&#65038; &#128336;&#65038; &#128467;&#65038; &#128197;&#65038;</dt><dd>Zeitlimit f&uuml;r Inaktivit&auml;t in Minuten, Stunden, Tagen oder Monaten, ohne Angabe unbegrenzt: wer l&auml;nger nicht gespielt hat, kann von den anderen abgeschlossen werden</dd>

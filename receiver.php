@@ -12,6 +12,13 @@ const VOUCHED = "(r.reactor_id <> -1
 	or ((select count(*) from word f where f.game_id = r.game_id and f.word = r.word) < 2
 		and not exists (select 1 from reaction t where t.game_id = r.game_id and t.word = r.word and t.emoji = '👍')))";
 
+// with the setting on, a word the dictionary objected to scores nothing until the same second
+// finder or 👍 that withdraws the verdict vouches for it
+const UNSCORED = "g.dictionary and exists (select 1 from reaction d
+		where d.game_id = w.game_id and d.word = w.word and d.reactor_id = -1)
+	and (select count(*) from word f where f.game_id = w.game_id and f.word = w.word) < 2
+	and not exists (select 1 from reaction t where t.game_id = w.game_id and t.word = w.word and t.emoji = '👍')";
+
 if ($_SERVER['REQUEST_METHOD'] === 'POST' and $_SESSION['user_id'])
 {
 	if (identityRestriction() !== false) { $_SESSION['display_name'] = ""; }
@@ -36,11 +43,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' and $_SESSION['user_id'])
 			{
 				$flexion = (isset($_POST['flexion'])) ? 1 : 0;
 				$umlauts = (isset($_POST['umlauts'])) ? 1 : 0;
+				$dictionaryonly = (isset($_POST['dictionary'])) ? 1 : 0;
 				$language = in_array($_POST['language'] ?? '', ['de', 'en'], true) ? $_POST['language'] : 'de';
 				require_once("dictionary.php");
 				$words = solutionwords($dictionary, $language, $umlauts, $flexion, $sourceword);
 				$count = is_null($words) ? -1 : count($words);
-				if ($count > 5000)
+				if ($dictionaryonly and $count < 0)
+					$return = ["message" => "Für diese Sprache gibt es noch kein Wörterbuch. Ohne Wörterbuch ist die Wörterbuch-Wertung nicht möglich.", "style" => "warning"];
+				elseif ($count > 5000)
 					$return = ["message" => $count." mögliche Wörter. Die Begrenzung liegt bei 5000.", "style" => "warning"];
 				elseif ($_POST["action"] == "checkgame")
 					$return = ["message" => ($count < 0) ? "Für diese Sprache gibt es noch kein Wörterbuch. Das Spiel kann trotzdem gestartet werden."
@@ -60,9 +70,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' and $_SESSION['user_id'])
 						$players = (int)($_POST['players'] ?? 0);
 						$unit = in_array($_POST['unit'] ?? '', ['1', '60', '1440', '43200'], true) ? (int)$_POST['unit'] : 1440;
 						$timelimit = (int)($_POST['timelimit'] ?? 0) * $unit;
-						$mysql->execute_query("insert into game (source_word, language, flexion, umlauts, private, maxplayers, timelimit, solutions, created_by, created_by_name, created_at, last_activity_at)
-							values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, now(), now())",
-							[$sourceword, $language, $flexion, $umlauts, $private, $players, $timelimit, $count, $user, $_SESSION['display_name']]);
+						$mysql->execute_query("insert into game (source_word, language, flexion, umlauts, dictionary, private, maxplayers, timelimit, solutions, created_by, created_by_name, created_at, last_activity_at)
+							values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, now(), now())",
+							[$sourceword, $language, $flexion, $umlauts, $dictionaryonly, $private, $players, $timelimit, $count, $user, $_SESSION['display_name']]);
 						$id = $mysql->insert_id;
 						$mysql->execute_query("insert into player (game_id, user_id, display_name, joined_at, activity) values (?, ?, ?, now(), now())",
 							[$id, $user, $_SESSION['display_name']]);
@@ -178,6 +188,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' and $_SESSION['user_id'])
 		case "react":
 			$word = mb_strtolower(trim($_POST['word'] ?? ''));
 			$emoji = $_POST['emoji'] ?? '';
+			$mysql->begin_transaction();
 			// reacting requires having personally finished, same as the picker only being shown then
 			$exists = $mysql->execute_query("select 1 from player p where p.game_id = ? and p.user_id = ? and p.status = 3
 					and (exists (select 1 from word w where w.game_id = p.game_id and w.word = ?)
@@ -188,14 +199,19 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' and $_SESSION['user_id'])
 				$mysql->execute_query("insert into reaction (game_id, word, reactor_id, emoji, display_name, created_at) values (?, ?, ?, ?, ?, now())
 						on duplicate key update emoji = values(emoji), display_name = values(display_name), created_at = values(created_at)",
 					[$game, $word, $user, $emoji, $_SESSION['display_name']]);
+				recompute($mysql, $game);
 				touchgame($mysql, $game);
 			}
+			$mysql->commit();
 			$return = playerstate($mysql, $game, $user);
 			break;
 		case "unreact":
 			$word = mb_strtolower(trim($_POST['word'] ?? ''));
+			$mysql->begin_transaction();
 			$mysql->execute_query("delete from reaction where game_id = ? and word = ? and reactor_id = ?", [$game, $word, $user]);
+			recompute($mysql, $game);
 			touchgame($mysql, $game);
+			$mysql->commit();
 			$return = playerstate($mysql, $game, $user);
 			break;
 		default: break;
@@ -256,7 +272,7 @@ else
 			$sortdir = ($_GET['dir'] ?? '') === 'asc' ? 'asc' : 'desc';
 			$window = " order by ".$sortcolumn." ".$sortdir.", id ".$sortdir." limit 20 offset ".(20 * (max(1, (int)($_GET['page'] ?? 1)) - 1));
 			$return["pages"] = (int)ceil($mysql->execute_query("select count(*) from game ".$where, $params)->fetch_column() / 20);
-			$return["games"] = $mysql->execute_query("select id, source_word as word, status, language, umlauts, flexion, private, maxplayers, timelimit, solutions,
+			$return["games"] = $mysql->execute_query("select id, source_word as word, status, language, umlauts, flexion, dictionary, private, maxplayers, timelimit, solutions,
 					created_by_name as starter, timestampdiff(minute, last_activity_at, now()) as activitytime
 				from game ".$where.$window, $params)->fetch_all(MYSQLI_ASSOC);
 			$players = $mysql->execute_query("select p.game_id, p.display_name as player, p.points, p.status,
@@ -289,9 +305,9 @@ function playercount($mysql, $game)
 function recompute($mysql, $game)
 {
 	$mysql->execute_query("update player p set p.points = coalesce((
-			select sum(char_length(w.word) * (? - (select count(*) from word f
-					where f.game_id = w.game_id and f.word = w.word)))
-			from word w where w.game_id = p.game_id and w.user_id = p.user_id
+			select sum(if(".UNSCORED.", 0, char_length(w.word) * (? - (select count(*) from word f
+					where f.game_id = w.game_id and f.word = w.word))))
+			from word w join game g on g.id = w.game_id where w.game_id = p.game_id and w.user_id = p.user_id
 		), 0)
 		where p.game_id = ?", [playercount($mysql, $game), $game]);
 }
@@ -319,9 +335,10 @@ function gamestate($mysql, $game, $user)
 			timestampdiff(minute, activity, now()) as last_activity
 		from player where game_id = ?", [$user, $game])->fetch_all(MYSQLI_ASSOC);
 	$return["words"] = $mysql->execute_query("select w.word,
-			char_length(w.word) * (? - (select count(*) from word f
-					where f.game_id = w.game_id and f.word = w.word)) as points
-		from word w where w.game_id = ? and w.user_id = ?", [playercount($mysql, $game), $game, $user])->fetch_all(MYSQLI_ASSOC);
+			if(".UNSCORED.", -1, char_length(w.word) * (? - (select count(*) from word f
+					where f.game_id = w.game_id and f.word = w.word))) as points
+		from word w join game g on g.id = w.game_id
+		where w.game_id = ? and w.user_id = ?", [playercount($mysql, $game), $game, $user])->fetch_all(MYSQLI_ASSOC);
 	$return["reactions"] = $mysql->execute_query("select r.word, r.reactor_id, r.emoji, r.display_name
 		from reaction r join word w on w.game_id = r.game_id and w.word = r.word
 		where r.game_id = ? and w.user_id = ? and ".VOUCHED, [$game, $user])->fetch_all(MYSQLI_ASSOC);
@@ -343,9 +360,10 @@ function finishstate($mysql, $game)
 		from player where game_id = ?", [$game])->fetch_all(MYSQLI_ASSOC);
 	$return["gamestatus"] = (int)$mysql->execute_query("select status from game where id = ?", [$game])->fetch_column();
 	$return["words"] = $mysql->execute_query("select w.word, w.user_id, p.display_name as player,
-			char_length(w.word) * (? - (select count(*) from word f
-					where f.game_id = w.game_id and f.word = w.word)) as points
+			if(".UNSCORED.", -1, char_length(w.word) * (? - (select count(*) from word f
+					where f.game_id = w.game_id and f.word = w.word))) as points
 		from word w join player p on p.game_id = w.game_id and p.user_id = w.user_id
+			join game g on g.id = w.game_id
 		where w.game_id = ?
 		order by w.created_at, w.word", [playercount($mysql, $game), $game])->fetch_all(MYSQLI_ASSOC);
 	$return["reactions"] = $mysql->execute_query("select r.word, r.reactor_id, r.emoji, r.display_name
