@@ -7,6 +7,11 @@ require_once("identity.php");
 $return = null;
 $reactionemoji = ['💪', '👍', '🤦', '😭', '🤯', '😂', '✨', '❓', '🚫']; // keep in sync with reactionemoji in game.js
 
+// the dictionary's verdict is withheld once a second finder or a 👍 vouches for the word
+const VOUCHED = "(r.reactor_id <> -1
+	or ((select count(*) from word f where f.game_id = r.game_id and f.word = r.word) < 2
+		and not exists (select 1 from reaction t where t.game_id = r.game_id and t.word = r.word and t.emoji = '👍')))";
+
 if ($_SERVER['REQUEST_METHOD'] === 'POST' and $_SESSION['user_id'])
 {
 	if (identityRestriction() !== false) { $_SESSION['display_name'] = ""; }
@@ -319,7 +324,7 @@ function gamestate($mysql, $game, $user)
 		from word w where w.game_id = ? and w.user_id = ?", [playercount($mysql, $game), $game, $user])->fetch_all(MYSQLI_ASSOC);
 	$return["reactions"] = $mysql->execute_query("select r.word, r.reactor_id, r.emoji, r.display_name
 		from reaction r join word w on w.game_id = r.game_id and w.word = r.word
-		where r.game_id = ? and w.user_id = ?", [$game, $user])->fetch_all(MYSQLI_ASSOC);
+		where r.game_id = ? and w.user_id = ? and ".VOUCHED, [$game, $user])->fetch_all(MYSQLI_ASSOC);
 	return $return;
 }
 
@@ -343,8 +348,8 @@ function finishstate($mysql, $game)
 		from word w join player p on p.game_id = w.game_id and p.user_id = w.user_id
 		where w.game_id = ?
 		order by w.created_at, w.word", [playercount($mysql, $game), $game])->fetch_all(MYSQLI_ASSOC);
-	$return["reactions"] = $mysql->execute_query("select word, reactor_id, emoji, display_name
-		from reaction where game_id = ? order by created_at", [$game])->fetch_all(MYSQLI_ASSOC);
+	$return["reactions"] = $mysql->execute_query("select r.word, r.reactor_id, r.emoji, r.display_name
+		from reaction r where r.game_id = ? and ".VOUCHED." order by r.created_at", [$game])->fetch_all(MYSQLI_ASSOC);
 	$return["solution"] = array_column($mysql->execute_query("select word from solution where game_id = ?", [$game])->fetch_all(MYSQLI_ASSOC), 'word');
 	return $return;
 }
