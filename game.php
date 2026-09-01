@@ -51,7 +51,7 @@ if (!$_SESSION['user_id'] and $currentgame['status'] != 3)
 	return;
 }
 
-$words = $mysql->execute_query("select word from word where game_id = ? and user_id = ?", [$game, $_SESSION['user_id']])->fetch_all(MYSQLI_ASSOC);
+$words = $mysql->execute_query("select word from word where game_id = ? and user_id = ? order by created_at", [$game, $_SESSION['user_id']])->fetch_all(MYSQLI_ASSOC);
 ?>
 <script src="game.js"></script>
 <script>

@@ -338,7 +338,8 @@ function gamestate($mysql, $game, $user)
 			if(".UNSCORED.", -1, char_length(w.word) * (? - (select count(*) from word f
 					where f.game_id = w.game_id and f.word = w.word))) as points
 		from word w join game g on g.id = w.game_id
-		where w.game_id = ? and w.user_id = ?", [playercount($mysql, $game), $game, $user])->fetch_all(MYSQLI_ASSOC);
+		where w.game_id = ? and w.user_id = ?
+		order by w.created_at, w.word", [playercount($mysql, $game), $game, $user])->fetch_all(MYSQLI_ASSOC);
 	$return["reactions"] = $mysql->execute_query("select r.word, r.reactor_id, r.emoji, r.display_name
 		from reaction r join word w on w.game_id = r.game_id and w.word = r.word
 		where r.game_id = ? and w.user_id = ? and ".VOUCHED, [$game, $user])->fetch_all(MYSQLI_ASSOC);
