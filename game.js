@@ -701,16 +701,14 @@ function writeplayers(list)
 	{
 		var playername = list[i].player || "Gast";
 		var points = list[i].self ? ownpoints : list[i].points;
-		var playerstatus = "aktiv";
-		if (list[i].status == 3) { playerstatus = "abgeschlossen"; }
+		var playerstatus = (list[i].status == 3) ? "✓ " : "";
 		var activity = "letzte Aktion "+timeago(list[i].last_activity + elapsed);
 
 		var playerdiv = document.createElement('div');
 		playerdiv.className = 'playerdiv';
-		playerdiv.appendChild(document.createTextNode(points === undefined ? playername : playername+' ('+points+')'));
+		playerdiv.appendChild(document.createTextNode(points === undefined ? playerstatus+playername : playerstatus+playername+' ('+points+')'));
 		var meta = document.createElement('span');
 		meta.style.fontSize = '10px';
-		meta.appendChild(document.createTextNode(' - '+playerstatus));
 		meta.appendChild(document.createElement('br'));
 		meta.appendChild(document.createTextNode(activity));
 		playerdiv.appendChild(meta);
