@@ -26,12 +26,15 @@
 <dl class="legend">
 	<dt>DE&nbsp;&nbsp;EN</dt><dd>Sprache des W&ouml;rterbuchs</dd>
 	<dt>&Auml;&rarr;AE</dt><dd>Umlaute substituieren: SS statt &szlig;, AE statt &Auml; etc.</dd>
-	<dt>&#9095;</dt><dd>Flexionsformen erlauben: gebeugte und abgeleitete Formen von Wörtern wie Mehrzahlen, Deklinationen, Konjugationen, zum Beispiel Häuser, gelaufen, fragte, dessen, mir, Notarin, Fuchses</dd>
-	<dt>&#128366;</dt><dd>nur W&ouml;rterbuch-W&ouml;rter werten: W&ouml;rter, die das W&ouml;rterbuch nicht kennt, k&ouml;nnen weiterhin eingegeben werden und erscheinen im Ergebnis, bringen aber keine Punkte &mdash; es sei denn, ein zweiter Fund oder ein 👍 spricht daf&uuml;r</dd>
+	<dt>&#9095;</dt><dd>Flexionsformen erlauben: gebeugte und abgeleitete Formen von Wörtern wie Mehrzahlen, Deklinationen, Konjugationen<br>
+		zum Beispiel Häuser, gelaufen, fragte, dessen, mir, Notarin, Fuchses</dd>
+	<dt>&#128366;</dt><dd>W&ouml;rter, die das W&ouml;rterbuch nicht kennt, bringen keine Punkte<br>
+		Fund durch einen zweiten Spieler oder ein 👍 nehmen ein Wort in die Wertung auf.</dd>
 	<dt>&#9919;</dt><dd>privates Spiel: unsichtbar f&uuml;r andere (zum Einladen URL teilen)</dd>
-	<dt>&#9786;</dt><dd>Spielerzahl begrenzen, ohne Angabe unbegrenzt</dd>
-	<dt>&#9203;&#65038; &#128336;&#65038; &#128467;&#65038; &#128197;&#65038;</dt><dd>Zeitlimit f&uuml;r Inaktivit&auml;t in Minuten, Stunden, Tagen oder Monaten, ohne Angabe unbegrenzt: wer l&auml;nger nicht gespielt hat, kann von den anderen abgeschlossen werden</dd>
-	<dt>&middot; &#8270; &#8273; &#8258; &#10035;</dt><dd>Anzahl der m&ouml;glichen W&ouml;rter (wird beim Pr&uuml;fen ermittelt)</dd>
-	<dt></dt><dd>&middot; <50, &nbsp;&nbsp;&#8270; 50-199, &nbsp;&nbsp;&#8273; 200-499, &nbsp;&nbsp;&#8258; 500-999, &nbsp;&nbsp;&#10035;>=1000</dd>
+	<dt>&#9786;</dt><dd>Spielerzahl begrenzen; ohne Angabe unbegrenzt</dd>
+	<dt>&#9203;&#65038; &#128336;&#65038; &#128467;&#65038; &#128197;&#65038;</dt><dd>Zeitlimit f&uuml;r Inaktivit&auml;t, ab der das Spiel durch Mitspieler beendet werden kann<br>
+		&#9203;&#65038; Minuten &nbsp;&nbsp; &#128336;&#65038; Stunden &nbsp;&nbsp; &#128467;&#65038; Tage &nbsp;&nbsp; &#128197;&#65038; Monate, &nbsp;&nbsp; ohne Angabe unbegrenzt</dd>
+	<dt>&middot; &#8270; &#8273; &#8258; &#10035;</dt><dd>Anzahl der m&ouml;glichen W&ouml;rter (wird beim Pr&uuml;fen ermittelt)<br>
+		&middot; <50, &nbsp;&nbsp; &#8270; 50-199, &nbsp;&nbsp; &#8273; 200-499, &nbsp;&nbsp; &#8258; 500-999, &nbsp;&nbsp; &#10035;>=1000</dd>
 </dl>
 <script src="newgame.js"></script>
