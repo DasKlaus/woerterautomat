@@ -37,7 +37,11 @@ function resyncletters()
 		if (ok) { accepted += needed; }
 		else { used.forEach(function(span) { span.style.display = 'inline'; }); }
 	}
-	if (inputfield.value != accepted) { inputfield.value = accepted; }
+	if (inputfield.value != accepted) {
+		var pos = inputfield.selectionEnd + accepted.length - inputfield.value.length;
+		inputfield.value = accepted;
+		inputfield.setSelectionRange(pos, pos);
+	}
   }
 
 function submitword()

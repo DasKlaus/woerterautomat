@@ -96,7 +96,8 @@ document.addEventListener('DOMContentLoaded', function() {
   if (isplayer || mystatus != 3) { document.getElementById("leave").style.display = 'block'; }
   document.getElementById("input").value = '';
   document.getElementById('input').onkeydown = keydownhandle;
-  document.getElementById('input').oninput = resyncletters;
+  document.getElementById('input').oninput = function(e) { if (!e.isComposing) { resyncletters(); } };
+  document.getElementById('input').oncompositionend = resyncletters;
 
   if (mystatus == 3)
   {

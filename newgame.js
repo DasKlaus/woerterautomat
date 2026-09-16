@@ -1,5 +1,5 @@
-document.getElementById('newwordinput').onkeypress = keyhandle;
-document.getElementById('newwordinput').oninput = inputhandle;
+document.getElementById('newwordinput').oninput = function(e) { if (!e.isComposing) { inputhandle(); } };
+document.getElementById('newwordinput').oncompositionend = inputhandle;
 
 function inputhandle() {
 	var inputfield = document.getElementById("newwordinput");
@@ -9,7 +9,11 @@ function inputhandle() {
 	for (var i=0; i<lower.length; i++) {
 		accepted += (substitute && lower[i] in umlauts) ? umlauts[lower[i]] : lower[i];
 	}
-	if (inputfield.value != accepted) { inputfield.value = accepted; }
+	if (inputfield.value != accepted) {
+		var pos = inputfield.selectionEnd + accepted.length - inputfield.value.length;
+		inputfield.value = accepted;
+		inputfield.setSelectionRange(pos, pos);
+	}
 	invalidate();
 }
 
@@ -79,20 +83,4 @@ function creategame(form) {
 			release();
 		})
 		.catch(function() { say("Der Server hat nicht geantwortet.", "warning"); release(); });
-}
-
-function keyhandle(e) {
-	evt = e || event;
-	var chrTyped, chrCode = 0;
-	if (evt.charCode!=null)     chrCode = evt.charCode;
-	else if (evt.which!=null)   chrCode = evt.which;
-	else if (evt.keyCode!=null) chrCode = evt.keyCode;
-	if (chrCode==0) chrTyped = ' ';
-		else chrTyped = String.fromCharCode(chrCode).toLowerCase();
-	if (chrTyped.toUpperCase() != chrTyped.toLowerCase()) {
-		evt.preventDefault();
-		document.getElementById("newwordinput").value += (chrTyped in umlauts && substitute == true) ? umlauts[chrTyped] : chrTyped;
-		invalidate(); // writing .value fires no input event, so oninput never sees a typed letter
-	}
-	return true;
 }
