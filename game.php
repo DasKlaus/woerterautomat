@@ -161,7 +161,7 @@ if (timelimit>0) {
 <p id="gamemessage" class="hide"></p>
 <div id="inputline">
 	<div id="back" onClick="backspace();">zur&uuml;ck</div>
-	<input type="text" id="input" value="" autofocus>
+	<input type="text" id="input" value="" autofocus autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false">
 	<div id="submit" onClick="submitword();">absenden</div>
 </div>
 <div id="wordbox">
