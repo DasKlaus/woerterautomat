@@ -762,6 +762,8 @@ function finishdata(data)
 
 function receivedata(data)
   {
+	var me = data.players.find(function(p) { return p.self; });
+	if (isplayer && (!me || me.status == 3)) { location.reload(); return; }
 	pollwait = 5000;
 	playerstamp = Date.now();
 	version = data.version;

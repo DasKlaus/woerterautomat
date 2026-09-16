@@ -94,7 +94,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' and $_SESSION['user_id'])
 			}
 			$currentgame = $mysql->execute_query("select g.source_word, g.language, g.umlauts, g.flexion from game g
 					join player p on p.game_id = g.id
-					where g.id = ? and p.user_id = ? and p.status <> 2", [$game, $user])->fetch_assoc();
+					where g.id = ? and p.user_id = ? and p.status <> 3", [$game, $user])->fetch_assoc();
 			if (mb_strlen($word) > 2 and $currentgame and possible($word, $currentgame['source_word']))
 			{
 				$mysql->begin_transaction();
