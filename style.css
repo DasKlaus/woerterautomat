@@ -116,13 +116,19 @@ input, select {background-color: var(--shade); font-family: var(--ui);}
 #wordbox {position: relative; margin: 10px 0; line-height: 22px;}
 .startletter, .startnumber {margin-right: 10px; font-family: var(--display); font-size: 40px; font-weight: bold;}
 .startletter {text-transform: lowercase;}
-.wordspan {padding: 1px 3px; border: 1px solid var(--line); border-radius: 3px; color: var(--fg); transition: border-color 1s, color 1s; white-space: nowrap;}
+.wordspan {padding: 1px 3px; border: 1px solid var(--line); border-radius: 3px; color: var(--fg); transition: border-color 1s, color 1s, box-shadow 0s; white-space: nowrap;}
+/* the border marks the aimed-at word at once, the shadow only after the panel's own delay, so a mouse
+   passing over on its way elsewhere never looks like it opened anything */
+.wordspan:is(:hover, :has(.popout.open)) {border-color: var(--fg); box-shadow: 0 0 0 2px var(--fg);
+	transition: border-color 0s, color 1s, box-shadow 0s .7s;}
+.wordspan:has(.popout.open) {transition-delay: 0s;}
 .fadeIn {border: 1px solid var(--alert); color: var(--alert); transition: border-color 0s, color 0s;}
 .fadeOut {border: 1px solid var(--line); color: var(--fg); transition: border-color 1s, color 1s;}
 .unique {font-weight: bold;}
 .shared {background-color: var(--shade);}
 .others {background-color: var(--line); border-color: var(--muted);}
 .unfound {background-color: var(--fg); border-color: var(--fg); color: var(--bg);}
+.unfound:is(:hover, :has(.popout.open)) {border-color: var(--line);}
 .deletable {cursor: pointer;}
 .pointspan {margin-left: 3px; color: var(--muted); font-size: 10px;}
 .unscored > .pointspan {display: none;}
@@ -132,7 +138,7 @@ input, select {background-color: var(--shade); font-family: var(--ui);}
 	padding: 0 5px; border: 0 solid var(--fg); border-radius: 3px; background-color: var(--bg);
 	color: var(--fg); font-weight: normal; /* the word's own .unique or .unfound must not reach the panel */
 	opacity: 0; max-height: 0; overflow: hidden; pointer-events: none; transition: opacity .15s, padding .15s, border-width .15s;}
-.wordspan:hover .popoutpanel, .popout.open .popoutpanel {opacity: 1; max-height: none; padding: 5px 10px 10px 5px; border-width: 1px; pointer-events: auto; transition-delay: .35s;}
+.wordspan:hover .popoutpanel, .popout.open .popoutpanel {opacity: 1; max-height: none; padding: 5px 10px 10px 5px; border-width: 1px; pointer-events: auto; transition-delay: .7s;}
 .popout.open .popoutpanel {transition-delay: 0s;}
 @supports (anchor-name: --a) {
 	/* without support the panel still spans the whole word box. Only the panel on screen resolves an anchor */
