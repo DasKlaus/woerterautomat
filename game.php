@@ -83,6 +83,7 @@ $words = $mysql->execute_query("select word from word where game_id = ? and user
   var playerlist = [];
   var playerstamp = 0;
   var gamedata;
+  var touch = matchMedia('(pointer: coarse)').matches; // focusing the input there opens the on-screen keyboard
 
 if (gamestatus == 3) { mystatus = 3; } // a guest who never joined still has mystatus -1 even once the game is finished
 

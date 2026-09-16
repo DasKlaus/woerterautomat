@@ -75,6 +75,7 @@ function countdown(seconds)
 	line.textContent = seconds > 0 ? "Zu viele nicht erlaubte Wörter probiert, warte "+seconds+" Sekunden!" : "";
 	line.className = seconds > 0 ? "warning" : "hide";
 	if (seconds > 0) { setTimeout(function() { countdown(seconds-1); }, 1000); }
+	else { document.getElementById("input").focus(); }
   }
 
 function removeword(word)
@@ -358,6 +359,8 @@ var reactionemoji = ['💪', '👍', '🤦', '😭', '🤯', '😂', '✨', '❓
 document.addEventListener('click', function(e) {
 	closepopouts();
 	if (!e.target.closest("#lookup")) { closelookup(); }
+	// index.js has toggled a collapsible before this runs, so one without .open was just closed
+	if (!touch || e.target.matches('.collapsible:not(.open)')) { document.getElementById("input").focus(); }
 });
 
 // a tap never reaches the listener above, since the word stops the click to keep its own panel open
@@ -366,7 +369,7 @@ function togglepopout(e, box)
 	e.stopPropagation();
 	closepopouts(box);
 	closelookup();
-	box.classList.toggle('open');
+	if (!box.classList.toggle('open') && !touch) { document.getElementById("input").focus(); }
 }
 
 function closepopouts(keep)
@@ -428,7 +431,7 @@ function reactionbox(word, deletable)
 	}
 	if (deletable) {
 		var del = element('span', '', '❌');
-		del.onclick = function(e) { e.stopPropagation(); removeword(word); };
+		del.onclick = function(e) { e.stopPropagation(); removeword(word); if (!touch) { document.getElementById("input").focus(); } };
 		actions.appendChild(del);
 	}
 	if (actions.children.length) { row.appendChild(actions); }
