@@ -1,0 +1,6 @@
+RewriteEngine On
+RewriteRule ^spiel-([0-9]+)(-.*)?$ index.php?go=game&game=$1 [QSA,L]
+RewriteRule ^spiele$ index.php?go=games [QSA,L]
+RewriteRule ^profil$ index.php?go=user [L]
+RewriteRule ^(anleitung|neu|impressum)$ index.php?go=$1 [L]
+RewriteRule ^vorschau(-([0-9]+))?\.png$ preview.php?game=$2 [L]

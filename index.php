@@ -2,6 +2,7 @@
 header('Content-Type: text/html; charset=UTF-8');
 require_once("config.php");
 require_once("identity.php");
+require_once("meta.php");
 
 if (($_POST['do'] ?? '') == 'renameall' and $_SESSION['user_id'])
 {
@@ -10,15 +11,17 @@ if (($_POST['do'] ?? '') == 'renameall' and $_SESSION['user_id'])
 	$mysql->execute_query("update game set created_by_name = ? where created_by = ?", [$_SESSION['display_name'], $_SESSION['user_id']]);
 }
 
+canonical(); // redirects, so it belongs above the first output like any header
+
 $go = $_GET['go'] ?? 'anleitung';
 ?>
 <!DOCTYPE html>
 <html lang="de">
 	<head>
-		<title>W&ouml;rterautomat</title>
-		<meta name="robots" content="index,nofollow">
 		<meta charset="UTF-8">
 		<meta name="viewport" content="width=device-width, initial-scale=1">
+		<?php metatags(); ?>
+		<link href="favicon.svg" type="image/svg+xml" rel="icon">
 		<link href="style.css" type="text/css" rel="stylesheet" media="screen">
 	</head>
 	<body>
@@ -37,11 +40,11 @@ $go = $_GET['go'] ?? 'anleitung';
 		<script src="index.js"></script>
 		<div id="menu">
 			<div class="collapsible nav">
-				<a href="?go=user"<?php if ($go=='user') echo ' class="selected"'; ?>>Profil<?php if ($_SESSION['user_id']) echo ': '.htmlspecialchars($_SESSION['display_name'] ?: "Gast", ENT_QUOTES, 'UTF-8'); ?></a>
-				<a href="?go=neu"<?php if ($go=='neu') echo ' class="selected"'; ?>>Neues Spiel</a>
-				<a href="?go=games"<?php if ($go=='games') echo ' class="selected"'; ?>>Spiele&uuml;bersicht</a>
-				<a href="?go=anleitung"<?php if ($go=='anleitung') echo ' class="selected"'; ?>>Anleitung</a>
-				<a href="?go=impressum"<?php if ($go=='impressum') echo ' class="selected"'; ?>>Impressum</a>
+				<a href="profil"<?php if ($go=='user') echo ' class="selected"'; ?>>Profil<?php if ($_SESSION['user_id']) echo ': '.htmlspecialchars($_SESSION['display_name'] ?: "Gast", ENT_QUOTES, 'UTF-8'); ?></a>
+				<a href="neu"<?php if ($go=='neu') echo ' class="selected"'; ?>>Neues Spiel</a>
+				<a href="spiele"<?php if ($go=='games') echo ' class="selected"'; ?>>Spiele&uuml;bersicht</a>
+				<a href="."<?php if ($go=='anleitung') echo ' class="selected"'; ?>>Anleitung</a>
+				<a href="impressum"<?php if ($go=='impressum') echo ' class="selected"'; ?>>Impressum</a>
 			</div>
 			<?php // not gated on user_id: guests can view finished games too, and game.php expects these elements to exist
 				if (isset($_GET["go"]) and $_GET["go"]=="game") { ?>

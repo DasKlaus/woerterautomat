@@ -1,8 +1,6 @@
 <?php
 $game = (int)($_GET['game'] ?? 0);
-$currentgame = $mysql->execute_query("select source_word, status, language, umlauts, flexion, dictionary, maxplayers, timelimit, private, created_by_name,
-		timestampdiff(minute, created_at, now()) as starttime from game where id = ?", [$game])->fetch_assoc();
-if (!$currentgame)
+if (!$currentgame) # queried by canonical() in meta.php, which needs the word for the URL before any output
 {
 	echo '<p class="warning">Dieses Spiel gibt es nicht mehr.</p>';
 	return;

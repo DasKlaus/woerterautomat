@@ -1,7 +1,7 @@
 function pagebutton(label, target, enabled)
 {
 	var button = document.createElement(enabled ? 'a' : 'span');
-	if (enabled) { button.href = '?go=games&mode='+mode+'&sort='+sort+'&dir='+dir+'&page='+target; }
+	if (enabled) { button.href = 'spiele?mode='+mode+'&sort='+sort+'&dir='+dir+'&page='+target; }
 	button.textContent = label;
 	return button;
 }
@@ -128,7 +128,7 @@ function gamedata(response)
 		
 		var gamelink = document.createElement('a');
 		gamelink.className = 'game';
-		gamelink.href = '?go=game&game='+data[i].id;
+		gamelink.href = data[i].url;
 		var headline = document.createElement('h2');
 		headline.textContent = data[i].word;
 		gamelink.appendChild(headline);

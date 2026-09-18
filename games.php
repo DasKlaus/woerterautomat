@@ -20,25 +20,25 @@ document.addEventListener('DOMContentLoaded', function() {
 	<div id="sortgames" class="collapsible sort">
 		<div class="modegroup">
 			<div class="modes">
-				<a href="?go=games&amp;mode=relevant&amp;sort=<?php echo $sort; ?>&amp;dir=<?php echo $dir; ?>" title="laufende und eigene Spiele"<?php if ($mode=='relevant') echo ' class="selected"'; ?>>standard</a>
-				<a href="?go=games&amp;mode=own&amp;sort=<?php echo $sort; ?>&amp;dir=<?php echo $dir; ?>"<?php if ($mode=='own') echo ' class="selected"'; ?>>eigene</a>
-				<a href="?go=games&amp;mode=all&amp;sort=<?php echo $sort; ?>&amp;dir=<?php echo $dir; ?>"<?php if ($mode=='all') echo ' class="selected"'; ?>>alle</a>
-				<a href="?go=games&amp;mode=new&amp;sort=<?php echo $sort; ?>&amp;dir=<?php echo $dir; ?>"<?php if ($mode=='new') echo ' class="selected"'; ?>>neu</a>
-				<a href="?go=games&amp;mode=active&amp;sort=<?php echo $sort; ?>&amp;dir=<?php echo $dir; ?>"<?php if ($mode=='active') echo ' class="selected"'; ?>>laufend</a>
-				<a href="?go=games&amp;mode=finished&amp;sort=<?php echo $sort; ?>&amp;dir=<?php echo $dir; ?>"<?php if ($mode=='finished') echo ' class="selected"'; ?>>abgeschlossen</a>
+				<a href="spiele?mode=relevant&amp;sort=<?php echo $sort; ?>&amp;dir=<?php echo $dir; ?>" title="laufende und eigene Spiele"<?php if ($mode=='relevant') echo ' class="selected"'; ?>>standard</a>
+				<a href="spiele?mode=own&amp;sort=<?php echo $sort; ?>&amp;dir=<?php echo $dir; ?>"<?php if ($mode=='own') echo ' class="selected"'; ?>>eigene</a>
+				<a href="spiele?mode=all&amp;sort=<?php echo $sort; ?>&amp;dir=<?php echo $dir; ?>"<?php if ($mode=='all') echo ' class="selected"'; ?>>alle</a>
+				<a href="spiele?mode=new&amp;sort=<?php echo $sort; ?>&amp;dir=<?php echo $dir; ?>"<?php if ($mode=='new') echo ' class="selected"'; ?>>neu</a>
+				<a href="spiele?mode=active&amp;sort=<?php echo $sort; ?>&amp;dir=<?php echo $dir; ?>"<?php if ($mode=='active') echo ' class="selected"'; ?>>laufend</a>
+				<a href="spiele?mode=finished&amp;sort=<?php echo $sort; ?>&amp;dir=<?php echo $dir; ?>"<?php if ($mode=='finished') echo ' class="selected"'; ?>>abgeschlossen</a>
 			</div>
 			<div id="pagination"></div>
 		</div>
 		<div class="modegroup">
 			<div class="modes">
-				<a href="?go=games&amp;mode=<?php echo $mode; ?>&amp;sort=activity" title="zuletzt aktive Spiele zuerst"<?php if ($sort=='activity') echo ' class="selected"'; ?>>letzte Aktivit&auml;t</a>
-				<a href="?go=games&amp;mode=<?php echo $mode; ?>&amp;sort=created"<?php if ($sort=='created') echo ' class="selected"'; ?>>Startzeitpunkt</a>
-				<a href="?go=games&amp;mode=<?php echo $mode; ?>&amp;sort=alpha"<?php if ($sort=='alpha') echo ' class="selected"'; ?>>alphabetisch</a>
-				<a href="?go=games&amp;mode=<?php echo $mode; ?>&amp;sort=length"<?php if ($sort=='length') echo ' class="selected"'; ?>>nach L&auml;nge</a>
+				<a href="spiele?mode=<?php echo $mode; ?>&amp;sort=activity" title="zuletzt aktive Spiele zuerst"<?php if ($sort=='activity') echo ' class="selected"'; ?>>letzte Aktivit&auml;t</a>
+				<a href="spiele?mode=<?php echo $mode; ?>&amp;sort=created"<?php if ($sort=='created') echo ' class="selected"'; ?>>Startzeitpunkt</a>
+				<a href="spiele?mode=<?php echo $mode; ?>&amp;sort=alpha"<?php if ($sort=='alpha') echo ' class="selected"'; ?>>alphabetisch</a>
+				<a href="spiele?mode=<?php echo $mode; ?>&amp;sort=length"<?php if ($sort=='length') echo ' class="selected"'; ?>>nach L&auml;nge</a>
 			</div>
 			<div id="orderbuttons" class="modes">
-				<a href="?go=games&amp;mode=<?php echo $mode; ?>&amp;sort=<?php echo $sort; ?>&amp;dir=asc" title="aufsteigend"<?php if ($dir=='asc') echo ' class="selected"'; ?>>&darr;</a>
-				<a href="?go=games&amp;mode=<?php echo $mode; ?>&amp;sort=<?php echo $sort; ?>&amp;dir=desc" title="absteigend"<?php if ($dir=='desc') echo ' class="selected"'; ?>>&uarr;</a>
+				<a href="spiele?mode=<?php echo $mode; ?>&amp;sort=<?php echo $sort; ?>&amp;dir=asc" title="aufsteigend"<?php if ($dir=='asc') echo ' class="selected"'; ?>>&darr;</a>
+				<a href="spiele?mode=<?php echo $mode; ?>&amp;sort=<?php echo $sort; ?>&amp;dir=desc" title="absteigend"<?php if ($dir=='desc') echo ' class="selected"'; ?>>&uarr;</a>
 			</div>
 		</div>
 	</div>

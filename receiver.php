@@ -3,6 +3,7 @@ header('Content-Type: application/json');
 ob_start();
 require_once("config.php");
 require_once("identity.php");
+require_once("meta.php");
 
 $return = null;
 $reactionemoji = ['💪', '👍', '🤦', '😭', '🤯', '😂', '✨', '❓', '🚫']; // keep in sync with reactionemoji in game.js
@@ -77,7 +78,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' and $_SESSION['user_id'])
 						$mysql->execute_query("insert into player (game_id, user_id, display_name, joined_at, activity) values (?, ?, ?, now(), now())",
 							[$id, $user, $_SESSION['display_name']]);
 						if ($words) { savesolution($mysql, $id, $words); }
-						$return["game"] = $id;
+						$return["url"] = gameurl($id, $sourceword);
 					}
 				}
 			}
@@ -287,6 +288,7 @@ else
 			foreach ($return["games"] as &$currentgame)
 			{
 				$currentgame['players'] = $bygame[$currentgame['id']] ?? [];
+				$currentgame['url'] = gameurl($currentgame['id'], $currentgame['word']);
 			}
 			unset($currentgame);
 			break;

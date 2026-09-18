@@ -68,7 +68,7 @@ function creategame(form) {
 		.then(function(response) { return response.json(); })
 		.then(function(answer) {
 			if (!button.disabled) { return; }
-			if (answer.game) { window.location = "?go=game&game=" + answer.game; return; }
+			if (answer.url) { window.location = answer.url; return; }
 			say(answer.message, answer.style);
 			if (answer.ok)
 			{
