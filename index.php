@@ -63,6 +63,7 @@ $go = $_GET['go'] ?? 'anleitung';
 			{
 				require_once("legal.php");
 				legalNotice();
+				echo '<p>Das W&ouml;rterbuch basiert auf Daten aus <a href="https://www.wiktionary.org">Wiktionary</a>, extrahiert von <a href="https://kaikki.org/dictionary/">kaikki.org</a>, und steht unter der Lizenz <a href="https://creativecommons.org/licenses/by-sa/4.0/deed.de">CC BY-SA 4.0</a>.</p>';
 			}
 			elseif (isset($_GET["go"]) and $_GET["go"]=="user")
 			{
