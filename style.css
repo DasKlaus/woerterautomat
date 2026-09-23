@@ -12,8 +12,8 @@ input, select, button {font-size: inherit;}
 h1, h2 {font-family: var(--display); font-weight: normal;}
 h1 {font-size: var(--size); line-height: 1;}
 h2 {font-size: 40px; text-transform: lowercase; line-height: .5; margin-bottom: 10px;}
-h3 {font-family: var(--ui); font-size: 20px; font-weight: normal;}
-p {margin-bottom: 10px;}
+h3 {font-family: var(--ui); font-size: 20px; font-weight: normal; margin-bottom: 5px;}
+p, dl {margin-bottom: 10px;}
 input, select {background-color: var(--shade); font-family: var(--ui);}
 .warning {color: var(--alert);}
 .caution {color: var(--caution);}
@@ -229,7 +229,7 @@ input, select {background-color: var(--shade); font-family: var(--ui);}
 #gamesettings .segment:not(.segment + .segment) {margin-left: 5px; border-radius: 3px 0 0 3px;}
 #gamesettings .segment:not(:has(+ .segment)) {margin-right: 5px; border-radius: 0 3px 3px 0;}
 
-.legend {display: grid; grid-template-columns: auto 1fr; gap: 5px 10px; margin: 20px 0 10px;}
+.legend {display: grid; grid-template-columns: auto 1fr; gap: 5px 10px;}
 .legend dt {font-family: var(--ui); text-align: center;}
 
 /* the only stretchable thing in the row, so it takes whatever the symbols leave and drops to a line
@@ -251,3 +251,14 @@ input, select {background-color: var(--shade); font-family: var(--ui);}
 .identity .copy {flex: none; aspect-ratio: 1; font-size: 18px; line-height: 1;}
 .identity button {background-color: var(--bg); cursor: pointer;}
 .identity button:hover {background-color: var(--shade);}
+
+/* language: the .modes group idiom on a radio set, the labels carrying the shape and only the
+   group's outer corners rounding off. first/last-of-type, because the form's first child is the
+   hidden field naming the action. The radio stays a focusable radio and is moved out of sight
+   rather than hidden, which would drop it out of the tab order along with its label. */
+.identity.language {display: flex; column-gap: 0; text-align: center;}
+.identity.language input {position: absolute; left: -9999px;}
+.identity.language label {flex: 1; margin-left: -1px; padding: 3px 5px; border: 1px solid var(--fg); cursor: pointer;}
+.identity.language label:first-of-type {margin-left: 0; border-radius: 3px 0 0 3px;}
+.identity.language label:last-of-type {border-radius: 0 3px 3px 0;}
+.identity.language label:has(:checked) {background-color: var(--shade);}

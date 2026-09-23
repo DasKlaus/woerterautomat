@@ -2,6 +2,7 @@ DROP TABLE IF EXISTS `user`;
 CREATE TABLE `user` (
 	`id` bigint(20) NOT NULL AUTO_INCREMENT,
 	`display_name` varchar(255) NOT NULL,
+	`language` char(2) NOT NULL DEFAULT '',
 	`code` char(32) NOT NULL,
 	`restriction` tinyint(3) unsigned DEFAULT NULL,
 	`restriction_reason` varchar(255) DEFAULT NULL,

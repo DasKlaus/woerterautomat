@@ -46,31 +46,33 @@ function canonical()
 	}
 }
 
+# In the game's own language, not the reader's: whoever this reaches is a possible player, and playing
+# takes that language anyway.
 function gamedescription($word)
 {
-	global $currentgame;
-	$english = $currentgame['language'] == 'en';
-	$settings = [$english ? ['de' => 'German', 'en' => 'English'][$currentgame['language']] : ['de' => 'Deutsch', 'en' => 'Englisch'][$currentgame['language']]];
-	if ($currentgame['umlauts']) { $settings[] = $english ? 'umlauts substituted' : 'Umlaute substituiert'; }
-	if ($currentgame['flexion']) { $settings[] = $english ? 'with inflected forms' : 'mit Flexionsformen'; }
-	if ($currentgame['dictionary']) { $settings[] = $english ? 'dictionary words only' : 'nur W&ouml;rterbuchw&ouml;rter'; }
-	if ($currentgame['private']) { $settings[] = $english ? 'private' : 'privat'; }
-	if ($currentgame['maxplayers']) { $settings[] = ($english ? 'up to '.$currentgame['maxplayers'].' players' : 'bis '.$currentgame['maxplayers'].' Spieler'); }
+	global $currentgame, $ui;
+	$say = $ui[$currentgame['language']];
+	$settings = [$say['language'.$currentgame['language']]];
+	if ($currentgame['umlauts']) { $settings[] = $say['setumlauts']; }
+	if ($currentgame['flexion']) { $settings[] = $say['setflexion']; }
+	if ($currentgame['dictionary']) { $settings[] = $say['setdictionary']; }
+	if ($currentgame['private']) { $settings[] = $say['setprivate']; }
+	if ($currentgame['maxplayers']) { $settings[] = fmt($say['maxplayerstitle'], [$currentgame['maxplayers']]); }
 
-	if ($currentgame['status'] == 3) { $lead = $english ? 'Finished.' : 'Abgeschlossen.'; }
-	elseif ($currentgame['status'] == 2) { $lead = $english ? 'Full.' : 'Voll.'; }
-	else { $lead = $english ? 'How many words can you find in '.$word.'?' : 'Wie viele W&ouml;rter findest du in '.$word.'?'; }
+	if ($currentgame['status'] == 3) { $lead = $say['descfinished']; }
+	elseif ($currentgame['status'] == 2) { $lead = $say['descfull']; }
+	else { $lead = fmt($say['descquestion'], [$word]); }
 	return $lead.' '.implode(', ', $settings).'.';
 }
 
 function metatags()
 {
-	global $currentgame, $canonicalurl;
+	global $currentgame, $canonicalurl, $language;
 	$title = 'W&ouml;rterautomat';
-	$description = 'Bilde aus den Buchstaben eines Wortes m&ouml;glichst viele andere W&ouml;rter.';
+	$description = t('metadescription');
 	$image = 'vorschau.png';
 	$go = $_GET['go'] ?? 'anleitung';
-	$page = ['neu' => 'Neues Spiel', 'user' => 'Profil', 'games' => 'Spiele&uuml;bersicht', 'impressum' => 'Impressum'][$go] ?? '';
+	$page = ['neu' => t('newgame'), 'user' => t('profile'), 'games' => t('gamelist'), 'impressum' => t('legal')][$go] ?? '';
 	if ($page) { $title = $page.' &middot; W&ouml;rterautomat'; }
 	if ($go == 'game' and $currentgame)
 	{
@@ -86,7 +88,7 @@ function metatags()
 		<link rel="canonical" href="'.htmlspecialchars($canonicalurl, ENT_QUOTES, 'UTF-8').'">
 		<meta property="og:type" content="website">
 		<meta property="og:site_name" content="W&ouml;rterautomat">
-		<meta property="og:locale" content="'.(($currentgame['language'] ?? 'de') == 'en' ? 'en_GB' : 'de_DE').'">
+		<meta property="og:locale" content="'.(($currentgame['language'] ?? $language) == 'en' ? 'en_GB' : 'de_DE').'">
 		<meta property="og:title" content="'.$title.'">
 		<meta property="og:description" content="'.$description.'">
 		<meta property="og:url" content="'.htmlspecialchars($canonicalurl, ENT_QUOTES, 'UTF-8').'">

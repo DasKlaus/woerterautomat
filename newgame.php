@@ -1,40 +1,24 @@
 <p id="newgamemessage" class="hide"></p>
-<p>Das Wort ist in nicht-privaten Spielen für alle sichtbar. Beleidigendes, Privates oder Anstößiges ist nicht zulässig,
-	Verstöße können über das Impressum gemeldet werden.
-	Unzulässige Spiele werden ohne Ankündigung gelöscht.</p>
-<p>Wörter länger als 16 Buchstaben werden womöglich nicht korrekt angezeigt.</p>
-<form onsubmit="creategame(this); return false;">Gib ein Wort ein, mit dem du ein Spiel starten willst.<br>
+<?php echo t('newgamenotice'); ?>
+<form onsubmit="creategame(this); return false;"><?php echo t('enterword'); ?><br>
 	<input type="text" name="word" id="newwordinput" value=""><br>
 	<input type="text" name="website" class="hp" tabindex="-1" autocomplete="off">
 	<div id="gamesettings" class="settings">
-		<label class="segment" title="deutsches W&ouml;rterbuch"><input type="radio" name="language" value="de" onchange="invalidate();" checked>DE</label>
-		<label class="segment" title="englisches W&ouml;rterbuch"><input type="radio" name="language" value="en" onchange="invalidate();">EN</label>
-		<label title="Umlaute substituieren"><input type="checkbox" name="umlauts" value="true" onchange="toggleUmlauts(this);">&Auml;&rarr;AE</label>
-		<label title="Flexionsformen erlauben"><input type="checkbox" name="flexion" value="true" onchange="invalidate();">&#9095;</label>
-		<label title="nur W&ouml;rterbuch-W&ouml;rter werten"><input type="checkbox" name="dictionary" value="true">&#128366;</label>
-		<label title="privates Spiel"><input type="checkbox" name="private" value="true">&#9919;</label>
-		<label title="Spielerzahl begrenzen">&#9786;<input type="number" name="players" id="playersinput" value="" min="0" max="99" placeholder=" "></label>
-		<label class="segment" title="Zeitlimit f&uuml;r Inaktivit&auml;t"><input type="number" name="timelimit" id="timelimitinput" value="" min="0" max="99" placeholder=" " oninput="timeunit(this);"></label>
-		<label class="segment" title="Minuten"><input type="radio" name="unit" value="1">&#9203;&#65038;</label>
-		<label class="segment" title="Stunden"><input type="radio" name="unit" value="60">&#128336;&#65038;</label>
-		<label class="segment" title="Tage"><input type="radio" name="unit" value="1440">&#128467;&#65038;</label>
-		<label class="segment" title="Monate"><input type="radio" name="unit" value="43200">&#128197;&#65038;</label>
+		<label class="segment" title="<?php echo t('dictionarylanguage', t('languagede')); ?>"><input type="radio" name="language" value="de" onchange="invalidate();" checked>DE</label>
+		<label class="segment" title="<?php echo t('dictionarylanguage', t('languageen')); ?>"><input type="radio" name="language" value="en" onchange="invalidate();">EN</label>
+		<label title="<?php echo t('setumlauts'); ?>"><input type="checkbox" name="umlauts" value="true" onchange="toggleUmlauts(this);">&Auml;&rarr;AE</label>
+		<label title="<?php echo t('setflexion'); ?>"><input type="checkbox" name="flexion" value="true" onchange="invalidate();">&#9095;</label>
+		<label title="<?php echo t('setdictionary'); ?>"><input type="checkbox" name="dictionary" value="true">&#128366;</label>
+		<label title="<?php echo t('setprivate'); ?>"><input type="checkbox" name="private" value="true">&#9919;</label>
+		<label title="<?php echo t('setmaxplayers'); ?>">&#9786;<input type="number" name="players" id="playersinput" value="" min="0" max="99" placeholder=" "></label>
+		<label class="segment" title="<?php echo t('settimelimit'); ?>"><input type="number" name="timelimit" id="timelimitinput" value="" min="0" max="99" placeholder=" " oninput="timeunit(this);"></label>
+		<label class="segment" title="<?php echo t('timelimitin', plural('minute', 2)); ?>"><input type="radio" name="unit" value="1">&#9203;&#65038;</label>
+		<label class="segment" title="<?php echo t('timelimitin', plural('hour', 2)); ?>"><input type="radio" name="unit" value="60">&#128336;&#65038;</label>
+		<label class="segment" title="<?php echo t('timelimitin', plural('day', 2)); ?>"><input type="radio" name="unit" value="1440">&#128467;&#65038;</label>
+		<label class="segment" title="<?php echo t('timelimitin', plural('month', 2)); ?>"><input type="radio" name="unit" value="43200">&#128197;&#65038;</label>
 		<span id="difficulty" class="hide"></span>
-		<button type="submit" name="new" id="newgamesubmit">Spiel pr&uuml;fen</button>
+		<button type="submit" name="new" id="newgamesubmit"><?php echo t('checkgame'); ?></button>
 	</div>
 </form>
-<dl class="legend">
-	<dt>DE&nbsp;&nbsp;EN</dt><dd>Sprache des W&ouml;rterbuchs</dd>
-	<dt>&Auml;&rarr;AE</dt><dd>Umlaute substituieren: SS statt &szlig;, AE statt &Auml; etc.</dd>
-	<dt>&#9095;</dt><dd>Flexionsformen erlauben: gebeugte und abgeleitete Formen von Wörtern wie Mehrzahlen, Deklinationen, Konjugationen<br>
-		zum Beispiel Häuser, gelaufen, fragte, dessen, mir, Notarin, Fuchses</dd>
-	<dt>&#128366;</dt><dd>W&ouml;rter, die das W&ouml;rterbuch nicht kennt, bringen keine Punkte<br>
-		Fund durch einen zweiten Spieler oder ein 👍 nehmen ein Wort in die Wertung auf.</dd>
-	<dt>&#9919;</dt><dd>privates Spiel: unsichtbar f&uuml;r andere (zum Einladen URL teilen)</dd>
-	<dt>&#9786;</dt><dd>Spielerzahl begrenzen; ohne Angabe unbegrenzt</dd>
-	<dt>&#9203;&#65038; &#128336;&#65038; &#128467;&#65038; &#128197;&#65038;</dt><dd>Zeitlimit f&uuml;r Inaktivit&auml;t, ab der das Spiel durch Mitspieler beendet werden kann<br>
-		&#9203;&#65038; Minuten &nbsp;&nbsp; &#128336;&#65038; Stunden &nbsp;&nbsp; &#128467;&#65038; Tage &nbsp;&nbsp; &#128197;&#65038; Monate, &nbsp;&nbsp; ohne Angabe unbegrenzt</dd>
-	<dt>&middot; &#8270; &#8273; &#8258; &#10035;</dt><dd>Anzahl der m&ouml;glichen W&ouml;rter (wird beim Pr&uuml;fen ermittelt)<br>
-		&middot; <50, &nbsp;&nbsp; &#8270; 50-199, &nbsp;&nbsp; &#8273; 200-499, &nbsp;&nbsp; &#8258; 500-999, &nbsp;&nbsp; &#10035;>=1000</dd>
-</dl>
+<?php legend(); ?>
 <script src="newgame.js"></script>

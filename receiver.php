@@ -31,15 +31,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' and $_SESSION['user_id'])
 		// so creation never has to trust that a check ran, let alone what it found
 		case "checkgame":
 		case "creategame":
-			if (($_POST["website"] ?? "") != "") { $return = ["message" => "Das Spiel konnte nicht erstellt werden.", "style" => "warning"]; break; }
+			if (($_POST["website"] ?? "") != "") { $return = ["message" => "creategamefailed", "style" => "warning"]; break; }
 			$sourceword = preg_replace('/[^\p{L}]/u', '', mb_strtolower($_POST['word'] ?? ''));
 			$reason = identityRestriction();
 			if ($reason !== false)
-				$return = ["message" => "Das Erstellen von Spielen wurde gesperrt. ".$reason, "style" => "warning"];
+				$return = ["message" => "creategameblocked", "detail" => $reason, "style" => "warning"];
 			elseif (mb_strlen($sourceword) < 3)
-				$return = ["message" => "Gib ein Wort mit mindestens drei Buchstaben ein.", "style" => "warning"];
+				$return = ["message" => "wordtooshort", "style" => "warning"];
 			elseif (mb_strlen($sourceword) > 64)
-				$return = ["message" => "Das Wort ist zu lang. Mehr als 64 Buchstaben sind nicht möglich.", "style" => "warning"];
+				$return = ["message" => "wordtoolong", "style" => "warning"];
 			else
 			{
 				$flexion = (isset($_POST['flexion'])) ? 1 : 0;
@@ -50,21 +50,20 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' and $_SESSION['user_id'])
 				$words = solutionwords($dictionary, $language, $umlauts, $flexion, $sourceword);
 				$count = is_null($words) ? -1 : count($words);
 				if ($dictionaryonly and $count < 0)
-					$return = ["message" => "Für diese Sprache gibt es noch kein Wörterbuch. Ohne Wörterbuch ist die Wörterbuch-Wertung nicht möglich.", "style" => "warning"];
+					$return = ["message" => "nodictionaryscoring", "style" => "warning"];
 				elseif ($count > 5000)
-					$return = ["message" => $count." mögliche Wörter. Die Begrenzung liegt bei 5000.", "style" => "warning"];
+					$return = ["message" => "toomany", "solutions" => $count, "style" => "warning"];
 				elseif ($_POST["action"] == "checkgame")
-					$return = ["message" => ($count < 0) ? "Für diese Sprache gibt es noch kein Wörterbuch. Das Spiel kann trotzdem gestartet werden."
-							: $count." mögliche Wörter.",
+					$return = ["message" => ($count < 0) ? "nodictionary" : "possiblewords",
 						"style" => ($count < 50 or $count > 500) ? "caution" : "", "ok" => true, "solutions" => $count];
 				else
 				{
 					$recent = $mysql->execute_query("select sum(created_at > now() - interval 1 minute) as lastminute, count(*) as lasthour
 						from game where created_by = ? and created_at > now() - interval 1 hour", [$user])->fetch_assoc();
 					if ($recent['lastminute'] > 0)
-						$return = ["message" => "Du hast gerade eben ein Spiel gestartet. Warte eine Minute, bevor du das nächste startest.", "style" => "warning"];
+						$return = ["message" => "ratelimitminute", "style" => "warning"];
 					elseif ($recent['lasthour'] >= 10)
-						$return = ["message" => "Du hast in der letzten Stunde zehn Spiele gestartet. Versuch es später noch einmal.", "style" => "warning"];
+						$return = ["message" => "ratelimithour", "style" => "warning"];
 					else
 					{
 						$private = (isset($_POST['private'])) ? 1 : 0;

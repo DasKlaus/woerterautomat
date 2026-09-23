@@ -2,7 +2,7 @@
 $game = (int)($_GET['game'] ?? 0);
 if (!$currentgame) # queried by canonical() in meta.php, which needs the word for the URL before any output
 {
-	echo '<p class="warning">Dieses Spiel gibt es nicht mehr.</p>';
+	echo '<p class="warning">'.t('gamegone').'</p>';
 	return;
 }
 
@@ -10,42 +10,41 @@ $mystatus = -1;
 $playing = [];
 	foreach ($mysql->execute_query("select user_id, display_name, status from player where game_id = ? order by joined_at", [$game])->fetch_all(MYSQLI_ASSOC) as $row)
 	{
-		$playing[] = $row['display_name'] ?: "Gast";
+		$playing[] = $row['display_name'] ?: t('guest');
 		if ($row["user_id"] == $_SESSION['user_id']) { $mystatus = $row["status"]; }
 	}
 function timeago($minutes)
 {
-	$count = $minutes; $unit = "Minute"; $plural = "n";
-	if ($minutes >= 1440) { $count = (int)round($minutes/1440); $unit = "Tag"; $plural = "en"; }
-	elseif ($minutes >= 60) { $count = (int)round($minutes/60); $unit = "Stunde"; $plural = "n"; }
-	if ($count < 1) { return "gerade eben"; }
-	return "vor ".$count." ".$unit.($count == 1 ? "" : $plural);
+	$count = $minutes; $unit = "minute";
+	if ($minutes >= 525600) { $count = (int)round($minutes/525600); $unit = "year"; }
+	elseif ($minutes >= 1440) { $count = (int)round($minutes/1440); $unit = "day"; }
+	elseif ($minutes >= 60) { $count = (int)round($minutes/60); $unit = "hour"; }
+	if ($count < 1) { return t('justnow'); }
+	return t('ago', $count, plural($unit, $count));
+}
+
+function gameheader()
+{
+	global $currentgame, $playing;
+	echo '<h2>'.htmlspecialchars($currentgame['source_word'], ENT_QUOTES, 'UTF-8').'</h2>
+		<p>'.t('gamestarted', timeago($currentgame['starttime']), t('language'.$currentgame['language']),
+			htmlspecialchars($currentgame['created_by_name'] ?: t('guest'), ENT_QUOTES, 'UTF-8'),
+			t($currentgame['flexion'] ? 'withflexion' : 'withoutflexion'),
+			htmlspecialchars(implode(', ', $playing), ENT_QUOTES, 'UTF-8')).'</p>';
 }
 
 if ($mystatus<0 and $currentgame['status'] == 2)
 {
-	$playing = [];
-	foreach ($mysql->execute_query("select display_name from player where game_id = ? order by joined_at", [$game])->fetch_all(MYSQLI_ASSOC) as $row)
-	{
-		$playing[] = $row['display_name'] ?: "Gast";
-	}
-	echo '<h2>'.htmlspecialchars($currentgame['source_word'], ENT_QUOTES, 'UTF-8').'</h2>
-		<p>gestartet '.timeago($currentgame['starttime']).' auf '.(($currentgame['language'] == 'en') ? 'Englisch' : 'Deutsch')
-		.' von '.htmlspecialchars($currentgame['created_by_name'] ?: "Gast", ENT_QUOTES, 'UTF-8').' '.($currentgame['flexion'] ? 'mit' : 'ohne').' Flexionsformen<br>
-		mit '.htmlspecialchars(implode(', ', $playing), ENT_QUOTES, 'UTF-8').'</p>';
-	echo '<p class="warning">Dieses Spiel nimmt keine weiteren Spieler an.</p>';
+	gameheader();
+	echo '<p class="warning">'.t('gamefull').'</p>';
 	return;
 }
 
 if (!$_SESSION['user_id'] and $currentgame['status'] != 3)
 {
-	echo '<h2>'.htmlspecialchars($currentgame['source_word'], ENT_QUOTES, 'UTF-8').'</h2>
-		<p>gestartet '.timeago($currentgame['starttime']).' auf '.(($currentgame['language'] == 'en') ? 'Englisch' : 'Deutsch')
-		.' von '.htmlspecialchars($currentgame['created_by_name'] ?: "Gast", ENT_QUOTES, 'UTF-8').' '.($currentgame['flexion'] ? 'mit' : 'ohne').' Flexionsformen<br>
-		mit '.htmlspecialchars(implode(', ', $playing), ENT_QUOTES, 'UTF-8').'</p>
-		<p>Bilde aus den Buchstaben des Wortes m&ouml;glichst viele andere W&ouml;rter. Jedes Wort bringt so viele Punkte, wie es Buchstaben hat, multipliziert mit der Anzahl der Mitspieler, die es nicht gefunden haben.</p>
-		<p>Vergib einen Namen, um mitzuspielen, oder lass das Feld frei, um anonym zu spielen. Wenn du einen Authentifizierungs-Code hast, kannst du dich mit diesem anmelden.</p>';
-	identityForm();
+	gameheader();
+	echo t('gameintro').t('guestjoin');
+	identityForm($language);
 	return;
 }
 
@@ -114,69 +113,30 @@ document.addEventListener('DOMContentLoaded', function() {
   document.addEventListener('visibilitychange', repoll);
 });
 
-/* append settings */ // TODO: do in php?
-var settings = document.getElementById("settings");
-var span = document.createElement('span');
-span.textContent = language.toUpperCase();
-settings.appendChild(span);
-if (substitute) {
-	span = document.createElement('span');
-	span.textContent = "Ä→AE";
-	span.setAttribute('title', 'Umlaute können substituiert werden');
-	settings.appendChild(span);
-}
-if (flexion) {
-	span = document.createElement('span');
-	span.textContent = "⎇";
-	span.setAttribute('title', 'Flexionsformen wie Mehrzahlen, Deklinationen, Konjugationen erlaubt');
-	settings.appendChild(span);
-}
-if (dictionaryonly) {
-	span = document.createElement('span');
-	span.textContent = "🕮";
-	span.setAttribute('title', 'nur Wörter aus dem Wörterbuch bringen Punkte');
-	settings.appendChild(span);
-}
-if (isprivate) {
-	span = document.createElement('span');
-	span.textContent = "⚿";
-	span.setAttribute('title', 'privates Spiel, unsichtbar für andere, zum Einladen URL teilen');
-	settings.appendChild(span);
-}
-if (maxplayers>0) {
-	span = document.createElement('span');
-	span.textContent = maxplayers+"☺";
-	span.setAttribute('title', 'bis zu '+maxplayers+' Spieler');
-	settings.appendChild(span);
-}
-if (timelimit>0) {
-	var limit = limittext(timelimit);
-	span = document.createElement('span');
-	span.textContent = limit[0];
-	span.setAttribute('title', limit[1]);
-	settings.appendChild(span);
-}
+// the same badges the game list draws, from the settings under the names this page gave them
+settingsbadges(document.getElementById("settings"), {language: language, umlauts: substitute, flexion: flexion,
+	dictionary: dictionaryonly, private: isprivate, maxplayers: maxplayers, timelimit: timelimit});
 </script>
 
 <p id="gamemessage" class="hide"></p>
 <div id="inputline">
-	<div id="back" onClick="backspace();">zur&uuml;ck</div>
+	<div id="back" onClick="backspace();"><?php echo t('back'); ?></div>
 	<input type="text" id="input" value="" autofocus autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false">
-	<div id="submit" onClick="submitword();">absenden</div>
+	<div id="submit" onClick="submitword();"><?php echo t('submit'); ?></div>
 </div>
 <div id="wordbox">
 	<div class="collapsible sort">
 		<div class="modegroup">
 		<div id="sortbuttons" class="modes">
-		<button type="button" class="selected" onClick="select(this); sortmode = 'standard'; sortwords();">standard</button>
-		<button type="button" onClick="select(this); sortmode = 'chrono'; sortwords();">chronologisch</button>
-		<button type="button" onClick="select(this); sortmode = 'alpha'; sortwords();">alphabetisch</button>
-		<button type="button" onClick="select(this); sortmode = 'length'; sortwords();">nach L&auml;nge</button>
-		<button type="button" onClick="select(this); sortmode = 'points'; sortwords();">nach Punkten</button>
+		<button type="button" class="selected" onClick="select(this); sortmode = 'standard'; sortwords();"><?php echo t('sortstandard'); ?></button>
+		<button type="button" onClick="select(this); sortmode = 'chrono'; sortwords();"><?php echo t('sortchrono'); ?></button>
+		<button type="button" onClick="select(this); sortmode = 'alpha'; sortwords();"><?php echo t('alphabetical'); ?></button>
+		<button type="button" onClick="select(this); sortmode = 'length'; sortwords();"><?php echo t('sortlength'); ?></button>
+		<button type="button" onClick="select(this); sortmode = 'points'; sortwords();"><?php echo t('sortpoints'); ?></button>
 		</div>
 		<div id="orderbuttons" class="modes">
-		<button type="button" class="selected" title="aufsteigend" onClick="select(this); direction = 1; sortwords();">&darr;</button>
-		<button type="button" title="absteigend" onClick="select(this); direction = -1; sortwords();">&uarr;</button>
+		<button type="button" class="selected" title="<?php echo t('ascending'); ?>" onClick="select(this); direction = 1; sortwords();">&darr;</button>
+		<button type="button" title="<?php echo t('descending'); ?>" onClick="select(this); direction = -1; sortwords();">&uarr;</button>
 		</div>
 		</div>
 	</div>

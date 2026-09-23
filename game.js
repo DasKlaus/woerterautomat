@@ -2,11 +2,10 @@ function playerbutton()
   {
 	var button = document.createElement('button');
 	button.type = "button";
-	button.textContent = "nach Spielern";
+	button.textContent = txt.sortplayer;
 	button.onclick = function() { select(button); sortmode = 'player'; sortwords(); };
 	document.getElementById("sortbuttons").appendChild(button);
   }
-
 function letterclicked(obj)
   {
 	if (mystatus != 3) {
@@ -14,7 +13,6 @@ function letterclicked(obj)
 	  document.getElementById("input").value += obj.innerHTML;
 	}
   }
-
 function resyncletters()
   {
 	var inputfield = document.getElementById("input");
@@ -43,7 +41,6 @@ function resyncletters()
 		inputfield.setSelectionRange(pos, pos);
 	}
   }
-
 function submitword()
   {
 	var inputfield = document.getElementById("input");
@@ -67,17 +64,15 @@ function submitword()
 		}
 	}
   }
-
 function countdown(seconds)
   {
 	var line = document.getElementById("gamemessage");
 	document.getElementById("input").disabled = seconds > 0;
-	line.textContent = seconds > 0 ? "Zu viele nicht erlaubte Wörter probiert, warte "+seconds+" Sekunden!" : "";
+	line.textContent = seconds > 0 ? fmt(txt.blocked, seconds) : "";
 	line.className = seconds > 0 ? "warning" : "hide";
 	if (seconds > 0) { setTimeout(function() { countdown(seconds-1); }, 1000); }
 	else { document.getElementById("input").focus(); }
   }
-
 function removeword(word)
   {
 	post({action: "removeword", game: game, word: word}, mystatus == 3 ? finishdata : receivedata);
@@ -85,7 +80,6 @@ function removeword(word)
 	// a finished game redraws every word from the response, an active one only ever adds to what is there
 	if (mystatus != 3) { document.getElementById(word+"word").remove(); }
   }
-
 function pointspan(points)
   {
 	var span = document.createElement('span');
@@ -93,7 +87,6 @@ function pointspan(points)
 	span.textContent = points;
 	return span;
   }
-
 function sortword(word)
   {
 	var sortcontainer = document.getElementById("words");
@@ -117,7 +110,6 @@ function sortword(word)
 				number.className = 'startnumber';
 				number.innerHTML = word.length;
 				lengthbox.appendChild(number);
-				
 				var wordbox = document.getElementById("words");
 				var inserted = false;
 				var child = wordbox.children[0];
@@ -143,7 +135,6 @@ function sortword(word)
 				number.className = 'startnumber';
 				number.innerHTML = (points < 0) ? "–" : points;
 				pointsbox.appendChild(number);
-				
 				var wordbox = document.getElementById("words");
 				var inserted = false;
 				var child = wordbox.children[0];
@@ -184,12 +175,10 @@ function sortword(word)
 	sortcontainer.appendChild(wordspan);
 	sortcontainer.appendChild(document.createTextNode(" "));
   }
-
 function sortallwordsdump(a,b)
 {
 	return ((a["word"] < b["word"]) ? -1 : ((a["word"] > b["word"]) ? 1 : 0));
 }
-
 function sortwords()
   {
 	var tosort = words.slice();
@@ -224,7 +213,6 @@ function sortwords()
 		else {sortword(tosort[i]);}
 	}
   }
-
 function makeplayerboxes()
 {
 	for (var i=0; i<allplayersdump.length; i++)
@@ -235,11 +223,10 @@ function makeplayerboxes()
 		wordbox.insertBefore(playerbox, direction == 1 ? null : wordbox.firstChild);
 		var playerboxhead = document.createElement('span');
 		playerboxhead.className = 'startletter';
-		playerboxhead.textContent = allplayersdump[i].player || "Gast";
+		playerboxhead.textContent = allplayersdump[i].player || txt.guest;
 		playerbox.appendChild(playerboxhead);
 	}
 }
-  
 function dedupe(rows)
 {
 	var byword = Object.create(null);
@@ -253,11 +240,10 @@ function dedupe(rows)
 		}
 		// the own row wins the merged entry's user_id, so a shared word still counts as this player's
 		if (rows[i].user_id == selfid) { byword[rows[i].word].user_id = selfid; }
-		byword[rows[i].word].finders.push(rows[i].player || "Gast");
+		byword[rows[i].word].finders.push(rows[i].player || txt.guest);
 	}
 	return list;
 }
-
 function sortfinishedword(word)
 {
 	var sortcontainer = document.getElementById("words");
@@ -280,7 +266,6 @@ function sortfinishedword(word)
 				number.className = 'startnumber';
 				number.innerHTML = word["word"].length;
 				lengthbox.appendChild(number);
-				
 				var wordbox = document.getElementById("words");
 				var inserted = false;
 				var child = wordbox.children[0];
@@ -307,7 +292,6 @@ function sortfinishedword(word)
 				number.className = 'startnumber';
 				number.innerHTML = (points < 0) ? "–" : points;
 				pointsbox.appendChild(number);
-
 				var wordbox = document.getElementById("words");
 				var inserted = false;
 				var child = (points === "∞") ? null : wordbox.children[0];
@@ -353,16 +337,13 @@ function sortfinishedword(word)
 	sortcontainer.appendChild(wordspan);
 	sortcontainer.appendChild(document.createTextNode(" "));
 }
-
 var reactionemoji = ['💪', '👍', '🤦', '😭', '🤯', '😂', '✨', '❓', '🚫']; // keep in sync with $reactionemoji in receiver.php
-
 document.addEventListener('click', function(e) {
 	closepopouts();
 	if (!e.target.closest("#lookup")) { closelookup(); }
 	// index.js has toggled a collapsible before this runs, so one without .open was just closed
 	if (!touch || e.target.matches('.collapsible:not(.open)')) { document.getElementById("input").focus(); }
 });
-
 // a tap never reaches the listener above, since the word stops the click to keep its own panel open
 function togglepopout(e, box)
 {
@@ -371,23 +352,19 @@ function togglepopout(e, box)
 	closelookup();
 	if (!box.classList.toggle('open') && !touch) { document.getElementById("input").focus(); }
 }
-
 function closepopouts(keep)
 {
 	document.querySelectorAll('.popout.open').forEach(function(box) { if (box != keep) { box.classList.remove('open'); } });
 }
-
 function closelookup()
 {
 	var panel = document.getElementById("lookup");
 	if (panel) { panel.remove(); }
 }
-
 function reactionsFor(word)
 {
 	return reactions.filter(function(r) { return r.word == word; });
 }
-
 // deletable is set for this player's own words, whose panel keeps offering removal after finishing:
 // it only ever costs the player points, and it is the one way to undo a mistyped word
 function reactionbox(word, deletable)
@@ -400,13 +377,13 @@ function reactionbox(word, deletable)
 	var mine = null;
 	var panel = element('span', 'popoutpanel');
 	if (playerlist.length > 2 && mystatus == 3) {
-		var finders = uniquewords[lookFor(word, uniquewords, 'word')].finders;
-		panel.appendChild(element('span', 'reactionline', finders.includes("Wörterbuch") ? 'Nicht gefunden' : 'Gefunden von ' + finders.join(', ') )); 
+		var entry = uniquewords[lookFor(word, uniquewords, 'word')];
+		panel.appendChild(element('span', 'reactionline', entry.user_id == -1 ? txt.notfound : fmt(txt.foundby, entry.finders.join(', '))));
 	}
 	existing.forEach(function(r) {
 		var badge = element('span', 'reactionbadge', r.emoji);
 		box.appendChild(badge);
-		panel.appendChild(element('span', 'reactionline', r.emoji + ' ' + (r.display_name || 'Gast')));
+		panel.appendChild(element('span', 'reactionline', r.emoji + ' ' + (r.reactor_id == -1 ? txt.dictionary : (r.display_name || txt.guest))));
 		if (r.reactor_id == selfid) { mine = r.emoji; }
 	});
 	var row = element('span', 'popoutrow');
@@ -439,14 +416,11 @@ function reactionbox(word, deletable)
 	box.appendChild(panel);
 	return box;
 }
-
 var lookuphistory = [];
-
 function lookup(word)
 {
 	get("receiver.php?action=lookup&game="+game+"&word="+encodeURIComponent(word), function(entries) { writelookup(word, entries); });
 }
-
 function writelookup(word, entries)
 {
 	var panel = document.getElementById("lookup");
@@ -470,11 +444,10 @@ function writelookup(word, entries)
 	close.onclick = closelookup;
 	bar.appendChild(close);
 	panel.appendChild(bar);
-
 	var body = element('div');
 	body.id = "lookupbody";
 	panel.appendChild(body);
-	if (!entries.length) { body.appendChild(element('div', 'tag', 'kein Eintrag')); }
+	if (!entries.length) { body.appendChild(element('div', 'tag', txt.noentry)); }
 	entries.forEach(function(entry) {
 		// a game substituting umlauts can match two spellings at once, and each is an entry of its own
 		if (entries.length > 1) { body.appendChild(element('h3', '', entry.word)); }
@@ -482,16 +455,14 @@ function writelookup(word, entries)
 		var senses = entry.senses || [];
 		// a spelling can be a form of several roots at once, and is one entry in the dictionary for each of them
 		var roots = group((entry.forms || []).filter(function(form) { return form.root != word; }), function(form) { return form.root; });
-
-		if (sounds.length) { body.appendChild(element('div', 'lookuphead', 'Aussprache')); }
+		if (sounds.length) { body.appendChild(element('div', 'lookuphead', txt.pronunciation)); }
 		group(sounds, function(sound) { return labels(sound).join(); }).forEach(function(g) {
 			var line = element('div', 'ipaline');
 			labels(g.items[0]).forEach(function(label) { line.appendChild(element('span', 'wordspan', label)); });
 			line.appendChild(document.createTextNode(g.items.map(function(sound) { return sound.ipa; }).join(' · ')));
 			body.appendChild(line);
 		});
-
-		if (senses.length) { body.appendChild(element('div', 'lookuphead', 'Bedeutungen')); }
+		if (senses.length) { body.appendChild(element('div', 'lookuphead', txt.meanings)); }
 		// glosses are a path, not a list: senses sharing their first one are one meaning with several readings
 		group(senses, function(sense) { return sense.glosses[0]; }).forEach(function(g, i) {
 			body.appendChild(senseline(g.items[0].glosses.length == 1 ? g.items[0] : {}, (i+1)+".", g.key, ''));
@@ -504,8 +475,7 @@ function writelookup(word, entries)
 				}
 			});
 		});
-
-		if (roots.length) { body.appendChild(element('div', 'lookuphead', 'Form von')); }
+		if (roots.length) { body.appendChild(element('div', 'lookuphead', txt.formof)); }
 		roots.forEach(function(g) {
 			var line = element('div', 'rootline');
 			line.appendChild(element('b', '', g.key));
@@ -523,7 +493,6 @@ function writelookup(word, entries)
 		});
 	});
 }
-
 function senseline(sense, num, gloss, level)
 {
 	var line = element('div', 'sense'+level);
@@ -533,18 +502,15 @@ function senseline(sense, num, gloss, level)
 	line.appendChild(document.createTextNode(' '+gloss));
 	return line;
 }
-
 function labels(item)
 {
 	return (item.tags || []).concat(item.note || []);
 }
-
 // the same two symbols the Wörterbuch reactions use: ❕ for what no game accepts, ⎇ for a flexion
 function marker(item)
 {
 	return (item.strict ? '❕' : '') + (item.inflected ? '⎇' : '');
 }
-
 function group(list, key)
 {
 	var groups = [];
@@ -555,7 +521,6 @@ function group(list, key)
 	});
 	return groups;
 }
-
 function element(tag, className, text)
 {
 	var node = document.createElement(tag);
@@ -563,7 +528,6 @@ function element(tag, className, text)
 	if (text) { node.textContent = text; }
 	return node;
 }
-
 function lookFor(needle, haystack, param) 
 {
 	for (var i=0; i<haystack.length; i++)
@@ -575,7 +539,6 @@ function lookFor(needle, haystack, param)
 	}
 	return -1;
 }
-
 function makeletterboxes(word)
   {
 	for (i=0; i<word.length; i++)
@@ -597,7 +560,6 @@ function makeletterboxes(word)
 		}
 	}
   }
-
 function findletterspan(charpressed, none)
   {
 	letterspan = document.getElementById("letters").children[0];
@@ -610,14 +572,12 @@ function findletterspan(charpressed, none)
 		letterspan = letterspan.nextSibling;
 	}
   }
-
 function backspace()
   {
 	var inputfield = document.getElementById("input");
 	inputfield.value = inputfield.value.slice(0, -1);
 	resyncletters();
   }
-
 function keydownhandle(e)
   {
 	evt = e || event;
@@ -627,7 +587,6 @@ function keydownhandle(e)
 		submitword();
 	}
   }
-
 function colortransition(id, ini)
 {
 	var wordspan = document.getElementById(id);
@@ -639,14 +598,12 @@ function colortransition(id, ini)
 		setTimeout(function() { colortransition(id, 1); }, 250);
 	}
 }
-
 function leave() {
-	if (confirm("Wenn du dieses Spiel verlässt, gehen alle deine gefundenen Wörter verloren. Fortfahren?"))
+	if (confirm(txt.leaveconfirm))
 	{
 	post({action: "leavegame", game: game}, function(){ window.location = "."; });
 	}
 }
-
 function finish() {
 	mystatus=3;
 	document.getElementById('finish').style.display = 'none';
@@ -657,7 +614,6 @@ function finish() {
 	document.querySelector("#lettersortbuttons .modes").appendChild(anagrambutton);
 	post({action: "finishgame", game: game}, finishdata);
 }
-
 function get(url, callback)
 {
 	fetch(url).then(function(response) {
@@ -665,14 +621,12 @@ function get(url, callback)
 		response.json().then(callback);
 	});
 }
-
 function post(data, callback)
 {
 	fetch("receiver.php", {method: "POST", body: new URLSearchParams(data)}).then(function(response) {
 		response.json().then(callback);
 	});
 }
-
 function poll()
 {
 	gamedata = setTimeout(poll, pollwait);
@@ -685,7 +639,6 @@ function poll()
 	writeplayers(playerlist);
 	get("receiver.php?action=datarequest&game="+game+"&version="+version, receivedata);
 }
-
 function repoll()
 {
 	if (document.hidden) { return; }
@@ -693,16 +646,6 @@ function repoll()
 	pollwait = 5000;
 	poll();
 }
-
-function timeago(minutes)
-{
-	var count = minutes, unit = "Minute", plural = "n";
-	if (minutes >= 1440) { count = Math.round(minutes/1440); unit = "Tag"; plural = "en"; }
-	else if (minutes >= 60) { count = Math.round(minutes/60); unit = "Stunde"; plural = "n"; }
-	if (count < 1) { return "gerade eben"; }
-	return "vor "+count+" "+unit+(count == 1 ? "" : plural);
-}
-
 function writeplayers(list)
 {
 	playerlist = list;
@@ -711,11 +654,10 @@ function writeplayers(list)
 	players.innerHTML = "";
 	for (var i=0; i<list.length; i++)
 	{
-		var playername = list[i].player || "Gast";
+		var playername = list[i].player || txt.guest;
 		var points = list[i].self ? ownpoints : list[i].points;
 		var playerstatus = (list[i].status == 3) ? "✓ " : "";
-		var activity = "letzte Aktion "+timeago(list[i].last_activity + elapsed);
-
+		var activity = fmt(txt.lastaction, timeago(list[i].last_activity + elapsed));
 		var playerdiv = document.createElement('div');
 		playerdiv.className = 'playerdiv';
 		playerdiv.appendChild(document.createTextNode(points === undefined ? playerstatus+playername : playerstatus+playername+' ('+points+')'));
@@ -732,22 +674,20 @@ function writeplayers(list)
 		{
 			var force = document.createElement('a');
 			force.className = 'forcefinish';
-			force.textContent = "⏰︎ abschließen";
+			force.textContent = "⏰︎ " + txt.forcefinish;
 			force.onclick = function(id, name, since) { return function() { forcefinish(id, name, since); }; }
 				(list[i].user_id, playername, list[i].last_activity + elapsed);
 			players.appendChild(force);
 		}
 	}
 }
-
 function forcefinish(id, name, since)
 {
-	if (confirm(name+" war zuletzt "+timeago(since)+" aktiv. Das Spiel für "+name+" abschließen?"))
+	if (confirm(fmt(txt.forcefinishconfirm, name, timeago(since))))
 	{
 		post({action: "forcefinish", game: game, player: id}, finishdata);
 	}
 }
-
 function finishdata(data)
 {
 	pollwait = 5000;
@@ -758,15 +698,14 @@ function finishdata(data)
 	if (!solution.length) { anagrambutton.remove(); } // no dictionary for this language, or nothing in the word
 	var found = data.words.map(function(row) { return row.word; });
 	var unfound = solution.filter(function(word) { return found.indexOf(word) == -1; })
-		.map(function(word) { return {word: word, user_id: -1, player: "Wörterbuch"}; });
-	allplayersdump = data.players.concat(unfound.length ? [{player: "Wörterbuch", user_id: -1}] : []);
+		.map(function(word) { return {word: word, user_id: -1, player: txt.dictionary}; });
+	allplayersdump = data.players.concat(unfound.length ? [{player: txt.dictionary, user_id: -1}] : []);
 	allwordsdump = data.words.concat(unfound);
 	uniquewords = dedupe(allwordsdump);
 	reactions = data.reactions;
 	gamestatus = data.gamestatus;
 	sortwords();
 }
-
 function receivedata(data)
   {
 	var me = data.players.find(function(p) { return p.self; });

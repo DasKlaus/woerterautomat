@@ -36,17 +36,9 @@ function invalidate() {
 	checked = false;
 	var button = document.getElementById("newgamesubmit");
 	button.disabled = false;
-	button.textContent = "Spiel prüfen";
+	button.textContent = txt.checkgame;
 	document.getElementById("difficulty").className = "hide";
 	say("", "hide");
-}
-
-function difficulty(solutions) {
-	if (solutions < 50) { return "·"; }
-	if (solutions < 200) { return "⁎"; }
-	if (solutions < 500) { return "⁑"; }
-	if (solutions < 1000) { return "⁂"; }
-	return "✳";
 }
 
 function say(text, style) {
@@ -59,28 +51,30 @@ function say(text, style) {
 // the marker for that wait: an invalidation clears it, and a reply arriving after that is stale
 function creategame(form) {
 	var button = document.getElementById("newgamesubmit");
-	var release = function() { button.disabled = false; button.textContent = checked ? "Spiel starten" : "Spiel prüfen"; };
+	var release = function() { button.disabled = false; button.textContent = checked ? txt.startgame : txt.checkgame; };
 	var data = new URLSearchParams(new FormData(form));
 	data.append("action", checked ? "creategame" : "checkgame");
-	button.textContent = checked ? "wird gestartet …" : "wird geprüft …";
+	button.textContent = checked ? txt.starting : txt.checking;
 	button.disabled = true;
 	fetch("receiver.php", {method: "POST", body: data})
 		.then(function(response) { return response.json(); })
 		.then(function(answer) {
 			if (!button.disabled) { return; }
 			if (answer.url) { window.location = answer.url; return; }
-			say(answer.message, answer.style);
+			var message = fmt(txt[answer.message], answer.solutions);
+			if (answer.detail) { message += " " + (txt[answer.detail] || answer.detail); }
+			say(message, answer.style);
 			if (answer.ok)
 			{
 				checked = true;
 				if (answer.solutions >= 0) {
 					var mark = document.getElementById("difficulty");
 					mark.textContent = difficulty(answer.solutions);
-					mark.setAttribute("title", answer.solutions + " mögliche Wörter");
+					mark.setAttribute("title", fmt(txt.possiblewords, answer.solutions));
 					mark.className = "";
 				}
 			}
 			release();
 		})
-		.catch(function() { say("Der Server hat nicht geantwortet.", "warning"); release(); });
+		.catch(function() { say(txt.noanswer, "warning"); release(); });
 }
