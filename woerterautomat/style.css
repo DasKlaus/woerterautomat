@@ -3,8 +3,8 @@
 	--body: Arial, sans-serif; --ui: Rounded, Arial, sans-serif; --display: ScrambleMixed, sans-serif;
 }
 
-@font-face {font-family: ScrambleMixed; src: url(fonts/ScrambleMixed-German.ttf);}
-@font-face {font-family: Rounded; src: url(fonts/ARLRDBD.TTF);}
+@font-face {font-family: ScrambleMixed; src: url(../fonts/ScrambleMixed-German.ttf);}
+@font-face {font-family: Rounded; src: url(../fonts/ARLRDBD.TTF);}
 
 *, *:before, *:after {margin: 0; padding: 0; box-sizing: border-box; list-style: none; text-decoration: none; font-family: var(--body);}
 body {font-size: 14px;}

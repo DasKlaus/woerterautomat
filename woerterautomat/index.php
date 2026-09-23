@@ -1,7 +1,7 @@
 <?php
 header('Content-Type: text/html; charset=UTF-8');
 require_once("config.php");
-require_once("identity.php");
+require_once("../identity.php");
 require_once("lang.php");
 require_once("meta.php");
 
@@ -63,7 +63,7 @@ $go = $_GET['go'] ?? 'anleitung';
 			identityMessage($language);
 			if (isset($_GET["go"]) and $_GET["go"]=="impressum")
 			{
-				require_once("legal.php");
+				require_once("../legal.php");
 				legalNotice($language);
 				echo t('dictionarylicense');
 			}

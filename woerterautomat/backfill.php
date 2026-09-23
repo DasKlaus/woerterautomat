@@ -3,7 +3,7 @@ header('Content-Type: text/plain');
 while (ob_get_level()) { ob_end_flush(); }
 ob_implicit_flush(true);
 require_once("config.php");
-require_once("dictionary.php");
+require_once("../dictionary.php");
 
 // ?all=1 rebuilds every game rather than only the ones no dictionary ever answered for, for when an
 // import changes what the same settings would have found

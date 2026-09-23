@@ -2,7 +2,7 @@
 header('Content-Type: application/json');
 ob_start();
 require_once("config.php");
-require_once("identity.php");
+require_once("../identity.php");
 require_once("meta.php");
 
 $return = null;
@@ -46,7 +46,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' and $_SESSION['user_id'])
 				$umlauts = (isset($_POST['umlauts'])) ? 1 : 0;
 				$dictionaryonly = (isset($_POST['dictionary'])) ? 1 : 0;
 				$language = in_array($_POST['language'] ?? '', ['de', 'en'], true) ? $_POST['language'] : 'de';
-				require_once("dictionary.php");
+				require_once("../dictionary.php");
 				$words = solutionwords($dictionary, $language, $umlauts, $flexion, $sourceword);
 				$count = is_null($words) ? -1 : count($words);
 				if ($dictionaryonly and $count < 0)
@@ -101,7 +101,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' and $_SESSION['user_id'])
 				$mysql->execute_query("insert ignore into word (game_id, user_id, word, created_at) values (?, ?, ?, now())", [$game, $user, $word]);
 				if (!$mysql->execute_query("select 1 from solution where game_id = ? and word = ?", [$game, $word])->fetch_column())
 				{
-					require_once("dictionary.php");
+					require_once("../dictionary.php");
 					$emoji = wordcheck($dictionary, $currentgame['language'], $word, $currentgame['umlauts'], $currentgame['flexion']);
 					if ($emoji)
 					{
@@ -233,7 +233,7 @@ else
 			$return = finishstate($mysql, $game);
 			break;
 		case "lookup":
-			require_once("dictionary.php");
+			require_once("../dictionary.php");
 			$currentgame = $mysql->execute_query("select language, umlauts from game where id = ?", [$game])->fetch_assoc() ?: ['language' => '', 'umlauts' => 0];
 			$return = lookup($dictionary, $currentgame['language'], mb_strtolower(trim($_GET['word'] ?? '')), $currentgame['umlauts']);
 			break;

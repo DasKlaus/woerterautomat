@@ -8,7 +8,7 @@ if ((int)($_GET['game'] ?? 0))
 	$row = $mysql->execute_query("select source_word, language from game where id = ?", [(int)$_GET['game']])->fetch_assoc();
 	if ($row) { $word = $row['source_word']; $language = $row['language']; }
 }
-$font = __DIR__.'/fonts/ScrambleMixed-'.(['de' => 'German', 'en' => 'English'][$language] ?? 'German').'.ttf';
+$font = __DIR__.'/../fonts/ScrambleMixed-'.(['de' => 'German', 'en' => 'English'][$language] ?? 'German').'.ttf';
 
 # 1200x628 is the ratio link previews crop to; the word wraps into whichever number of rows gives the largest letters
 $width = 1200;
