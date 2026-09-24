@@ -1,14 +1,23 @@
 <?php
-$game = (int)($_GET['game'] ?? 0);
+if ($dailyday) # set by canonical() for any day's page, with a daily or without
+	echo '<div id="dailylanguage" class="modes">
+			<a href="'.dailyurl($dailyday, 'de').'" title="'.t('dictionarylanguage', t('languagede')).'"'.($dailylanguage == 'de' ? ' class="selected"' : '').'>DE</a>
+			<a href="'.dailyurl($dailyday, 'en').'" title="'.t('dictionarylanguage', t('languageen')).'"'.($dailylanguage == 'en' ? ' class="selected"' : '').'>EN</a>
+		</div>
+		<h2>'.t('daily').' #'.daynumber($dailyday).'</h2>';
 if (!$currentgame) # queried by canonical() in meta.php, which needs the word for the URL before any output
 {
-	echo '<p class="warning">'.t('gamegone').'</p>';
+	echo '<p class="warning">'.t($dailyday ? 'nodaily' : 'gamegone').'</p>';
 	return;
 }
+$game = (int)$currentgame['id'];
+$over = ($currentgame['daily'] and $currentgame['daily'] < date('Y-m-d')); // only today's daily takes words
 
 $mystatus = -1;
 $playing = [];
-	foreach ($mysql->execute_query("select user_id, display_name, status from player where game_id = ? order by joined_at", [$game])->fetch_all(MYSQLI_ASSOC) as $row)
+	// a daily has a row for everyone who played it, and only this player's matters
+	foreach ($mysql->execute_query("select user_id, display_name, status from player where game_id = ? and (user_id = ? or ? is null) order by joined_at",
+		[$game, $_SESSION['user_id'], $currentgame['daily']])->fetch_all(MYSQLI_ASSOC) as $row)
 	{
 		$playing[] = $row['display_name'] ?: t('guest');
 		if ($row["user_id"] == $_SESSION['user_id']) { $mystatus = $row["status"]; }
@@ -40,7 +49,7 @@ if ($mystatus<0 and $currentgame['status'] == 2)
 	return;
 }
 
-if (!$_SESSION['user_id'] and $currentgame['status'] != 3)
+if (!$_SESSION['user_id'] and $currentgame['status'] != 3 and !$currentgame['daily']) # a daily's first word creates the player
 {
 	gameheader();
 	echo t('gameintro').t('guestjoin');
@@ -57,7 +66,8 @@ $words = $mysql->execute_query("select word from word where game_id = ? and user
   var mystatus = <?php echo json_encode((int)$mystatus); ?>;
   var selfid = <?php echo json_encode((int)$_SESSION['user_id']); ?>;
   var isplayer = <?php echo json_encode($mystatus>=0); ?>; // has a player row here, regardless of finish status
-  var gamestatus = <?php echo json_encode((int)$currentgame['status']); ?>;
+  var gamestatus = <?php echo json_encode($over ? 3 : (int)$currentgame['status']); ?>; // a daily is over for everyone at midnight
+  var daily = <?php echo json_encode($currentgame['daily'] ? ['number' => daynumber($currentgame['daily'])] : null); ?>; // an object, since #0 is a number too
   var language = <?php echo json_encode($currentgame['language']); ?>;
   substitute = <?php echo json_encode($currentgame['umlauts']>0); ?>;
   var flexion = <?php echo json_encode($currentgame['flexion']>0); ?>;
@@ -91,7 +101,8 @@ anagrambutton.onclick = function() { select(this); writeletters(anagram(original
 if (mystatus != 3) { anagrambutton.remove(); }
 
 document.addEventListener('DOMContentLoaded', function() {
-  if (isplayer || mystatus != 3) { document.getElementById("leave").style.display = 'block'; }
+  // leaving a daily would delete the day's game along with its only player
+  if (!daily && (isplayer || mystatus != 3)) { document.getElementById("leave").style.display = 'block'; }
   document.getElementById("input").value = '';
   document.getElementById('input').onkeydown = keydownhandle;
   document.getElementById('input').oninput = function(e) { if (!e.isComposing) { resyncletters(); } };
@@ -103,14 +114,23 @@ document.addEventListener('DOMContentLoaded', function() {
 	playerbutton();
 	get("receiver.php?action=finishrequest&game="+game, finishdata);
   }
+  else if (daily) // opening it is not playing it: the first word makes the player
+  {
+	sortwords();
+	get("receiver.php?action=datarequest&game="+game, receivedata);
+  }
   else
   {
 	sortwords();
 	document.getElementById("finish").style.display = 'block';
 	post({action: "joingame", game: game}, receivedata);
   }
-  gamedata = setTimeout(poll, pollwait);
-  document.addEventListener('visibilitychange', repoll);
+  // played alone, a daily has nothing changing underneath it
+  if (!daily)
+  {
+	gamedata = setTimeout(poll, pollwait);
+	document.addEventListener('visibilitychange', repoll);
+  }
 });
 
 // the same badges the game list draws, from the settings under the names this page gave them
@@ -118,12 +138,30 @@ settingsbadges(document.getElementById("settings"), {language: language, umlauts
 	dictionary: dictionaryonly, private: isprivate, maxplayers: maxplayers, timelimit: timelimit});
 </script>
 
+<?php
+if ($currentgame['daily'] and $mystatus != 3 and !$over)
+{
+	if ($mystatus < 0) { echo t('dailyintro'); }
+	echo '<p id="dailystatus"></p>';
+}
+?>
 <p id="gamemessage" class="hide"></p>
 <div id="inputline">
 	<div id="back" onClick="backspace();"><?php echo t('back'); ?></div>
 	<input type="text" id="input" value="" autofocus autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false">
 	<div id="submit" onClick="submitword();"><?php echo t('submit'); ?></div>
 </div>
+<?php
+if ($currentgame['daily'])
+{
+	echo '<div id="result" class="hide">
+			<p id="resultline"></p>
+			<div class="share"></div>
+			<div class="modes"><button type="button" onclick="getSelection().selectAllChildren(this.parentNode.previousElementSibling); navigator.clipboard.writeText(this.parentNode.previousElementSibling.textContent);">'.t('copy').'</button></div>
+		</div>';
+	if ($mystatus >= 0 and ($mystatus == 3 or $over) and $_SESSION['display_name'] == '') { identityForm($language); }
+}
+?>
 <div id="wordbox">
 	<div class="collapsible sort">
 		<div class="modegroup">

@@ -15,6 +15,9 @@ if (($_POST['do'] ?? '') == 'renameall' and $_SESSION['user_id'])
 canonical(); // redirects, so it belongs above the first output like any header
 
 $go = $_GET['go'] ?? 'anleitung';
+// today's daily in the interface language is linked while it exists or a candidate is left to create it
+$dailyopen = $mysql->execute_query("select exists (select 1 from game where daily = ? and language = ?)
+	or exists (select 1 from candidate where language = ?)", [date('Y-m-d'), $language, $language])->fetch_column();
 ?>
 <!DOCTYPE html>
 <html lang="<?php echo $language; ?>">
@@ -43,19 +46,22 @@ $go = $_GET['go'] ?? 'anleitung';
 		<div id="menu">
 			<div class="collapsible nav">
 				<a href="profil"<?php if ($go=='user') echo ' class="selected"'; ?>><?php echo t('profile'); if ($_SESSION['user_id']) echo ': '.htmlspecialchars($_SESSION['display_name'] ?: t('guest'), ENT_QUOTES, 'UTF-8'); ?></a>
+				<?php if ($dailyopen) echo '<a href="'.dailyurl(date('Y-m-d'), $language).'"'.($go=='daily' ? ' class="selected"' : '').'>'.t('daily').'</a>'; ?>
 				<a href="neu"<?php if ($go=='neu') echo ' class="selected"'; ?>><?php echo t('newgame'); ?></a>
 				<a href="spiele"<?php if ($go=='games') echo ' class="selected"'; ?>><?php echo t('gamelist'); ?></a>
 				<a href="."<?php if ($go=='anleitung') echo ' class="selected"'; ?>><?php echo t('instructions'); ?></a>
 				<a href="impressum"<?php if ($go=='impressum') echo ' class="selected"'; ?>><?php echo t('legal'); ?></a>
 			</div>
 			<?php // not gated on user_id: guests can view finished games too, and game.php expects these elements to exist
-				if (isset($_GET["go"]) and $_GET["go"]=="game") { ?>
+				if ($go == 'game' or $go == 'daily') { ?>
 				<div class="collapsible actions">
 					<div id="settings" class="settings"></div>
 					<a id="leave" style="display: none;" onClick="leave();"><?php echo t('leave'); ?></a>
 					<a id="finish" style="display: none;" onClick="finish();"><?php echo t('finish'); ?></a>
 				</div>
+				<?php if ($go == 'game') { // a daily is played alone ?>
 				<div id="players" class="collapsible players"></div>
+				<?php } ?>
 			<?php } ?>
 		</div>
 		<div id="content">
@@ -80,7 +86,7 @@ $go = $_GET['go'] ?? 'anleitung';
 			}
 			elseif (isset($_GET["go"]) and $_GET["go"]=="neu")
 				include_once("newgame.php");
-			elseif (isset($_GET["go"]) and $_GET["go"]=="game")
+			elseif ($go == 'game' or $go == 'daily')
 				include_once("game.php");
 			elseif (isset($_GET["go"]) and $_GET["go"]=="games")
 				include_once("games.php");

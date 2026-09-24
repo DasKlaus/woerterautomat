@@ -42,5 +42,8 @@ document.addEventListener('DOMContentLoaded', function() {
 			</div>
 		</div>
 	</div>
-<?php } ?>
+<?php }
+if ($dailyopen)
+	echo '<a id="dailybox" class="game" href="'.dailyurl(date('Y-m-d'), $language).'"><h2>'.t('daily').' #'.daynumber(date('Y-m-d')).'</h2><br>'.t('dailybox').'</a>';
+?>
 <div id="games"></div>

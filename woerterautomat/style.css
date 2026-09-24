@@ -189,7 +189,15 @@ input, select {background-color: var(--shade); font-family: var(--ui);}
    one card and only the button carries the menu backdrop */
 #menu .forcefinish {margin-top: -13px; border-top: none; border-top-left-radius: 0; border-top-right-radius: 0;}
 
+/* game: daily */
+
+#dailylanguage {width: 5rem; float: right;}
+#result .share {margin-bottom: 10px; white-space: pre-line;}
+.target {font-family: var(--display); font-size: 40px; line-height: 1;}
+
 /* game list */
+
+#dailybox {display: block; margin-bottom: 10px;}
 
 #games {display: grid; grid-template-columns: repeat(auto-fill, minmax(min(20rem, 100%), 1fr)); gap: 10px;}
 .game {padding: 5px; border: 1px solid var(--fg); border-radius: 3px; color: var(--fg); overflow-wrap: anywhere;}

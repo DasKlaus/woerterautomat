@@ -370,9 +370,10 @@ function reactionsFor(word)
 function reactionbox(word, deletable)
 {
 	var existing = reactionsFor(word);
-	// reacting and looking up are only offered once this player has personally finished
-	var canreact = isplayer && mystatus == 3;
-	if (existing.length == 0 && !canreact && !deletable) { return null; }
+	// reacting and looking up are only offered once this player has personally finished, reacting not on a daily, played alone
+	var finished = isplayer && mystatus == 3;
+	var canreact = finished && !daily;
+	if (existing.length == 0 && !finished && !deletable) { return null; }
 	var box = element('span', 'popout');
 	var mine = null;
 	var panel = element('span', 'popoutpanel');
@@ -401,7 +402,7 @@ function reactionbox(word, deletable)
 	}
 	var actions = element('span', 'modes');
 	// the dictionary answers for every word it did not object to, and for its own unfound ones
-	if (canreact && solution.length && lookFor('❗', existing, 'emoji') == -1) {
+	if (finished && solution.length && lookFor('❗', existing, 'emoji') == -1) {
 		var look = element('span', '', '🔍');
 		look.onclick = function(e) { e.stopPropagation(); box.classList.remove('open'); lookuphistory = []; lookup(word); };
 		actions.appendChild(look);
@@ -605,6 +606,8 @@ function leave() {
 	}
 }
 function finish() {
+	// a daily's finished view is the page's own, with the name form for a player without one
+	if (daily) { post({action: "finishgame", game: game}, function() { location.reload(); }); return; }
 	mystatus=3;
 	document.getElementById('finish').style.display = 'none';
 	document.getElementById('inputline').style.display = 'none';
@@ -688,13 +691,51 @@ function forcefinish(id, name, since)
 		post({action: "forcefinish", game: game, player: id}, finishdata);
 	}
 }
+// a daily while playing: the letters so far and the target's length, ticked once found; finishing takes a word played
+function writestatus(data)
+{
+	document.getElementById("finish").style.display = data.players.length ? 'block' : 'none';
+	document.getElementById("dailystatus").textContent = fmt(txt.dailystatus, ownpoints, data.target) + (data.hit ? " ✓" : "");
+}
+// a finished daily's own result, and the same as plain text to share, the address carrying no result
+function writeresult(data)
+{
+	var me = data.players[0];
+	if (!me) { return; } // a visitor who never played it sees the solution alone
+	var target = solution.reduce(function(longest, word) { return word.length > longest.length ? word : longest; }, "");
+	var scored = data.words.filter(function(row) { return row.points > 0; });
+	var hit = lookFor(target, scored, 'word') != -1;
+	var letters = fmt(txt.resultletters, me.points, solution.reduce(function(sum, word) { return sum + word.length; }, 0));
+	var streak = me.streak >= 2 ? fmt(txt.streak, me.streak) : "";
+	var lines = [new URL("tag-"+daily.number+"-"+language, location.href).href+" #"+daily.number+" "+language.toUpperCase()];
+	for (var length = 3; length <= target.length; length++)
+	{
+		var possible = solution.filter(function(word) { return word.length == length; }).length;
+		if (!possible) { continue; }
+		var found = scored.filter(function(row) { return row.word.length == length; }).length;
+		// one square for anything found, all six only for all of it
+		var squares = found >= possible ? 6 : Math.min(5, Math.max(found ? 1 : 0, Math.round(6 * found / possible)));
+		lines.push(length+" "+"🟩".repeat(squares)+"⬜".repeat(6 - squares)+" "+found+"/"+possible+(length == target.length && hit ? " 🎯" : ""));
+	}
+	lines.push("= "+letters);
+	if (streak) { lines.push(streak); }
+	var line = document.getElementById("resultline");
+	line.textContent = letters+" · "+fmt(txt.resultwords, scored.length, solution.length);
+	line.appendChild(element('br'));
+	line.appendChild(document.createTextNode(txt.target+": "));
+	line.appendChild(element('span', 'target', target));
+	if (hit) { line.appendChild(document.createTextNode(" 🎯")); }
+	if (streak) { line.appendChild(element('br')); line.appendChild(document.createTextNode(streak)); }
+	document.querySelector("#result .share").textContent = lines.join("\n");
+	document.getElementById("result").className = "";
+}
 function finishdata(data)
 {
 	pollwait = 5000;
 	playerstamp = Date.now();
 	version = data.version;
-	writeplayers(data.players);
 	solution = data.solution;
+	if (daily) { writeresult(data); } else { writeplayers(data.players); }
 	if (!solution.length) { anagrambutton.remove(); } // no dictionary for this language, or nothing in the word
 	var found = data.words.map(function(row) { return row.word; });
 	var unfound = solution.filter(function(word) { return found.indexOf(word) == -1; })
@@ -710,6 +751,7 @@ function receivedata(data)
   {
 	var me = data.players.find(function(p) { return p.self; });
 	if (isplayer && (!me || me.status == 3)) { location.reload(); return; }
+	if (daily && data.solution.length) { location.reload(); return; } // midnight passed with the page open
 	pollwait = 5000;
 	playerstamp = Date.now();
 	version = data.version;
@@ -746,6 +788,6 @@ function receivedata(data)
 		wordspan.appendChild(newbox);
 		wordspan.onclick = function(box) { return function(e) { togglepopout(e, box); }; }(newbox);
 	}
-	writeplayers(data.players);
+	if (daily) { writestatus(data); } else { writeplayers(data.players); }
 	if (changed && sortmode == 'points') { sortwords(); }
   }

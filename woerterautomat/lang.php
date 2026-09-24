@@ -105,6 +105,14 @@ $ui = [
 	'descquestion' => 'Wie viele Wörter findest du in %1?',
 	'descfull' => 'Voll.',
 	'descfinished' => 'Abgeschlossen.',
+
+	'daily' => 'Spiel des Tages',
+	'dailystatus' => '%1 Buchstaben · Zielwort: %2 Buchstaben',
+	'resultletters' => '%1 / %2 Buchstaben',
+	'resultwords' => '%1 / %2 Wörter',
+	'target' => 'Zielwort',
+	'streak' => '🔥 %1 Tage in Folge',
+	'copy' => 'Kopieren',
 ],
 'en' => [
 	'guest' => 'Guest',
@@ -196,6 +204,14 @@ $ui = [
 	'descquestion' => 'How many words can you find in %1?',
 	'descfull' => 'Full.',
 	'descfinished' => 'Finished.',
+
+	'daily' => 'Game of the day',
+	'dailystatus' => '%1 letters · target word: %2 letters',
+	'resultletters' => '%1 / %2 letters',
+	'resultwords' => '%1 / %2 words',
+	'target' => 'Target word',
+	'streak' => '🔥 %1 days in a row',
+	'copy' => 'Copy',
 ],
 ];
 
@@ -253,6 +269,12 @@ $text = [
 		Unzulässige Spiele werden ohne Ankündigung gelöscht.</p>
 		<p>Wörter länger als 16 Buchstaben werden womöglich nicht korrekt angezeigt.</p>',
 	'enterword' => 'Gib ein Wort ein, mit dem du ein Spiel starten willst.',
+
+	'nodaily' => 'Für diesen Tag gibt es kein Spiel des Tages.',
+	'dailybox' => 'Ein Wort für alle, jeden Tag ein neues.',
+	'dailyintro' => '<p>Ein Wort für alle, jeden Tag ein neues: Bilde aus seinen Buchstaben möglichst viele andere Wörter.
+		Jedes Wort aus dem Wörterbuch bringt so viele Punkte, wie es Buchstaben hat, seltene Wörter als Bonus. Das Zielwort ist das längste mögliche Wort.</p>
+		<p>Um Mitternacht endet das Spiel. Nach dem Abschließen zeigt es die Lösung und ein Ergebnis zum Teilen.</p>',
 ],
 'en' => [
 	'gamegone' => 'This game no longer exists.',
@@ -307,6 +329,12 @@ $text = [
 		Games that are not allowed are deleted without notice.</p>
 		<p>Words longer than 16 letters may not be displayed correctly.</p>',
 	'enterword' => 'Enter a word to start a game with.',
+
+	'nodaily' => 'There is no game of the day for this day.',
+	'dailybox' => 'One word for everyone, a new one every day.',
+	'dailyintro' => '<p>One word for everyone, a new one every day: find as many words as you can in its letters.
+		Each word from the dictionary scores as many points as it has letters, rare words as a bonus. The target word is the longest possible word.</p>
+		<p>The game ends at midnight. Once you finish, it shows the solution and a result to share.</p>',
 ],
 ];
 

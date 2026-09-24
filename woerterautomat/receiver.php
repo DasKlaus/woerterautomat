@@ -7,6 +7,8 @@ require_once("meta.php");
 
 $return = null;
 $reactionemoji = ['💪', '👍', '🤦', '😭', '🤯', '😂', '✨', '❓', '🚫']; // keep in sync with reactionemoji in game.js
+$game = (int)($_POST['game'] ?? $_GET['game'] ?? 0);
+$daily = $mysql->execute_query("select daily from game where id = ?", [$game])->fetch_column(); // null for any other game
 
 // the dictionary's verdict is withheld once a second finder or a 👍 vouches for the word
 const VOUCHED = "(r.reactor_id <> -1
@@ -20,13 +22,26 @@ const UNSCORED = "g.dictionary and exists (select 1 from reaction d
 	and (select count(*) from word f where f.game_id = w.game_id and f.word = w.word) < 2
 	and not exists (select 1 from reaction t where t.game_id = w.game_id and t.word = w.word and t.emoji = '👍')";
 
+// on a daily, a word scores if it is in the solution, or rare enough for the dictionary's ❕ as a bonus
+const DAILYSCORED = "(exists (select 1 from solution s where s.game_id = w.game_id and s.word = w.word)
+	or exists (select 1 from reaction d where d.game_id = w.game_id and d.word = w.word and d.reactor_id = -1 and d.emoji = '❕'))";
+
+// today's daily is played without joining: a visitor's first word there creates the identity the branch below requires
+if ($_SERVER['REQUEST_METHOD'] === 'POST' and ($_POST['action'] ?? '') == 'newword' and $daily == date('Y-m-d')) { identify(); }
+
 if ($_SERVER['REQUEST_METHOD'] === 'POST' and $_SESSION['user_id'])
 {
 	if (identityRestriction() !== false) { $_SESSION['display_name'] = ""; }
 	$user = $_SESSION['user_id'];
-	$game = (int)($_POST['game'] ?? 0);
+	$action = $_POST['action'] ?? '';
+	// a daily is played alone and only on its day: nothing else applies, and recompute() must never run on one
+	if ($daily and ($daily != date('Y-m-d') or !in_array($action, ['newword', 'removeword', 'finishgame'], true)))
+	{
+		$action = '';
+		$return = dailystate($mysql, $game, $user, $daily);
+	}
 
-	switch($_POST["action"] ?? "") {
+	switch($action) {
 		// both halves of the two-stage button: identical validation and the same solution query,
 		// so creation never has to trust that a check ran, let alone what it found
 		case "checkgame":
@@ -88,16 +103,24 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' and $_SESSION['user_id'])
 			$_SESSION['wrongwords'] = array_values(array_filter($_SESSION['wrongwords'] ?? [], fn($t) => $t > time() - 60));
 			if (count($_SESSION['wrongwords']) >= 3)
 			{
-				$return = gamestate($mysql, $game, $user);
+				$return = $daily ? dailystate($mysql, $game, $user, $daily) : gamestate($mysql, $game, $user);
 				$return['blocked'] = 60 - (time() - $_SESSION['wrongwords'][0]);
 				break;
 			}
-			$currentgame = $mysql->execute_query("select g.source_word, g.language, g.umlauts, g.flexion from game g
-					join player p on p.game_id = g.id
-					where g.id = ? and p.user_id = ? and p.status <> 3", [$game, $user])->fetch_assoc();
+			// a daily has no joining, so its player row may still be missing: the first word inserts it
+			$currentgame = $mysql->execute_query("select g.source_word, g.language, g.umlauts, g.flexion, p.status from game g
+					left join player p on p.game_id = g.id and p.user_id = ?
+					where g.id = ? and coalesce(p.status, 0) <> 3 and (p.user_id is not null or g.daily is not null)", [$user, $game])->fetch_assoc();
 			if (mb_strlen($word) > 2 and $currentgame and possible($word, $currentgame['source_word']))
 			{
 				$mysql->begin_transaction();
+				if (is_null($currentgame['status']))
+				{
+					$streak = 1 + (int)$mysql->execute_query("select p.streak from player p join game g on g.id = p.game_id
+						where g.daily = ? - interval 1 day and g.language = ? and p.user_id = ?", [$daily, $currentgame['language'], $user])->fetch_column();
+					$mysql->execute_query("insert ignore into player (game_id, user_id, display_name, streak, joined_at, activity) values (?, ?, ?, ?, now(), now())",
+						[$game, $user, $_SESSION['display_name'], $streak]);
+				}
 				$mysql->execute_query("insert ignore into word (game_id, user_id, word, created_at) values (?, ?, ?, now())", [$game, $user, $word]);
 				if (!$mysql->execute_query("select 1 from solution where game_id = ? and word = ?", [$game, $word])->fetch_column())
 				{
@@ -107,25 +130,34 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' and $_SESSION['user_id'])
 					{
 						$mysql->execute_query("insert ignore into reaction (game_id, word, reactor_id, emoji, display_name, created_at)
 							values (?, ?, -1, ?, 'Wörterbuch', now())", [$game, $word, $emoji]);
-						$_SESSION['wrongwords'][] = time();
+						// a rare word is a daily's bonus, not a miss
+						if (!$daily or $emoji != '❕') { $_SESSION['wrongwords'][] = time(); }
 					}
 				}
-				recompute($mysql, $game);
+				if ($daily) { rescore($mysql, $game, $user); }
+				else
+				{
+					recompute($mysql, $game);
+					touchgame($mysql, $game);
+				}
 				touchplayer($mysql, $game, $user);
-				touchgame($mysql, $game);
 				$mysql->commit();
 			}
-			$return = gamestate($mysql, $game, $user);
+			$return = $daily ? dailystate($mysql, $game, $user, $daily) : gamestate($mysql, $game, $user);
 			break;
 		case "removeword":
 			$word = mb_strtolower(trim($_POST['word'] ?? ''));
 			$mysql->begin_transaction();
 			$mysql->execute_query("delete from word where game_id = ? and user_id = ? and word = ?", [$game, $user, $word]);
-			recompute($mysql, $game);
+			if ($daily) { rescore($mysql, $game, $user); }
+			else
+			{
+				recompute($mysql, $game);
+				touchgame($mysql, $game);
+			}
 			touchplayer($mysql, $game, $user);
-			touchgame($mysql, $game);
 			$mysql->commit();
-			$return = playerstate($mysql, $game, $user);
+			$return = $daily ? dailystate($mysql, $game, $user, $daily) : playerstate($mysql, $game, $user);
 			break;
 		case "joingame":
 			$mysql->begin_transaction();
@@ -165,6 +197,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' and $_SESSION['user_id'])
 			break;
 		case "finishgame":
 			$mysql->execute_query("update player set status = 3, activity = now() where game_id = ? and user_id = ?", [$game, $user]);
+			// only this player's view: a daily counts as it stands at midnight, finished or not
+			if ($daily) { $return = dailystate($mysql, $game, $user, $daily); break; }
 			$mysql->execute_query("update game set status = 3
 					where id = ? and not exists (select 1 from player where game_id = ? and status <> 3)", [$game, $game]);
 			touchgame($mysql, $game);
@@ -220,17 +254,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' and $_SESSION['user_id'])
 else
 {
 	$user = $_SESSION['user_id'];
-	$game = (int)($_GET['game'] ?? 0);
 	$version = (int)($_GET['version'] ?? -1);
 
 	switch($_GET["action"] ?? "") {
 		case "datarequest":
 			if (version($mysql, $game) === $version) { ob_end_clean(); http_response_code(304); exit; }
-			$return = gamestate($mysql, $game, $user);
+			$return = $daily ? dailystate($mysql, $game, $user, $daily) : gamestate($mysql, $game, $user);
 			break;
 		case "finishrequest":
 			if (version($mysql, $game) === $version) { ob_end_clean(); http_response_code(304); exit; }
-			$return = finishstate($mysql, $game);
+			$return = $daily ? dailystate($mysql, $game, $user, $daily) : finishstate($mysql, $game);
 			break;
 		case "lookup":
 			require_once("../dictionary.php");
@@ -238,32 +271,32 @@ else
 			$return = lookup($dictionary, $currentgame['language'], mb_strtolower(trim($_GET['word'] ?? '')), $currentgame['umlauts']);
 			break;
 		case "showgames":
-			$where = "";
+			$where = "where game.daily is null"; // dailies have their own links
 			$params = [];
 			switch($_GET['mode'] ?? 'relevant')
 			{
 				case 'relevant':
-					$where = "where ((game.status < 2 and not game.private) or exists (select 1 from player m where m.game_id = game.id and m.user_id = ?)) and (game.status < 3 or game.last_activity_at > now() - interval 1 day)";
+					$where .= " and ((game.status < 2 and not game.private) or exists (select 1 from player m where m.game_id = game.id and m.user_id = ?)) and (game.status < 3 or game.last_activity_at > now() - interval 1 day)";
 					$params = [$user];
 					break;
 				case 'own':
-					$where = "where game.created_by = ? or exists (select 1 from player m where m.game_id = game.id and m.user_id = ?)";
+					$where .= " and (game.created_by = ? or exists (select 1 from player m where m.game_id = game.id and m.user_id = ?))";
 					$params = [$user, $user];
 					break;
 				case 'all':
-					$where = "where not game.private or exists (select 1 from player m where m.game_id = game.id and m.user_id = ?)";
+					$where .= " and (not game.private or exists (select 1 from player m where m.game_id = game.id and m.user_id = ?))";
 					$params = [$user];
 					break;
 				case 'new':
-					$where = "where game.status = 0 and (not game.private or exists (select 1 from player m where m.game_id = game.id and m.user_id = ?))";
+					$where .= " and game.status = 0 and (not game.private or exists (select 1 from player m where m.game_id = game.id and m.user_id = ?))";
 					$params = [$user];
 					break;
 				case 'active':
-					$where = "where game.status = 1 and (not game.private or exists (select 1 from player m where m.game_id = game.id and m.user_id = ?))";
+					$where .= " and game.status = 1 and (not game.private or exists (select 1 from player m where m.game_id = game.id and m.user_id = ?))";
 					$params = [$user];
 					break;
 				case 'finished':
-					$where = "where game.status = 3 and (not game.private or exists (select 1 from player m where m.game_id = game.id and m.user_id = ?))";
+					$where .= " and game.status = 3 and (not game.private or exists (select 1 from player m where m.game_id = game.id and m.user_id = ?))";
 					$params = [$user];
 					break;
 			}
@@ -311,6 +344,14 @@ function recompute($mysql, $game)
 			from word w join game g on g.id = w.game_id where w.game_id = p.game_id and w.user_id = p.user_id
 		), 0)
 		where p.game_id = ?", [playercount($mysql, $game), $game]);
+}
+
+// a daily's player scores by their own words alone, so one row is updated where recompute() would rewrite every player's
+function rescore($mysql, $game, $user)
+{
+	$mysql->execute_query("update player set points = (select coalesce(sum(char_length(w.word)), 0)
+			from word w where w.game_id = ? and w.user_id = ? and ".DAILYSCORED.")
+		where game_id = ? and user_id = ?", [$game, $user, $game, $user]);
 }
 
 function touchplayer($mysql, $game, $user)
@@ -371,6 +412,28 @@ function finishstate($mysql, $game)
 	$return["reactions"] = $mysql->execute_query("select r.word, r.reactor_id, r.emoji, r.display_name
 		from reaction r where r.game_id = ? and ".VOUCHED." order by r.created_at", [$game])->fetch_all(MYSQLI_ASSOC);
 	$return["solution"] = array_column($mysql->execute_query("select word from solution where game_id = ?", [$game])->fetch_all(MYSQLI_ASSOC), 'word');
+	return $return;
+}
+
+// gamestate() and finishstate() for a daily, played alone: the requester's own words, worth their length where they score,
+// only the dictionary's verdicts on them, and the solution once this player has finished or the day is over
+function dailystate($mysql, $game, $user, $daily)
+{
+	$return = [];
+	$return["players"] = $mysql->execute_query("select user_id, display_name as player, status, points, streak, 1 as self
+		from player where game_id = ? and user_id = ?", [$game, $user])->fetch_all(MYSQLI_ASSOC);
+	$return["words"] = $mysql->execute_query("select w.word, w.user_id, if(".DAILYSCORED.", char_length(w.word), -1) as points
+		from word w where w.game_id = ? and w.user_id = ?
+		order by w.created_at, w.word", [$game, $user])->fetch_all(MYSQLI_ASSOC);
+	$return["reactions"] = $mysql->execute_query("select r.word, r.reactor_id, r.emoji, r.display_name
+		from reaction r join word w on w.game_id = r.game_id and w.word = r.word
+		where r.game_id = ? and w.user_id = ? and r.reactor_id = -1", [$game, $user])->fetch_all(MYSQLI_ASSOC);
+	// the target is the one word of the longest length, so a solution word of that length found is the target found
+	$return += $mysql->execute_query("select max(char_length(s.word)) as target, max(char_length(s.word)) = max(if(w.word is null, 0, char_length(s.word))) as hit
+		from solution s left join word w on w.game_id = s.game_id and w.word = s.word and w.user_id = ?
+		where s.game_id = ?", [$user, $game])->fetch_assoc();
+	$return["solution"] = ($daily < date('Y-m-d') or ($return["players"][0]["status"] ?? 0) == 3)
+		? array_column($mysql->execute_query("select word from solution where game_id = ?", [$game])->fetch_all(MYSQLI_ASSOC), 'word') : [];
 	return $return;
 }
 

@@ -1,6 +1,9 @@
 <?php
-# Function definitions only: index.php calls canonical() before any output and metatags() in the head,
+# Definitions only: index.php calls canonical() before any output and metatags() in the head,
 # receiver.php uses gameurl() to build links for the client.
+
+const DAILY = '2026-09-23'; // the daily's day 0
+const DAILYLENGTH = [7, 8, 9, 10, 11, 12, 6]; // the daily's word length by weekday from Sunday; up to 7 letters allow inflected forms
 
 function slug($word)
 {
@@ -13,11 +16,74 @@ function gameurl($game, $word)
 	return 'spiel-'.(int)$game.'-'.slug($word);
 }
 
+function daynumber($day)
+{
+	return (int)round((strtotime($day) - strtotime(DAILY)) / 86400);
+}
+
+function dailyurl($day, $language)
+{
+	return 'tag-'.daynumber($day).'-'.$language;
+}
+
+# Today's daily is created by its first visitor, from the candidates of the weekday's length, or else the nearest
+# length left, shorter first: a language runs out of dailies as a whole, not day by day. Of those, the lowest day
+# number goes first, any of several alike, and an unmarked one only when none is marked. A visitor racing the first
+# waits on the unique key and is ignored.
+function createdaily($mysql, $language)
+{
+	if ($mysql->execute_query("select 1 from game where daily = ? and language = ?", [date('Y-m-d'), $language])->fetch_column()) { return; }
+	$candidate = $mysql->execute_query("select word, target from candidate where language = ?
+		order by abs(char_length(word) - ?), char_length(word), day is null, day, rand() limit 1", [$language, DAILYLENGTH[date('w')]])->fetch_assoc();
+	if (!$candidate) { return; }
+	$word = $candidate['word'];
+	$flexion = (int)(mb_strlen($word) < 8);
+	require_once("../dictionary.php");
+	$words = solutionwords($dictionary, $language, 0, $flexion, $word);
+	$mysql->begin_transaction();
+	$mysql->execute_query("insert ignore into game (source_word, language, flexion, dictionary, maxplayers, timelimit, solutions, daily,
+			created_by, created_by_name, created_at, last_activity_at)
+		values (?, ?, ?, 1, 0, 0, ?, ?, 0, '', now(), now())", [$word, $language, $flexion, count($words), date('Y-m-d')]);
+	if ($mysql->affected_rows)
+	{
+		savesolution($mysql, $mysql->insert_id, $words);
+		# a true anagram among the candidates is always the target, the one word of the full length: it would be the same field
+		$mysql->execute_query("delete from candidate where language = ? and word in (?, ?) and char_length(word) = ?",
+			[$language, $word, $candidate['target'], mb_strlen($word)]);
+		plandailies($mysql, $language);
+	}
+	$mysql->commit();
+}
+
+# The next four weeks' words are marked ahead with their days' numbers, so they can be reviewed. Since a length's
+# marked words go lowest number first, whatever their numbers, a length is only marked again for the days its
+# marked words don't cover: a deleted mark is replaced, unless a word marked by hand already stands in for it.
+function plandailies($mysql, $language)
+{
+	$marked = array_column($mysql->execute_query("select char_length(word), count(*) from candidate where language = ? and day is not null
+		group by char_length(word)", [$language])->fetch_all(), 1, 0);
+	$days = [];
+	$today = $mysql->execute_query("select 1 from game where daily = ? and language = ?", [date('Y-m-d'), $language])->fetch_column();
+	for ($i = $today ? 1 : 0; $i < 28; $i++)
+	{
+		$time = strtotime("+$i days");
+		$days[DAILYLENGTH[date('w', $time)]][] = daynumber(date('Y-m-d', $time));
+	}
+	foreach ($days as $length => $numbers)
+	{
+		foreach (array_slice($numbers, $marked[$length] ?? 0) as $number)
+		{
+			$mysql->execute_query("update candidate set day = ? where language = ? and day is null and char_length(word) = ? order by rand() limit 1",
+				[$number, $language, $length]);
+		}
+	}
+}
+
 # The canonical path of the current request, and a redirect to it when the request came in some other
 # shape: an old ?go= link, a stale word in a game URL, a spelling the rewrite accepts but we don't hand out.
 function canonical()
 {
-	global $mysql, $currentgame, $canonicalurl;
+	global $mysql, $currentgame, $canonicalurl, $dailyday, $dailylanguage;
 	$go = $_GET['go'] ?? 'anleitung';
 	$base = rtrim(dirname($_SERVER['SCRIPT_NAME']), '/\\').'/';
 	$origin = (empty($_SERVER['HTTPS']) ? 'http://' : 'https://').$_SERVER['HTTP_HOST'];
@@ -25,17 +91,27 @@ function canonical()
 	# the request as it arrived: mod_rewrite leaves REQUEST_URI alone but rewrites QUERY_STRING
 	parse_str(ltrim((string)strstr($_SERVER['REQUEST_URI'], '?'), '?'), $query);
 	$oldstyle = (isset($query['go']) or isset($query['game']));
-	unset($query['go'], $query['game']);
-	if ($go == 'game')
+	unset($query['go'], $query['game'], $query['day'], $query['language']);
+	if ($go == 'daily')
 	{
-		$currentgame = $mysql->execute_query("select source_word, status, language, umlauts, flexion, dictionary, maxplayers, timelimit, private, created_by_name,
-				timestampdiff(minute, created_at, now()) as starttime from game where id = ?", [(int)($_GET['game'] ?? 0)])->fetch_assoc();
-		if (!$currentgame) # leave the URL alone, game.php says the game is gone
+		$dailyday = date('Y-m-d', strtotime(DAILY.' +'.(int)($_GET['day'] ?? 0).' days'));
+		$dailylanguage = ($_GET['language'] ?? '') == 'en' ? 'en' : 'de';
+		if ($dailyday == date('Y-m-d')) { createdaily($mysql, $dailylanguage); }
+		$path = dailyurl($dailyday, $dailylanguage);
+	}
+	if ($go == 'game' or $go == 'daily')
+	{
+		# a game by its id, a daily by its day and language; a daily's own game URL leads to its day
+		$currentgame = $mysql->execute_query("select id, source_word, status, language, umlauts, flexion, dictionary, maxplayers, timelimit, private, created_by_name, daily,
+				timestampdiff(minute, created_at, now()) as starttime from game where id = ? or daily = ? and language = ?",
+			[(int)($_GET['game'] ?? 0), $dailyday, $dailylanguage])->fetch_assoc();
+		if ($currentgame)
+			$path = $currentgame['daily'] ? dailyurl($currentgame['daily'], $currentgame['language']) : gameurl($currentgame['id'], $currentgame['source_word']);
+		elseif ($go == 'game') # leave the URL alone, game.php says the game is gone
 		{
 			$canonicalurl = $origin.$_SERVER['REQUEST_URI'];
 			return;
 		}
-		$path = gameurl($_GET['game'] ?? 0, $currentgame['source_word']);
 	}
 	$target = $base.$path.($query ? '?'.http_build_query($query) : '');
 	$canonicalurl = $origin.$target;
@@ -67,28 +143,30 @@ function gamedescription($word)
 
 function metatags()
 {
-	global $currentgame, $canonicalurl, $language;
+	global $currentgame, $canonicalurl, $language, $dailyday, $dailylanguage, $ui;
 	$title = 'W&ouml;rterautomat';
 	$description = t('metadescription');
 	$image = 'vorschau.png';
 	$go = $_GET['go'] ?? 'anleitung';
 	$page = ['neu' => t('newgame'), 'user' => t('profile'), 'games' => t('gamelist'), 'impressum' => t('legal')][$go] ?? '';
 	if ($page) { $title = $page.' &middot; W&ouml;rterautomat'; }
-	if ($go == 'game' and $currentgame)
+	if ($currentgame)
 	{
 		$word = htmlspecialchars(mb_strtoupper($currentgame['source_word']), ENT_QUOTES, 'UTF-8');
 		$title = $word.' &middot; W&ouml;rterautomat';
 		$description = gamedescription($word);
-		$image = 'vorschau-'.(int)$_GET['game'].'.png';
+		$image = 'vorschau-'.(int)$currentgame['id'].'.png';
 	}
+	# a daily goes by its day in its own language, with or without a game
+	if ($go == 'daily') { $title = $ui[$dailylanguage]['daily'].' #'.daynumber($dailyday).' &middot; W&ouml;rterautomat'; }
 	$imageurl = substr($canonicalurl, 0, strrpos($canonicalurl, '/') + 1).$image;
 	echo '<title>'.$title.'</title>
 		<meta name="description" content="'.$description.'">
-		<meta name="robots" content="'.($go == 'game' ? 'noindex,nofollow' : 'index,nofollow').'">
+		<meta name="robots" content="'.(($go == 'game' or $go == 'daily') ? 'noindex,nofollow' : 'index,nofollow').'">
 		<link rel="canonical" href="'.htmlspecialchars($canonicalurl, ENT_QUOTES, 'UTF-8').'">
 		<meta property="og:type" content="website">
 		<meta property="og:site_name" content="W&ouml;rterautomat">
-		<meta property="og:locale" content="'.(($currentgame['language'] ?? $language) == 'en' ? 'en_GB' : 'de_DE').'">
+		<meta property="og:locale" content="'.(($currentgame['language'] ?? $dailylanguage ?? $language) == 'en' ? 'en_GB' : 'de_DE').'">
 		<meta property="og:title" content="'.$title.'">
 		<meta property="og:description" content="'.$description.'">
 		<meta property="og:url" content="'.htmlspecialchars($canonicalurl, ENT_QUOTES, 'UTF-8').'">
