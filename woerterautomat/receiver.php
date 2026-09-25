@@ -432,6 +432,9 @@ function dailystate($mysql, $game, $user, $daily)
 	$return += $mysql->execute_query("select max(char_length(s.word)) as target, max(char_length(s.word)) = max(if(w.word is null, 0, char_length(s.word))) as hit
 		from solution s left join word w on w.game_id = s.game_id and w.word = s.word and w.user_id = ?
 		where s.game_id = ?", [$user, $game])->fetch_assoc();
+	// the solution's word count by length, which gives none of its words away while playing
+	$return["lengths"] = array_column($mysql->execute_query("select char_length(word) as length, count(*) as count
+		from solution where game_id = ? group by length", [$game])->fetch_all(MYSQLI_ASSOC), 'count', 'length');
 	$return["solution"] = ($daily < date('Y-m-d') or ($return["players"][0]["status"] ?? 0) == 3)
 		? array_column($mysql->execute_query("select word from solution where game_id = ?", [$game])->fetch_all(MYSQLI_ASSOC), 'word') : [];
 	return $return;

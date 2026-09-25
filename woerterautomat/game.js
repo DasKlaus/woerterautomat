@@ -691,43 +691,49 @@ function forcefinish(id, name, since)
 		post({action: "forcefinish", game: game, player: id}, finishdata);
 	}
 }
-// a daily while playing: the letters so far and the target's length, ticked once found; finishing takes a word played
+// a daily while playing: finishing takes a word played, and the instructions go with it
 function writestatus(data)
 {
 	document.getElementById("finish").style.display = data.players.length ? 'block' : 'none';
-	document.getElementById("dailystatus").textContent = fmt(txt.dailystatus, ownpoints, data.target) + (data.hit ? " ✓" : "");
+	var intro = document.getElementById("dailyintro");
+	if (intro && data.players.length) { intro.remove(); }
+	writedaily(data);
 }
-// a finished daily's own result, and the same as plain text to share, the address carrying no result
-function writeresult(data)
+// a daily's count beside its headline, bonus words apart, and once the target is found or the game finished,
+// the same as plain text to share: a square per length below the target's, the address carrying no result
+function writedaily(data)
 {
 	var me = data.players[0];
-	if (!me) { return; } // a visitor who never played it sees the solution alone
-	var target = solution.reduce(function(longest, word) { return word.length > longest.length ? word : longest; }, "");
+	if (!me && mystatus == 3) { return; } // a visitor who never played it sees the solution alone
 	var scored = data.words.filter(function(row) { return row.points > 0; });
-	var hit = lookFor(target, scored, 'word') != -1;
-	var letters = fmt(txt.resultletters, me.points, solution.reduce(function(sum, word) { return sum + word.length; }, 0));
-	var streak = me.streak >= 2 ? fmt(txt.streak, me.streak) : "";
-	var lines = [new URL("tag-"+daily.number+"-"+language, location.href).href+" #"+daily.number+" "+language.toUpperCase()];
-	for (var length = 3; length <= target.length; length++)
+	// the dictionary only reacts to words outside the solution, so a scored one it reacted to is a bonus
+	var bonus = scored.filter(function(row) { return lookFor(row.word, data.reactions, 'word') != -1; });
+	var points = scored.reduce(function(sum, row) { return sum + row.points; }, 0);
+	var bonuspoints = bonus.reduce(function(sum, row) { return sum + row.points; }, 0);
+	var possible = 0;
+	var possiblepoints = 0;
+	var squares = "";
+	for (var length in data.lengths) // ascending, as integer keys always are
 	{
-		var possible = solution.filter(function(word) { return word.length == length; }).length;
-		if (!possible) { continue; }
-		var found = scored.filter(function(row) { return row.word.length == length; }).length;
-		// one square for anything found, all six only for all of it
-		var squares = found >= possible ? 6 : Math.min(5, Math.max(found ? 1 : 0, Math.round(6 * found / possible)));
-		lines.push(length+" "+"🟩".repeat(squares)+"⬜".repeat(6 - squares)+" "+found+"/"+possible+(length == target.length && hit ? " 🎯" : ""));
+		possible += data.lengths[length];
+		possiblepoints += length * data.lengths[length];
+		var found = scored.filter(function(row) { return row.word.length == length; }).length / data.lengths[length];
+		if (length < data.target) { squares += found >= 1 ? "🟩" : found >= .5 ? "🟨" : found > 0 ? "🟧" : "🟥"; } // 🎯 stands for the target's length
 	}
-	lines.push("= "+letters);
-	if (streak) { lines.push(streak); }
-	var line = document.getElementById("resultline");
-	line.textContent = letters+" · "+fmt(txt.resultwords, scored.length, solution.length);
-	line.appendChild(element('br'));
-	line.appendChild(document.createTextNode(txt.target+": "));
-	line.appendChild(element('span', 'target', target));
-	if (hit) { line.appendChild(document.createTextNode(" 🎯")); }
-	if (streak) { line.appendChild(element('br')); line.appendChild(document.createTextNode(streak)); }
-	document.querySelector("#result .share").textContent = lines.join("\n");
-	document.getElementById("result").className = "";
+	var score = fmt(txt.resultletters, (points - bonuspoints) + (bonuspoints ? "+" + bonuspoints : ""), possiblepoints);
+	document.getElementById("dailycount").textContent = score + " · "
+		+ fmt(txt.resultwords, (scored.length - bonus.length) + (bonus.length ? "+" + bonus.length : ""), possible);
+	var line = document.getElementById("dailytarget");
+	if (mystatus == 3)
+	{
+		line.textContent = txt.target + ": ";
+		line.appendChild(element('span', 'target', solution.reduce(function(longest, word) { return word.length > longest.length ? word : longest; }, "")));
+		if (data.hit) { line.appendChild(document.createTextNode(" 🎯")); }
+	}
+	else { line.textContent = fmt(txt.targetlength, data.target) + (data.hit ? " ✓" : ""); }
+	document.getElementById("result").classList.toggle("hide", !me || !(data.hit || mystatus == 3));
+	document.querySelector("#result .share").textContent = new URL("tag-"+daily.number+"-"+language, location.href).href+" #"+daily.number+" "+language.toUpperCase()
+		+ "\n" + squares + (data.hit ? "🎯" : "") + " · " + score + (me && me.streak >= 2 ? " · " + fmt(txt.streak, me.streak) : "");
 }
 function finishdata(data)
 {
@@ -735,7 +741,7 @@ function finishdata(data)
 	playerstamp = Date.now();
 	version = data.version;
 	solution = data.solution;
-	if (daily) { writeresult(data); } else { writeplayers(data.players); }
+	if (daily) { writedaily(data); } else { writeplayers(data.players); }
 	if (!solution.length) { anagrambutton.remove(); } // no dictionary for this language, or nothing in the word
 	var found = data.words.map(function(row) { return row.word; });
 	var unfound = solution.filter(function(word) { return found.indexOf(word) == -1; })

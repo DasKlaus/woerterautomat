@@ -191,8 +191,12 @@ input, select {background-color: var(--shade); font-family: var(--ui);}
 
 /* game: daily */
 
+/* the language stays top right while everything beside it wraps block by block */
+#dailyhead {display: flow-root;}
+#dailyhead > :not(#dailylanguage) {display: inline-block; margin: 0 20px 10px 0;}
 #dailylanguage {width: 5rem; float: right;}
-#result .share {margin-bottom: 10px; white-space: pre-line;}
+#result:not(.hide) {display: flex; align-items: start; gap: 10px; margin-bottom: 10px;}
+#result .share {min-width: 0; overflow-wrap: anywhere; white-space: pre-line;}
 .target {font-family: var(--display); font-size: 40px; line-height: 1;}
 
 /* game list */
@@ -253,12 +257,12 @@ input, select {background-color: var(--shade); font-family: var(--ui);}
 .identity {margin-bottom: 10px; display: grid; grid-auto-flow: column; grid-auto-columns: minmax(0, 1fr); column-gap: 5px;}
 .identity.namechange {grid-auto-flow: row; grid-template-columns: 1fr 1fr; row-gap: 5px;}
 .identity.namechange button:last-child {grid-column: 2;}
-.identity input, .identity button {padding: 3px; border: 1px solid var(--fg); border-radius: 3px; font-size: 16px; min-width: 0;}
+.identity input, .identity button, #result .copy {padding: 3px; border: 1px solid var(--fg); border-radius: 3px; font-size: 16px; min-width: 0;}
 .identity .codebox {display: flex; column-gap: 5px;}
 .identity .code {border-color: var(--muted); font-family: Rounded, monospace; width: 100%;}
-.identity .copy {flex: none; aspect-ratio: 1; font-size: 18px; line-height: 1;}
-.identity button {background-color: var(--bg); cursor: pointer;}
-.identity button:hover {background-color: var(--shade);}
+.identity .copy, #result .copy {flex: none; aspect-ratio: 1; font-size: 18px; line-height: 1;}
+.identity button, #result .copy {background-color: var(--bg); cursor: pointer;}
+.identity button:hover, #result .copy:hover {background-color: var(--shade);}
 
 /* language: the .modes group idiom on a radio set, the labels carrying the shape and only the
    group's outer corners rounding off. first/last-of-type, because the form's first child is the

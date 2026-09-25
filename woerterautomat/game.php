@@ -1,10 +1,14 @@
 <?php
 if ($dailyday) # set by canonical() for any day's page, with a daily or without
-	echo '<div id="dailylanguage" class="modes">
-			<a href="'.dailyurl($dailyday, 'de').'" title="'.t('dictionarylanguage', t('languagede')).'"'.($dailylanguage == 'de' ? ' class="selected"' : '').'>DE</a>
-			<a href="'.dailyurl($dailyday, 'en').'" title="'.t('dictionarylanguage', t('languageen')).'"'.($dailylanguage == 'en' ? ' class="selected"' : '').'>EN</a>
-		</div>
-		<h2>'.t('daily').' #'.daynumber($dailyday).'</h2>';
+	echo '<div id="dailyhead">
+			<div id="dailylanguage" class="modes">
+				<a href="'.dailyurl($dailyday, 'de').'" title="'.t('dictionarylanguage', t('languagede')).'"'.($dailylanguage == 'de' ? ' class="selected"' : '').'>DE</a>
+				<a href="'.dailyurl($dailyday, 'en').'" title="'.t('dictionarylanguage', t('languageen')).'"'.($dailylanguage == 'en' ? ' class="selected"' : '').'>EN</a>
+			</div>
+			<h3>'.t('daily').' #'.daynumber($dailyday).'</h3>
+			<span id="dailycount"></span>
+			<span id="dailytarget"></span>
+		</div>';
 if (!$currentgame) # queried by canonical() in meta.php, which needs the word for the URL before any output
 {
 	echo '<p class="warning">'.t($dailyday ? 'nodaily' : 'gamegone').'</p>';
@@ -139,11 +143,8 @@ settingsbadges(document.getElementById("settings"), {language: language, umlauts
 </script>
 
 <?php
-if ($currentgame['daily'] and $mystatus != 3 and !$over)
-{
-	if ($mystatus < 0) { echo t('dailyintro'); }
-	echo '<p id="dailystatus"></p>';
-}
+if ($currentgame['daily'] and !$over and !$_SESSION['user_id'])
+	echo '<div id="dailyintro">'.t('dailyintro').'</div>';
 ?>
 <p id="gamemessage" class="hide"></p>
 <div id="inputline">
@@ -155,11 +156,9 @@ if ($currentgame['daily'] and $mystatus != 3 and !$over)
 if ($currentgame['daily'])
 {
 	echo '<div id="result" class="hide">
-			<p id="resultline"></p>
 			<div class="share"></div>
-			<div class="modes"><button type="button" onclick="getSelection().selectAllChildren(this.parentNode.previousElementSibling); navigator.clipboard.writeText(this.parentNode.previousElementSibling.textContent);">'.t('copy').'</button></div>
+			<button type="button" class="copy" title="'.t('copy').'" onclick="getSelection().selectAllChildren(this.previousElementSibling); navigator.clipboard.writeText(this.previousElementSibling.textContent);">⧉</button>
 		</div>';
-	if ($mystatus >= 0 and ($mystatus == 3 or $over) and $_SESSION['display_name'] == '') { identityForm($language); }
 }
 ?>
 <div id="wordbox">
