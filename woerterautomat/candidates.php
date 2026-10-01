@@ -7,9 +7,9 @@ require_once("../dictionary.php");
 require_once("meta.php");
 
 // Refills the daily's candidate words, rerun after a dictionary import; the words already marked for a day stay, and the
-// next four weeks are marked. A candidate is an uninflected, non-rare entry with a pronunciation whose solution, under the
-// settings its length gets (6 and 7 letters with inflected forms, 8 to 12 without), has 25 to 150 words and exactly one of
-// its longest length, the target, which is kept beside it for review. On weekends the target is of the full length, and it
+// next four weeks are marked. A candidate is an uninflected entry up to uncommon with a pronunciation whose solution, under the
+// settings its length gets (6 and 7 letters with inflected forms, 8 to 12 without), has 25 to 150 frequent or common words and
+// exactly one of its longest length, the target, which is kept beside it for review. On weekends the target is of the full length, and it
 // is never spelled out in the candidate's own order of letters. A daily's word and its anagrams are never candidates again.
 // Rather than solutionwords() per word, every word is filed under its sorted letters, and a candidate's solution is what
 // is filed under every sub-multiset of its own letters.
@@ -29,15 +29,15 @@ foreach (['de', 'en'] as $language)
 	foreach ([[1, 6, 7], [0, 8, 12]] as [$flexion, $shortest, $longest])
 	{
 		$filed = []; // space-separated, as the leanest way to hold this many
-		foreach ($dictionary->execute_query("select distinct `match` from `$language` where strict = 0 and inflected <= ? and char_length(`match`) between 3 and ?",
+		foreach ($dictionary->execute_query("select distinct `match` from `$language` where rarity < 2 and inflected <= ? and char_length(`match`) between 3 and ?",
 			[$flexion, $longest]) as $row)
 		{
 			$key = sortletters($row['match']);
 			$filed[$key] = isset($filed[$key]) ? $filed[$key].' '.$row['match'] : $row['match'];
 		}
 		$candidates = [];
-		foreach ($dictionary->execute_query("select `match` from `$language` where strict = 0 and inflected = 0 and sounds <> '[]'
-			and char_length(`match`) between ? and ?", [$shortest, $longest]) as $row)
+		foreach ($dictionary->execute_query("select `match`, min(rarity) as rarity from `$language` where rarity < 3 and inflected = 0 and sounds <> '[]'
+			and char_length(`match`) between ? and ? group by `match`", [$shortest, $longest]) as $row)
 		{
 			$word = $row['match'];
 			if (in_array(sortletters($word), $used, true)) { continue; }
@@ -56,7 +56,7 @@ foreach (['de', 'en'] as $language)
 			{
 				if ($length > 2 and isset($filed[$subset])) { $bylength[$length] = ($bylength[$length] ?? 0) + substr_count($filed[$subset], ' ') + 1; }
 			}
-			$bylength[mb_strlen($word)]--; // the word itself
+			if ($row['rarity'] < 2) { $bylength[mb_strlen($word)]--; } // the word itself, unless it is too uncommon to be filed
 			$bylength = array_filter($bylength);
 			krsort($bylength);
 			$top = array_key_first($bylength);

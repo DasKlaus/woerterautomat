@@ -127,8 +127,9 @@ input, select {background-color: var(--shade); font-family: var(--ui);}
 .unique {font-weight: bold;}
 .shared {background-color: var(--shade);}
 .others {background-color: var(--line); border-color: var(--muted);}
-.unfound {background-color: var(--fg); border-color: var(--fg); color: var(--bg);}
-.unfound:is(:hover, :has(.popout.open)) {border-color: var(--line);}
+.unfound {border:none;}
+.unfound.rarity2 {font-size: small;}
+.unfound.rarity3 {font-size: smaller;}
 .deletable {cursor: pointer;}
 .pointspan {margin-left: 3px; color: var(--muted); font-size: 10px;}
 .unscored > .pointspan {display: none;}

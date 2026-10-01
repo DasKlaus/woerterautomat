@@ -5,6 +5,28 @@
 const DAILY = '2026-09-23'; // the daily's day 0
 const DAILYLENGTH = [7, 8, 9, 10, 11, 12, 6]; // the daily's word length by weekday from Sunday; up to 7 letters allow inflected forms
 
+# with the setting on, a word the dictionary objected to scores nothing until the same second
+# finder or 👍 that withdraws the verdict vouches for it
+const UNSCORED = "g.dictionary and exists (select 1 from reaction d
+		where d.game_id = w.game_id and d.word = w.word and d.reactor_id = -1)
+	and (select count(*) from word f where f.game_id = w.game_id and f.word = w.word) < 2
+	and not exists (select 1 from reaction t where t.game_id = w.game_id and t.word = w.word and t.emoji = '👍')";
+
+function playercount($mysql, $game)
+{
+	return (int)$mysql->execute_query("select count(*) from player where game_id = ?", [$game])->fetch_column();
+}
+
+function recompute($mysql, $game)
+{
+	$mysql->execute_query("update player p set p.points = coalesce((
+			select sum(if(".UNSCORED.", 0, char_length(w.word) * (? - (select count(*) from word f
+					where f.game_id = w.game_id and f.word = w.word))))
+			from word w join game g on g.id = w.game_id where w.game_id = p.game_id and w.user_id = p.user_id
+		), 0)
+		where p.game_id = ?", [playercount($mysql, $game), $game]);
+}
+
 function slug($word)
 {
 	return rawurlencode(mb_strtoupper(preg_replace('/[^\p{L}\p{N}]/u', '',
@@ -33,7 +55,7 @@ function dailyurl($day, $language)
 function createdaily($mysql, $language)
 {
 	if ($mysql->execute_query("select 1 from game where daily = ? and language = ?", [date('Y-m-d'), $language])->fetch_column()) { return; }
-	$candidate = $mysql->execute_query("select word, target from candidate where language = ?
+	$candidate = $mysql->execute_query("select word from candidate where language = ?
 		order by abs(char_length(word) - ?), char_length(word), day is null, day, rand() limit 1", [$language, DAILYLENGTH[date('w')]])->fetch_assoc();
 	if (!$candidate) { return; }
 	$word = $candidate['word'];
@@ -43,13 +65,14 @@ function createdaily($mysql, $language)
 	$mysql->begin_transaction();
 	$mysql->execute_query("insert ignore into game (source_word, language, flexion, dictionary, maxplayers, timelimit, solutions, daily,
 			created_by, created_by_name, created_at, last_activity_at)
-		values (?, ?, ?, 1, 0, 0, ?, ?, 0, '', now(), now())", [$word, $language, $flexion, count($words), date('Y-m-d')]);
+		values (?, ?, ?, 1, 0, 0, ?, ?, 0, '', now(), now())", [$word, $language, $flexion, count(array_filter($words, fn($rarity) => $rarity < 2)), date('Y-m-d')]);
 	if ($mysql->affected_rows)
 	{
 		savesolution($mysql, $mysql->insert_id, $words);
-		# a true anagram among the candidates is always the target, the one word of the full length: it would be the same field
-		$mysql->execute_query("delete from candidate where language = ? and word in (?, ?) and char_length(word) = ?",
-			[$language, $word, $candidate['target'], mb_strlen($word)]);
+		# the solution's words of the full length are exactly the word's anagrams, which would be the same field
+		$anagrams = [$word, ...array_filter(array_keys($words), fn($found) => mb_strlen($found) == mb_strlen($word))];
+		$mysql->execute_query("delete from candidate where language = ? and word in (".implode(",", array_fill(0, count($anagrams), "?")).")",
+			[$language, ...$anagrams]);
 		plandailies($mysql, $language);
 	}
 	$mysql->commit();

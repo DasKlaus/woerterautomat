@@ -162,6 +162,7 @@ function sortword(word)
 	{
 		// -1 is the payload's way of saying the dictionary rules this word out; css hides its pointspan
 		if (wordpoints[found].points < 0) { wordspan.className += ' unscored'; }
+		wordspan.className += ' ' + rarityclass(wordpoints[found]);
 		var span = pointspan(wordpoints[found].points);
 		span.id = word+'points';
 		wordspan.appendChild(span);
@@ -227,6 +228,11 @@ function makeplayerboxes()
 		playerbox.appendChild(playerboxhead);
 	}
 }
+// a word outside the solution is one no dictionary entry vouches for, as rare as it gets
+function rarityclass(row)
+{
+	return 'rarity' + (row.rarity == null ? 5 : row.rarity);
+}
 function dedupe(rows)
 {
 	var byword = Object.create(null);
@@ -235,7 +241,7 @@ function dedupe(rows)
 	{
 		if (!byword[rows[i].word])
 		{
-			byword[rows[i].word] = {word: rows[i].word, user_id: rows[i].user_id, points: rows[i].points, finders: []};
+			byword[rows[i].word] = {word: rows[i].word, user_id: rows[i].user_id, points: rows[i].points, rarity: rows[i].rarity, finders: []};
 			list.push(byword[rows[i].word]);
 		}
 		// the own row wins the merged entry's user_id, so a shared word still counts as this player's
@@ -315,6 +321,7 @@ function sortfinishedword(word)
 	var wordspan = document.createElement('span');
 	wordspan.className = 'wordspan';
 	wordspan.textContent = word["word"];
+	wordspan.className += ' ' + rarityclass(word);
 	if (word["user_id"] == -1)
 	{
 		wordspan.className += ' unfound';
@@ -452,6 +459,7 @@ function writelookup(word, entries)
 	entries.forEach(function(entry) {
 		// a game substituting umlauts can match two spellings at once, and each is an entry of its own
 		if (entries.length > 1) { body.appendChild(element('h3', '', entry.word)); }
+		body.appendChild(element('div', 'tag', txt['rarity'+entry.level]));
 		var sounds = entry.sounds || [];
 		var senses = entry.senses || [];
 		// a spelling can be a form of several roots at once, and is one entry in the dictionary for each of them
@@ -507,10 +515,10 @@ function labels(item)
 {
 	return (item.tags || []).concat(item.note || []);
 }
-// the same two symbols the Wörterbuch reactions use: ❕ for what no game accepts, ⎇ for a flexion
+// the same symbols the Wörterbuch reactions use: ❕ for nonstandard, ❗ for disallowed, ⎇ for a flexion
 function marker(item)
 {
-	return (item.strict ? '❕' : '') + (item.inflected ? '⎇' : '');
+	return (item.level == 4 ? '❕' : item.level == 5 ? '❗' : '') + (item.inflected ? '⎇' : '');
 }
 function group(list, key)
 {
@@ -706,8 +714,8 @@ function writedaily(data)
 	var me = data.players[0];
 	if (!me && mystatus == 3) { return; } // a visitor who never played it sees the solution alone
 	var scored = data.words.filter(function(row) { return row.points > 0; });
-	// the dictionary only reacts to words outside the solution, so a scored one it reacted to is a bonus
-	var bonus = scored.filter(function(row) { return lookFor(row.word, data.reactions, 'word') != -1; });
+	// an uncommon or rare word is a bonus
+	var bonus = scored.filter(function(row) { return row.rarity > 1; });
 	var points = scored.reduce(function(sum, row) { return sum + row.points; }, 0);
 	var bonuspoints = bonus.reduce(function(sum, row) { return sum + row.points; }, 0);
 	var possible = 0;
@@ -717,7 +725,7 @@ function writedaily(data)
 	{
 		possible += data.lengths[length];
 		possiblepoints += length * data.lengths[length];
-		var found = scored.filter(function(row) { return row.word.length == length; }).length / data.lengths[length];
+		var found = scored.filter(function(row) { return row.rarity < 2 && row.word.length == length; }).length / data.lengths[length];
 		if (length < data.target) { squares += found >= 1 ? "🟩" : found >= .5 ? "🟨" : found > 0 ? "🟧" : "🟥"; } // 🎯 stands for the target's length
 	}
 	var score = fmt(txt.resultletters, (points - bonuspoints) + (bonuspoints ? "+" + bonuspoints : ""), possiblepoints);
@@ -727,7 +735,7 @@ function writedaily(data)
 	if (mystatus == 3)
 	{
 		line.textContent = txt.target + ": ";
-		line.appendChild(element('span', 'target', solution.reduce(function(longest, word) { return word.length > longest.length ? word : longest; }, "")));
+		line.appendChild(element('span', 'target', solution.reduce(function(longest, row) { return row.rarity < 2 && row.word.length > longest.length ? row.word : longest; }, "")));
 		if (data.hit) { line.appendChild(document.createTextNode(" 🎯")); }
 	}
 	else { line.textContent = fmt(txt.targetlength, data.target) + (data.hit ? " ✓" : ""); }
@@ -744,8 +752,8 @@ function finishdata(data)
 	if (daily) { writedaily(data); } else { writeplayers(data.players); }
 	if (!solution.length) { anagrambutton.remove(); } // no dictionary for this language, or nothing in the word
 	var found = data.words.map(function(row) { return row.word; });
-	var unfound = solution.filter(function(word) { return found.indexOf(word) == -1; })
-		.map(function(word) { return {word: word, user_id: -1, player: txt.dictionary}; });
+	var unfound = solution.filter(function(row) { return found.indexOf(row.word) == -1; })
+		.map(function(row) { return {word: row.word, rarity: row.rarity, user_id: -1, player: txt.dictionary}; });
 	allplayersdump = data.players.concat(unfound.length ? [{player: txt.dictionary, user_id: -1}] : []);
 	allwordsdump = data.words.concat(unfound);
 	uniquewords = dedupe(allwordsdump);
@@ -773,6 +781,7 @@ function receivedata(data)
 		ownpoints += Math.max(0, data.words[i].points);
 		var wordspan = document.getElementById(data.words[i].word+"word");
 		wordspan.classList.toggle('unscored', data.words[i].points < 0);
+		wordspan.className = wordspan.className.replace(/ rarity\d/, '') + ' ' + rarityclass(data.words[i]);
 		var span = document.getElementById(data.words[i].word+'points');
 		if (!span)
 		{

@@ -101,7 +101,7 @@ if (gamestatus == 3) { mystatus = 3; } // a guest who never joined still has mys
 writeletters(originalword);
 // kept out of the DOM rather than hidden while playing: gone, its neighbour rounds off as an only child
 var anagrambutton = document.getElementById("anagram");
-anagrambutton.onclick = function() { select(this); writeletters(anagram(originalword, prepare(solution))); };
+anagrambutton.onclick = function() { select(this); writeletters(anagram(originalword, prepare(solution.map(function(row) { return row.word; })))); };
 if (mystatus != 3) { anagrambutton.remove(); }
 
 document.addEventListener('DOMContentLoaded', function() {

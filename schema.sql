@@ -10,7 +10,7 @@ DROP TABLE IF EXISTS `game`;
 CREATE TABLE `game` (
 	`id` int(10) NOT NULL AUTO_INCREMENT,
 	`source_word` varchar(64) NOT NULL,
-	`solutions` int(10) NOT NULL DEFAULT -1,
+	`solutions` int(10) NOT NULL DEFAULT -1, -- frequent and common words; -1 when no dictionary answered
 	`language` varchar(10) NOT NULL DEFAULT 'de',
 	`umlauts` tinyint(1) NOT NULL DEFAULT 0,
 	`flexion` tinyint(1) NOT NULL DEFAULT 0,
@@ -53,6 +53,7 @@ CREATE TABLE `word` (
 CREATE TABLE `solution` (
 	`game_id` int(10) NOT NULL,
 	`word` varchar(64) COLLATE utf8mb4_bin NOT NULL,
+	`rarity` tinyint(3) NOT NULL DEFAULT 0, -- the dictionary's 0 (frequent) to 5 (disallowed); the default only serves the migration
 	PRIMARY KEY (`game_id`, `word`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
@@ -70,7 +71,7 @@ CREATE TABLE `reaction` (
 CREATE TABLE `candidate` (
 	`language` varchar(10) NOT NULL,
 	`word` varchar(64) COLLATE utf8mb4_bin NOT NULL,
-	`target` varchar(64) COLLATE utf8mb4_bin NOT NULL, -- the one word of the longest length in its solution
+	`target` varchar(64) COLLATE utf8mb4_bin NOT NULL, -- the one frequent or common word of the longest frequent or common length in its solution
 	`day` int(10) DEFAULT NULL, -- the number of the day it is planned for; a length's lowest number goes first, so a 1 puts a word ahead
 	PRIMARY KEY (`language`, `word`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;

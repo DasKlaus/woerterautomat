@@ -73,13 +73,19 @@ $ui = [
 	'maxplayerstitle' => 'bis zu %1 Spieler',
 	'settimelimit' => 'Zeitlimit für Inaktivität',
 	'timelimitin' => 'Zeitlimit in %1',
-	'possiblewords' => '%1 mögliche Wörter',
+	'possiblewords' => '%1 geläufige Wörter',
 
 	'blocked' => 'Zu viele nicht erlaubte Wörter probiert, warte %1 Sekunden!',
 	'notfound' => 'Nicht gefunden',
 	'foundby' => 'Gefunden von %1',
 	'noentry' => 'kein Eintrag',
 	'pronunciation' => 'Aussprache',
+	'rarity0' => 'häufig',
+	'rarity1' => 'gebräuchlich',
+	'rarity2' => 'ungewöhnlich',
+	'rarity3' => 'selten',
+	'rarity4' => 'nicht standardsprachlich',
+	'rarity5' => 'unzulässig',
 	'meanings' => 'Bedeutungen',
 	'formof' => 'Form von',
 	'forcefinish' => 'abschließen',
@@ -97,7 +103,7 @@ $ui = [
 	'wordtoolong' => 'Das Wort ist zu lang. Mehr als 64 Buchstaben sind nicht möglich.',
 	'nodictionaryscoring' => 'Für diese Sprache gibt es noch kein Wörterbuch. Ohne Wörterbuch ist die Wörterbuch-Wertung nicht möglich.',
 	'nodictionary' => 'Für diese Sprache gibt es noch kein Wörterbuch. Das Spiel kann trotzdem gestartet werden.',
-	'toomany' => '%1 mögliche Wörter. Die Begrenzung liegt bei 5000.',
+	'toomany' => '%1 Wörter insgesamt, auch seltene. Die Begrenzung liegt bei 5000.',
 	'ratelimitminute' => 'Du hast gerade eben ein Spiel gestartet. Warte eine Minute, bevor du das nächste startest.',
 	'ratelimithour' => 'Du hast in der letzten Stunde zehn Spiele gestartet. Versuch es später noch einmal.',
 
@@ -172,13 +178,19 @@ $ui = [
 	'maxplayerstitle' => 'up to %1 players',
 	'settimelimit' => 'inactivity time limit',
 	'timelimitin' => 'time limit in %1',
-	'possiblewords' => '%1 possible words',
+	'possiblewords' => '%1 common words',
 
 	'blocked' => 'Too many words the dictionary rejected, wait %1 seconds!',
 	'notfound' => 'Not found',
 	'foundby' => 'Found by %1',
 	'noentry' => 'no entry',
 	'pronunciation' => 'Pronunciation',
+	'rarity0' => 'frequent',
+	'rarity1' => 'common',
+	'rarity2' => 'uncommon',
+	'rarity3' => 'rare',
+	'rarity4' => 'nonstandard',
+	'rarity5' => 'disallowed',
 	'meanings' => 'Meanings',
 	'formof' => 'Form of',
 	'forcefinish' => 'finish',
@@ -196,7 +208,7 @@ $ui = [
 	'wordtoolong' => 'The word is too long. More than 64 letters are not possible.',
 	'nodictionaryscoring' => 'There is no dictionary for this language yet. Without one, dictionary scoring is not possible.',
 	'nodictionary' => 'There is no dictionary for this language yet. The game can be started anyway.',
-	'toomany' => '%1 possible words. The limit is 5000.',
+	'toomany' => '%1 words in total, rare ones included. The limit is 5000.',
 	'ratelimitminute' => 'You started a game a moment ago. Wait a minute before starting the next one.',
 	'ratelimithour' => 'You have started ten games in the last hour. Try again later.',
 
@@ -259,7 +271,7 @@ $text = [
 	'legendmaxplayers' => 'Spielerzahl begrenzen; ohne Angabe unbegrenzt',
 	'legendtimelimit' => 'Zeitlimit f&uuml;r Inaktivit&auml;t, ab der das Spiel durch Mitspieler beendet werden kann<br>
 		&#9203;&#65038; Minuten &nbsp;&nbsp; &#128336;&#65038; Stunden &nbsp;&nbsp; &#128467;&#65038; Tage &nbsp;&nbsp; &#128197;&#65038; Monate, &nbsp;&nbsp; ohne Angabe unbegrenzt',
-	'legenddifficulty' => 'Anzahl der m&ouml;glichen W&ouml;rter (wird automatisch ermittelt)<br>
+	'legenddifficulty' => 'Anzahl der gel&auml;ufigen W&ouml;rter (wird automatisch ermittelt)<br>
 		&middot; <50, &nbsp;&nbsp; &#8270; 50-199, &nbsp;&nbsp; &#8273; 200-499, &nbsp;&nbsp; &#8258; 500-999, &nbsp;&nbsp; &#10035;>=1000',
 	'legendstatus' => 'Spielstatus<br>
 		○ neu (noch kein Beitritt) &nbsp;&nbsp; ◐ laufend (mehrere Spieler beigetreten) &nbsp;&nbsp; ● voll (keine weiteren Beitritte möglich) &nbsp;&nbsp; ✓ abgeschlossen',
@@ -316,7 +328,7 @@ $text = [
 	'legendmaxplayers' => 'limit the number of players; unlimited if left empty',
 	'legendtimelimit' => 'inactivity time limit, after which fellow players can finish the game<br>
 		&#9203;&#65038; minutes &nbsp;&nbsp; &#128336;&#65038; hours &nbsp;&nbsp; &#128467;&#65038; days &nbsp;&nbsp; &#128197;&#65038; months, &nbsp;&nbsp; unlimited if left empty',
-	'legenddifficulty' => 'number of possible words (determined automatically)<br>
+	'legenddifficulty' => 'number of common words (determined automatically)<br>
 		&middot; <50, &nbsp;&nbsp; &#8270; 50-199, &nbsp;&nbsp; &#8273; 200-499, &nbsp;&nbsp; &#8258; 500-999, &nbsp;&nbsp; &#10035;>=1000',
 	'legendstatus' => 'game status<br>
 		○ new (nobody has joined) &nbsp;&nbsp; ◐ ongoing (several players have joined) &nbsp;&nbsp; ● full (no further players can join) &nbsp;&nbsp; ✓ finished',

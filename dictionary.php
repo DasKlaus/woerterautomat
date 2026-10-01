@@ -15,7 +15,7 @@ function dictionaryhas($dictionary, $language)
 		where table_schema = database() and table_name = ?", [$language])->fetch_column();
 }
 
-// null when the language has no dictionary, game.solutions keeps that as -1
+// word => rarity, null when the language has no dictionary (game.solutions keeps that as -1)
 function solutionwords($dictionary, $language, $umlauts, $flexion, $sourceword)
 {
 	if (!dictionaryhas($dictionary, $language)) { return null; }
@@ -31,19 +31,19 @@ function solutionwords($dictionary, $language, $umlauts, $flexion, $sourceword)
 		$capparams[] = $letter;
 		$capparams[] = $count;
 	}
-	$conditions = ["strict = 0", "inflected <= ?", "char_length(`$mode`) between 3 and ?", "`$mode` <> ?", "char_length($wrongletters) = 0", ...$caps];
+	$conditions = ["inflected <= ?", "char_length(`$mode`) between 3 and ?", "`$mode` <> ?", "char_length($wrongletters) = 0", ...$caps];
 	$params = [$flexion, mb_strlen($sourceword), $sourceword, ...array_keys($letters), ...$capparams];
-	return array_column($dictionary->execute_query("select distinct `$mode` as word from `$language` force index (`{$mode}_scan`)
-		where ".implode(" and ", $conditions), $params)->fetch_all(MYSQLI_ASSOC), 'word');
+	return array_column($dictionary->execute_query("select `$mode` as word, min(rarity) as rarity from `$language` force index (`{$mode}_scan`)
+		where ".implode(" and ", $conditions)." group by `$mode`", $params)->fetch_all(MYSQLI_ASSOC), 'rarity', 'word');
 }
 
 function savesolution($mysql, $game, $words)
 {
-	foreach (array_chunk($words, 500) as $chunk)
+	foreach (array_chunk($words, 500, true) as $chunk)
 	{
 		$values = [];
-		foreach ($chunk as $word) { $values[] = $game; $values[] = $word; }
-		$mysql->execute_query("insert into solution (game_id, word) values ".implode(",", array_fill(0, count($chunk), "(?,?)")), $values);
+		foreach ($chunk as $word => $rarity) { $values[] = $game; $values[] = $word; $values[] = $rarity; }
+		$mysql->execute_query("insert into solution (game_id, word, rarity) values ".implode(",", array_fill(0, count($chunk), "(?,?,?)")), $values);
 	}
 }
 
@@ -54,10 +54,10 @@ function lookup($dictionary, $language, $word, $umlauts)
 	if (!dictionaryhas($dictionary, $language)) { return []; }
 	foreach ($umlauts ? ['clean', 'match'] : ['match', 'clean'] as $mode)
 	{
-		$rows = $dictionary->execute_query("select word, sounds, senses, forms from `$language` where `$mode` = ?", [$word])->fetch_all(MYSQLI_ASSOC);
+		$rows = $dictionary->execute_query("select word, rarity, sounds, senses, forms from `$language` where `$mode` = ?", [$word])->fetch_all(MYSQLI_ASSOC);
 		if ($rows)
 		{
-			return array_map(fn($row) => ['word' => $row['word'], 'sounds' => json_decode($row['sounds']),
+			return array_map(fn($row) => ['word' => $row['word'], 'level' => (int)$row['rarity'], 'sounds' => json_decode($row['sounds']),
 				'senses' => json_decode($row['senses']), 'forms' => json_decode($row['forms'])], $rows);
 		}
 	}
@@ -77,12 +77,9 @@ function spelled($dictionary, $language, $word, $rest)
 function wordcheck($dictionary, $language, $word, $umlauts, $flexion)
 {
 	if (!dictionaryhas($dictionary, $language)) { return ""; }
-	$mode = $umlauts ? 'clean' : 'match';
-	if ($dictionary->execute_query("select 1 from `$language` where `$mode` = ? and strict = 1 and inflected <= ?",
-		[$word, $flexion])->fetch_column()) { return "❕"; }
-	if (!$flexion and spelled($dictionary, $language, $word, "inflected = 1 and strict = 0")) { return "⎇"; }
-	if (!$umlauts and $dictionary->execute_query("select 1 from `$language` where clean = ? and `match` <> ? and inflected <= ? and strict = 0",
+	if (!$flexion and spelled($dictionary, $language, $word, "inflected = 1 and rarity < 4")) { return "⎇"; }
+	if (!$umlauts and $dictionary->execute_query("select 1 from `$language` where clean = ? and `match` <> ? and inflected <= ? and rarity < 4",
 		[$word, $word, $flexion])->fetch_column()) { return "Ä→AE"; }
-	if (spelled($dictionary, $language, $word, "strict = 1")) { return "❕"; }
+	if (spelled($dictionary, $language, $word, "rarity = 4")) { return "❕"; }
 	return "❗";
 }
