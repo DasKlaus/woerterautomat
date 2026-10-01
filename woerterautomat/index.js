@@ -48,10 +48,10 @@ function timeago(minutes)
 
 function difficulty(solutions)
 {
-	if (solutions < 50) { return "·"; }
-	if (solutions < 200) { return "⁎"; }
-	if (solutions < 500) { return "⁑"; }
-	if (solutions < 1000) { return "⁂"; }
+	if (solutions < 25) { return "·"; }
+	if (solutions < 50) { return "⁎"; }
+	if (solutions < 100) { return "⁑"; }
+	if (solutions < 250) { return "⁂"; }
 	return "✳";
 }
 
