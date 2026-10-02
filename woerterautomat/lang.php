@@ -274,7 +274,7 @@ $text = [
 	'legendtimelimit' => 'Zeitlimit f&uuml;r Inaktivit&auml;t, ab der das Spiel durch Mitspieler beendet werden kann<br>
 		&#9203;&#65038; Minuten &nbsp;&nbsp; &#128336;&#65038; Stunden &nbsp;&nbsp; &#128467;&#65038; Tage &nbsp;&nbsp; &#128197;&#65038; Monate, &nbsp;&nbsp; ohne Angabe unbegrenzt',
 	'legenddifficulty' => 'Anzahl der gel&auml;ufigen W&ouml;rter (wird automatisch ermittelt)<br>
-		&middot; <50, &nbsp;&nbsp; &#8270; 50-199, &nbsp;&nbsp; &#8273; 200-499, &nbsp;&nbsp; &#8258; 500-999, &nbsp;&nbsp; &#10035;>=1000',
+		&middot; <25, &nbsp;&nbsp; &#8270; 25-49, &nbsp;&nbsp; &#8273; 50-99, &nbsp;&nbsp; &#8258; 100-249, &nbsp;&nbsp; &#10035;>=250',
 	'legendstatus' => 'Spielstatus<br>
 		○ neu (noch kein Beitritt) &nbsp;&nbsp; ◐ laufend (mehrere Spieler beigetreten) &nbsp;&nbsp; ● voll (keine weiteren Beitritte möglich) &nbsp;&nbsp; ✓ abgeschlossen',
 
@@ -285,7 +285,7 @@ $text = [
 	'enterword' => 'Gib ein Wort ein, mit dem du ein Spiel starten willst.',
 
 	'nodaily' => 'Für diesen Tag gibt es kein Spiel des Tages.',
-	'dailyintro' => '<p>Bilde Wörter aus den Buchstaben des Ausgangswortes. Auch seltene Wörter zählen für jedes Ziel, deshalb kann die Zahl darüber hinausgehen. Nicht erlaubte Wörter sind Fehlversuche, der vierte beendet das Spiel.</p>',
+	'dailyintro' => '<p>Bilde Wörter aus den Buchstaben des Ausgangswortes. Nicht erlaubte Wörter sind Fehlversuche, der vierte beendet das Spiel.</p>',
 ],
 'en' => [
 	'gamegone' => 'This game no longer exists.',
@@ -312,7 +312,7 @@ $text = [
 			<dt>Ä→AE</dt><dd>Word would be allowed with umlaut substitution switched on.</dd>
 			<dt>⎇</dt><dd>Word would be allowed with inflected forms allowed.</dd>
 		</dl>
-		<p>The dictionary is an import from wiktionary.org and can be incomplete, wrong, or incorrectly marked (or not marked) as an inflected or rare form. Dictionary reactions therefore disappear once another player has found the word or reacted with 👍.</p>',
+		<p>The dictionary is an import from wiktionary.org and may be incomplete, wrong, or incorrectly marked (or not marked) as an inflected or rare form. Dictionary reactions therefore disappear once another player has found the word or reacted with 👍.</p>',
 	'othertitle' => 'Other',
 	'othertext' => '<dl class="legend">
 			<dt>🔍</dt><dd>look the word up (only once the game is finished)</dd>
@@ -331,18 +331,18 @@ $text = [
 	'legendtimelimit' => 'inactivity time limit, after which fellow players can finish the game<br>
 		&#9203;&#65038; minutes &nbsp;&nbsp; &#128336;&#65038; hours &nbsp;&nbsp; &#128467;&#65038; days &nbsp;&nbsp; &#128197;&#65038; months, &nbsp;&nbsp; unlimited if left empty',
 	'legenddifficulty' => 'number of common words (determined automatically)<br>
-		&middot; <50, &nbsp;&nbsp; &#8270; 50-199, &nbsp;&nbsp; &#8273; 200-499, &nbsp;&nbsp; &#8258; 500-999, &nbsp;&nbsp; &#10035;>=1000',
+		&middot; <25, &nbsp;&nbsp; &#8270; 25-49, &nbsp;&nbsp; &#8273; 50-99, &nbsp;&nbsp; &#8258; 100-249, &nbsp;&nbsp; &#10035;>=250',
 	'legendstatus' => 'game status<br>
 		○ new (nobody has joined) &nbsp;&nbsp; ◐ ongoing (several players have joined) &nbsp;&nbsp; ● full (no further players can join) &nbsp;&nbsp; ✓ finished',
 
 	'newgamenotice' => '<p>In games that are not private, the word is visible to everyone. Insulting, private or offensive words are not allowed;
 		violations can be reported through the legal notice.
 		Games that are not allowed are deleted without notice.</p>
-		<p>Words longer than 16 letters may not be displayed correctly.</p>',
+		<p>Words longer than 16 letters may not display correctly.</p>',
 	'enterword' => 'Enter a word to start a game with.',
 
 	'nodaily' => 'There is no game of the day for this day.',
-	'dailyintro' => '<p>Make words with the letters of the source word. Rarer words count towards every goal too, which is why the count can go past it. Words that aren\'t allowed are misses, and the fourth one ends the game.</p>',
+	'dailyintro' => '<p>Make words with the letters of the source word. Words that aren\'t allowed are misses, and the fourth one ends the game.</p>',
 ],
 ];
 
