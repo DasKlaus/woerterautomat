@@ -162,16 +162,23 @@ function sortword(word)
 	{
 		// -1 is the payload's way of saying the dictionary rules this word out; css hides its pointspan
 		if (wordpoints[found].points < 0) { wordspan.className += ' unscored'; }
+		if (isshort(wordpoints[found])) { wordspan.className += ' short'; }
 		wordspan.className += ' ' + rarityclass(wordpoints[found]);
-		var span = pointspan(wordpoints[found].points);
-		span.id = word+'points';
-		wordspan.appendChild(span);
+		if (!daily)
+		{
+			var span = pointspan(wordpoints[found].points);
+			span.id = word+'points';
+			wordspan.appendChild(span);
+		}
 	}
 	if (mystatus != 3) {
-		wordspan.className += ' deletable';
-		var box = reactionbox(word, true);
-		wordspan.appendChild(box);
-		wordspan.onclick = function(e) { togglepopout(e, box); };
+		if (!daily) { wordspan.className += ' deletable'; }
+		var box = reactionbox(word, !daily);
+		if (box)
+		{
+			wordspan.appendChild(box);
+			wordspan.onclick = function(e) { togglepopout(e, box); };
+		}
 	}
 	sortcontainer.appendChild(wordspan);
 	sortcontainer.appendChild(document.createTextNode(" "));
@@ -229,6 +236,11 @@ function makeplayerboxes()
 	}
 }
 // a word outside the solution is one no dictionary entry vouches for, as rare as it gets
+// on a daily, a word that would score if it were long enough
+function isshort(row)
+{
+	return daily && row.points < 0 && row.rarity != null && row.rarity < 4;
+}
 function rarityclass(row)
 {
 	return 'rarity' + (row.rarity == null ? 5 : row.rarity);
@@ -329,13 +341,15 @@ function sortfinishedword(word)
 	else
 	{
 		var finders = uniquewords[lookFor(word["word"], uniquewords, 'word')].finders;
-		if (finders.length == 1) { wordspan.className += ' unique'; }
+		// a daily is played alone, so every word would be unique
+		if (finders.length == 1 && !daily) { wordspan.className += ' unique'; }
 		if (words.indexOf(word["word"]) == -1) { wordspan.className += ' others'; }
 		else if (finders.length > 1) { wordspan.className += ' shared'; }
 		if (word["points"] < 0) { wordspan.className += ' unscored'; }
-		wordspan.appendChild(pointspan(word["points"]));
+		if (isshort(word)) { wordspan.className += ' short'; }
+		if (!daily) { wordspan.appendChild(pointspan(word["points"])); }
 	}
-	var box = reactionbox(word["word"], word["user_id"] == selfid);
+	var box = reactionbox(word["word"], word["user_id"] == selfid && !daily);
 	if (box)
 	{
 		wordspan.appendChild(box);
@@ -707,41 +721,34 @@ function writestatus(data)
 	if (intro && data.players.length) { intro.remove(); }
 	writedaily(data);
 }
-// a daily's count beside its headline, bonus words apart, and once the target is found or the game finished,
-// the same as plain text to share: a square per length below the target's, the address carrying no result
+// a daily's headline: the first goal not yet reached and the misses left; once the first goal is reached or the game
+// finished, the result as plain text to share, a mark per long length, the address carrying no result.
+// Every scored word is long, and counts towards every goal whatever its rarity.
 function writedaily(data)
 {
 	var me = data.players[0];
 	if (!me && mystatus == 3) { return; } // a visitor who never played it sees the solution alone
-	var scored = data.words.filter(function(row) { return row.points > 0; });
-	// an uncommon or rare word is a bonus
-	var bonus = scored.filter(function(row) { return row.rarity > 1; });
-	var points = scored.reduce(function(sum, row) { return sum + row.points; }, 0);
-	var bonuspoints = bonus.reduce(function(sum, row) { return sum + row.points; }, 0);
-	var possible = 0;
-	var possiblepoints = 0;
-	var squares = "";
+	var scored = data.words.filter(function(row) { return row.points == 0; });
+	var goals = [0, 0, 0]; // frequent, then common and uncommon added
+	var marks = [];
 	for (var length in data.lengths) // ascending, as integer keys always are
 	{
-		possible += data.lengths[length];
-		possiblepoints += length * data.lengths[length];
-		var found = scored.filter(function(row) { return row.rarity < 2 && row.word.length == length; }).length / data.lengths[length];
-		if (length < data.target) { squares += found >= 1 ? "🟩" : found >= .5 ? "🟨" : found > 0 ? "🟧" : "🟥"; } // 🎯 stands for the target's length
+		if (length < data.long) { continue; }
+		var f = data.lengths[length][0], fc = f + data.lengths[length][1], fcu = fc + data.lengths[length][2];
+		goals = [goals[0] + f, goals[1] + fc, goals[2] + fcu];
+		var n = scored.filter(function(row) { return row.word.length == length; }).length;
+		marks.push(length + (n == 0 ? "–" : n >= fcu ? "♛" : n >= fc ? "★" : n >= f ? "✓" : "○"));
 	}
-	var score = fmt(txt.resultletters, (points - bonuspoints) + (bonuspoints ? "+" + bonuspoints : ""), possiblepoints);
-	document.getElementById("dailycount").textContent = score + " · "
-		+ fmt(txt.resultwords, (scored.length - bonus.length) + (bonus.length ? "+" + bonus.length : ""), possible);
-	var line = document.getElementById("dailytarget");
-	if (mystatus == 3)
-	{
-		line.textContent = txt.target + ": ";
-		line.appendChild(element('span', 'target', solution.reduce(function(longest, row) { return row.rarity < 2 && row.word.length > longest.length ? row.word : longest; }, "")));
-		if (data.hit) { line.appendChild(document.createTextNode(" 🎯")); }
-	}
-	else { line.textContent = fmt(txt.targetlength, data.target) + (data.hit ? " ✓" : ""); }
-	document.getElementById("result").classList.toggle("hide", !me || !(data.hit || mystatus == 3));
+	var goal = 0;
+	while (goal < 2 && scored.length >= goals[goal]) { goal++; }
+	document.getElementById("wordbox").className = "target" + goal;
+	var hearts = "❤️".repeat(data.missesleft);
+	document.getElementById("dailycount").textContent = fmt(txt['dailygoal'+goal], scored.length, goals[goal], data.long)
+		+ " · " + (hearts ? fmt(txt.missesleft, hearts) : txt.nomissesleft);
+	document.getElementById("result").classList.toggle("hide", !me || !(scored.length >= goals[0] || mystatus == 3));
+	var last = [hearts, me && me.streak >= 2 ? fmt(txt.streak, me.streak) : ""].filter(Boolean).join(" · ");
 	document.querySelector("#result .share").textContent = new URL("tag-"+daily.number+"-"+language, location.href).href+" #"+daily.number+" "+language.toUpperCase()
-		+ "\n" + squares + (data.hit ? "🎯" : "") + " · " + score + (me && me.streak >= 2 ? " · " + fmt(txt.streak, me.streak) : "");
+		+ "\n" + marks.join(" ") + (last ? "\n" + last : "");
 }
 function finishdata(data)
 {
@@ -752,7 +759,8 @@ function finishdata(data)
 	if (daily) { writedaily(data); } else { writeplayers(data.players); }
 	if (!solution.length) { anagrambutton.remove(); } // no dictionary for this language, or nothing in the word
 	var found = data.words.map(function(row) { return row.word; });
-	var unfound = solution.filter(function(row) { return found.indexOf(row.word) == -1; })
+	// a daily's short words are no part of its goals
+	var unfound = solution.filter(function(row) { return found.indexOf(row.word) == -1 && (!daily || row.word.length >= data.long); })
 		.map(function(row) { return {word: row.word, rarity: row.rarity, user_id: -1, player: txt.dictionary}; });
 	allplayersdump = data.players.concat(unfound.length ? [{player: txt.dictionary, user_id: -1}] : []);
 	allwordsdump = data.words.concat(unfound);
@@ -783,13 +791,13 @@ function receivedata(data)
 		wordspan.classList.toggle('unscored', data.words[i].points < 0);
 		wordspan.className = wordspan.className.replace(/ rarity\d/, '') + ' ' + rarityclass(data.words[i]);
 		var span = document.getElementById(data.words[i].word+'points');
-		if (!span)
+		if (!span && !daily)
 		{
 			span = pointspan(data.words[i].points);
 			span.id = data.words[i].word+'points';
 			wordspan.appendChild(span);
 		}
-		else if (span.textContent != data.words[i].points)
+		else if (span && span.textContent != data.words[i].points)
 		{
 			span.textContent = data.words[i].points;
 			colortransition(data.words[i].word+"word");
@@ -798,10 +806,13 @@ function receivedata(data)
 		var oldbox = wordspan.querySelector('.popout');
 		var wasopen = oldbox && oldbox.classList.contains('open');
 		if (oldbox) { wordspan.removeChild(oldbox); }
-		var newbox = reactionbox(data.words[i].word, true);
-		if (wasopen) { newbox.classList.add('open'); }
-		wordspan.appendChild(newbox);
-		wordspan.onclick = function(box) { return function(e) { togglepopout(e, box); }; }(newbox);
+		var newbox = reactionbox(data.words[i].word, !daily);
+		if (newbox)
+		{
+			if (wasopen) { newbox.classList.add('open'); }
+			wordspan.appendChild(newbox);
+			wordspan.onclick = function(box) { return function(e) { togglepopout(e, box); }; }(newbox);
+		}
 	}
 	if (daily) { writestatus(data); } else { writeplayers(data.players); }
 	if (changed && sortmode == 'points') { sortwords(); }

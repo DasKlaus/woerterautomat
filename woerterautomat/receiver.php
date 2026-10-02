@@ -15,8 +15,8 @@ const VOUCHED = "(r.reactor_id <> -1
 	or ((select count(*) from word f where f.game_id = r.game_id and f.word = r.word) < 2
 		and not exists (select 1 from reaction t where t.game_id = r.game_id and t.word = r.word and t.emoji = '👍')))";
 
-// on a daily, a word scores if it is in the solution and not nonstandard or disallowed
-const DAILYSCORED = "exists (select 1 from solution s where s.game_id = w.game_id and s.word = w.word and s.rarity < 4)";
+// on a daily, a word scores if it is long and in the solution, not nonstandard or disallowed; its one parameter is the length L
+const DAILYSCORED = "char_length(w.word) >= ? and exists (select 1 from solution s where s.game_id = w.game_id and s.word = w.word and s.rarity < 4)";
 
 // today's daily is played without joining: a visitor's first word there creates the identity the branch below requires
 if ($_SERVER['REQUEST_METHOD'] === 'POST' and ($_POST['action'] ?? '') == 'newword' and $daily == date('Y-m-d')) { identify(); }
@@ -27,7 +27,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' and $_SESSION['user_id'])
 	$user = $_SESSION['user_id'];
 	$action = $_POST['action'] ?? '';
 	// a daily is played alone and only on its day: nothing else applies, and recompute() must never run on one
-	if ($daily and ($daily != date('Y-m-d') or !in_array($action, ['newword', 'removeword', 'finishgame'], true)))
+	if ($daily and ($daily != date('Y-m-d') or !in_array($action, ['newword', 'finishgame'], true)))
 	{
 		$action = '';
 		$return = dailystate($mysql, $game, $user, $daily);
@@ -93,10 +93,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' and $_SESSION['user_id'])
 		case "newword":
 			$word = mb_strtolower(trim($_POST['word'] ?? ''));
 			// three words the dictionary rejected within a minute stop the guessing; the block lifts as the oldest leaves the window
+			// a daily counts its misses instead
 			$_SESSION['wrongwords'] = array_values(array_filter($_SESSION['wrongwords'] ?? [], fn($t) => $t > time() - 60));
-			if (count($_SESSION['wrongwords']) >= 3)
+			if (!$daily and count($_SESSION['wrongwords']) >= 3)
 			{
-				$return = $daily ? dailystate($mysql, $game, $user, $daily) : gamestate($mysql, $game, $user);
+				$return = gamestate($mysql, $game, $user);
 				$return['blocked'] = 60 - (time() - $_SESSION['wrongwords'][0]);
 				break;
 			}
@@ -127,9 +128,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' and $_SESSION['user_id'])
 					$mysql->execute_query("insert ignore into reaction (game_id, word, reactor_id, emoji, display_name, created_at)
 						values (?, ?, -1, ?, 'Wörterbuch', now())", [$game, $word, $emoji]);
 					// a nonstandard word is no miss
-					if ($emoji != '❕') { $_SESSION['wrongwords'][] = time(); }
+					if ($emoji != '❕' and !$daily) { $_SESSION['wrongwords'][] = time(); }
 				}
-				if ($daily) { rescore($mysql, $game, $user); }
+				// three misses are free, the fourth finishes the daily
+				if ($daily)
+				{
+					if (misses($mysql, $game, $user) > 3) { $mysql->execute_query("update player set status = 3 where game_id = ? and user_id = ?", [$game, $user]); }
+				}
 				else
 				{
 					recompute($mysql, $game);
@@ -144,15 +149,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' and $_SESSION['user_id'])
 			$word = mb_strtolower(trim($_POST['word'] ?? ''));
 			$mysql->begin_transaction();
 			$mysql->execute_query("delete from word where game_id = ? and user_id = ? and word = ?", [$game, $user, $word]);
-			if ($daily) { rescore($mysql, $game, $user); }
-			else
-			{
-				recompute($mysql, $game);
-				touchgame($mysql, $game);
-			}
+			recompute($mysql, $game);
+			touchgame($mysql, $game);
 			touchplayer($mysql, $game, $user);
 			$mysql->commit();
-			$return = $daily ? dailystate($mysql, $game, $user, $daily) : playerstate($mysql, $game, $user);
+			$return = playerstate($mysql, $game, $user);
 			break;
 		case "joingame":
 			$mysql->begin_transaction();
@@ -326,12 +327,11 @@ else
 ob_end_clean();
 echo json_encode($return);
 
-// a daily's player scores by their own words alone, so one row is updated where recompute() would rewrite every player's
-function rescore($mysql, $game, $user)
+// on a daily, a word outside the solution or disallowed, of any length
+function misses($mysql, $game, $user)
 {
-	$mysql->execute_query("update player set points = (select coalesce(sum(char_length(w.word)), 0)
-			from word w where w.game_id = ? and w.user_id = ? and ".DAILYSCORED.")
-		where game_id = ? and user_id = ?", [$game, $user, $game, $user]);
+	return (int)$mysql->execute_query("select count(*) from word w left join solution s on s.game_id = w.game_id and s.word = w.word
+		where w.game_id = ? and w.user_id = ? and coalesce(s.rarity, 5) = 5", [$game, $user])->fetch_column();
 }
 
 function touchplayer($mysql, $game, $user)
@@ -398,27 +398,32 @@ function finishstate($mysql, $game)
 	return $return;
 }
 
-// gamestate() and finishstate() for a daily, played alone: the requester's own words, worth their length where they score,
+// gamestate() and finishstate() for a daily, played alone: the requester's own words, 0 where they score and -1 where not,
 // only the dictionary's verdicts on them, and the solution once this player has finished or the day is over
 function dailystate($mysql, $game, $user, $daily)
 {
 	$return = [];
-	$return["players"] = $mysql->execute_query("select user_id, display_name as player, status, points, streak, 1 as self
+	// L, the length of the tenth-longest frequent word; a daily chosen before there was one has fewer and counts every length
+	$return["long"] = (int)$mysql->execute_query("select char_length(word) from solution where game_id = ? and rarity = 0
+		order by char_length(word) desc limit 1 offset 9", [$game])->fetch_column() ?: 3;
+	$return["players"] = $mysql->execute_query("select user_id, display_name as player, status, streak, 1 as self
 		from player where game_id = ? and user_id = ?", [$game, $user])->fetch_all(MYSQLI_ASSOC);
-	$return["words"] = $mysql->execute_query("select w.word, w.user_id, s.rarity, if(".DAILYSCORED.", char_length(w.word), -1) as points
+	$return["words"] = $mysql->execute_query("select w.word, w.user_id, s.rarity, if(".DAILYSCORED.", 0, -1) as points
 		from word w left join solution s on s.game_id = w.game_id and s.word = w.word
 		where w.game_id = ? and w.user_id = ?
-		order by w.created_at, w.word", [$game, $user])->fetch_all(MYSQLI_ASSOC);
+		order by w.created_at, w.word", [$return["long"], $game, $user])->fetch_all(MYSQLI_ASSOC);
 	$return["reactions"] = $mysql->execute_query("select r.word, r.reactor_id, r.emoji, r.display_name
 		from reaction r join word w on w.game_id = r.game_id and w.word = r.word
 		where r.game_id = ? and w.user_id = ? and r.reactor_id = -1", [$game, $user])->fetch_all(MYSQLI_ASSOC);
-	// the target is the one frequent or common word of the longest such length, so one of that length found is the target found
-	$return += $mysql->execute_query("select max(char_length(s.word)) as target, max(char_length(s.word)) = max(if(w.word is null, 0, char_length(s.word))) as hit
-		from solution s left join word w on w.game_id = s.game_id and w.word = s.word and w.user_id = ?
-		where s.game_id = ? and s.rarity < 2", [$user, $game])->fetch_assoc();
-	// the count of frequent and common words by length, which gives none of them away while playing
-	$return["lengths"] = array_column($mysql->execute_query("select char_length(word) as length, count(*) as count
-		from solution where game_id = ? and rarity < 2 group by length", [$game])->fetch_all(MYSQLI_ASSOC), 'count', 'length');
+	// length => frequent, common and uncommon words, which gives none of them away while playing
+	$return["lengths"] = [];
+	foreach ($mysql->execute_query("select char_length(word), rarity, count(*) from solution where game_id = ? and rarity < 3
+		group by 1, 2", [$game])->fetch_all() as [$length, $rarity, $count])
+	{
+		$return["lengths"][$length] ??= [0, 0, 0];
+		$return["lengths"][$length][$rarity] = (int)$count;
+	}
+	$return["missesleft"] = max(0, 3 - misses($mysql, $game, $user));
 	$return["solution"] = ($daily < date('Y-m-d') or ($return["players"][0]["status"] ?? 0) == 3)
 		? $mysql->execute_query("select word, rarity from solution where game_id = ? and rarity < 4", [$game])->fetch_all(MYSQLI_ASSOC) : [];
 	return $return;

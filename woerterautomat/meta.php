@@ -3,7 +3,7 @@
 # receiver.php uses gameurl() to build links for the client.
 
 const DAILY = '2026-09-23'; // the daily's day 0
-const DAILYLENGTH = [7, 8, 9, 10, 11, 12, 6]; // the daily's word length by weekday from Sunday; up to 7 letters allow inflected forms
+const DAILYLENGTH = [7, 8, 9, 10, 11, 12, 6]; // the daily's word length by weekday from Sunday
 
 # with the setting on, a word the dictionary objected to scores nothing until the same second
 # finder or 👍 that withdraws the verdict vouches for it
@@ -55,17 +55,17 @@ function dailyurl($day, $language)
 function createdaily($mysql, $language)
 {
 	if ($mysql->execute_query("select 1 from game where daily = ? and language = ?", [date('Y-m-d'), $language])->fetch_column()) { return; }
-	$candidate = $mysql->execute_query("select word from candidate where language = ?
+	$candidate = $mysql->execute_query("select word, flexion, umlauts from candidate where language = ?
 		order by abs(char_length(word) - ?), char_length(word), day is null, day, rand() limit 1", [$language, DAILYLENGTH[date('w')]])->fetch_assoc();
 	if (!$candidate) { return; }
 	$word = $candidate['word'];
-	$flexion = (int)(mb_strlen($word) < 8);
 	require_once("../dictionary.php");
-	$words = solutionwords($dictionary, $language, 0, $flexion, $word);
+	$words = solutionwords($dictionary, $language, $candidate['umlauts'], $candidate['flexion'], $word);
 	$mysql->begin_transaction();
-	$mysql->execute_query("insert ignore into game (source_word, language, flexion, dictionary, maxplayers, timelimit, solutions, daily,
+	$mysql->execute_query("insert ignore into game (source_word, language, umlauts, flexion, dictionary, maxplayers, timelimit, solutions, daily,
 			created_by, created_by_name, created_at, last_activity_at)
-		values (?, ?, ?, 1, 0, 0, ?, ?, 0, '', now(), now())", [$word, $language, $flexion, count(array_filter($words, fn($rarity) => $rarity < 2)), date('Y-m-d')]);
+		values (?, ?, ?, ?, 1, 0, 0, ?, ?, 0, '', now(), now())",
+		[$word, $language, $candidate['umlauts'], $candidate['flexion'], count(array_filter($words, fn($rarity) => $rarity < 2)), date('Y-m-d')]);
 	if ($mysql->affected_rows)
 	{
 		savesolution($mysql, $mysql->insert_id, $words);

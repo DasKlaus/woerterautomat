@@ -7,10 +7,11 @@ require_once("../dictionary.php");
 require_once("meta.php");
 
 // Refills the daily's candidate words, rerun after a dictionary import; the words already marked for a day stay, and the
-// next four weeks are marked. A candidate is an uninflected entry up to uncommon with a pronunciation whose solution, under the
-// settings its length gets (6 and 7 letters with inflected forms, 8 to 12 without), has 25 to 150 frequent or common words and
-// exactly one of its longest length, the target, which is kept beside it for review. On weekends the target is of the full length, and it
-// is never spelled out in the candidate's own order of letters. A daily's word and its anagrams are never candidates again.
+// next four weeks are marked. A source is an uninflected entry up to uncommon with a pronunciation, 6 to 12 letters as played.
+// It qualifies under a combination of settings if, counting down from its solution's longest length, the frequent words reach
+// exactly ten at some length L (those ten are kept beside it for review), and its frequent and common words number fewer than 100.
+// Settings are tried fewest first: none, else inflected forms alone and umlaut substitution alone, else both; substitution only
+// counts where it changes the frequent words' count by length. A daily's word and its anagrams are never candidates again.
 // Rather than solutionwords() per word, every word is filed under its sorted letters, and a candidate's solution is what
 // is filed under every sub-multiset of its own letters.
 function sortletters($word)
@@ -26,23 +27,31 @@ foreach (['de', 'en'] as $language)
 	$used = array_map('sortletters', array_column($mysql->execute_query("select source_word from game where daily is not null and language = ?",
 		[$language])->fetch_all(), 0));
 	$mysql->execute_query("delete from candidate where language = ? and day is null", [$language]);
-	foreach ([[1, 6, 7], [0, 8, 12]] as [$flexion, $shortest, $longest])
+	$sources = array_column($dictionary->execute_query("select `match`, min(clean) as clean from `$language` where rarity < 3 and inflected = 0 and sounds <> '[]'
+		and (char_length(`match`) between 6 and 12 or char_length(clean) between 6 and 12) group by `match`")->fetch_all(MYSQLI_ASSOC), 'clean', 'match');
+	$settled = []; // source => the number of settings it qualified with, which rules out combinations of more
+	$counts = []; // flexion => source => frequent words by length without substitution
+	$candidates = [];
+	foreach ([[0, 0], [1, 0], [0, 1], [1, 1]] as [$flexion, $umlauts])
 	{
-		$filed = []; // space-separated, as the leanest way to hold this many
-		foreach ($dictionary->execute_query("select distinct `match` from `$language` where rarity < 2 and inflected <= ? and char_length(`match`) between 3 and ?",
-			[$flexion, $longest]) as $row)
+		$mode = $umlauts ? 'clean' : 'match';
+		$frequent = []; // space-separated, as the leanest way to hold this many
+		$common = [];
+		foreach ($dictionary->execute_query("select `$mode` as word, min(rarity) as rarity from `$language` where rarity < 2 and inflected <= ?
+			and char_length(`$mode`) between 3 and 12 group by `$mode`", [$flexion]) as $row)
 		{
-			$key = sortletters($row['match']);
-			$filed[$key] = isset($filed[$key]) ? $filed[$key].' '.$row['match'] : $row['match'];
+			$key = sortletters($row['word']);
+			if ($row['rarity'] == 0) { $frequent[$key] = isset($frequent[$key]) ? $frequent[$key].' '.$row['word'] : $row['word']; }
+			else { $common[$key] = isset($common[$key]) ? $common[$key].' '.$row['word'] : $row['word']; }
 		}
-		$candidates = [];
-		foreach ($dictionary->execute_query("select `match`, min(rarity) as rarity from `$language` where rarity < 3 and inflected = 0 and sounds <> '[]'
-			and char_length(`match`) between ? and ? group by `match`", [$shortest, $longest]) as $row)
+		foreach ($sources as $source => $clean)
 		{
-			$word = $row['match'];
-			if (in_array(sortletters($word), $used, true)) { continue; }
+			if (($settled[$source] ?? 3) < $flexion + $umlauts) { continue; }
+			$word = $umlauts ? $clean : $source;
+			$all = sortletters($word);
+			if (mb_strlen($word) < 6 or mb_strlen($word) > 12 or in_array($all, $used, true)) { continue; }
 			$subsets = ['' => 0];
-			foreach (array_count_values(mb_str_split(sortletters($word))) as $letter => $count)
+			foreach (array_count_values(mb_str_split($all)) as $letter => $count)
 			{
 				$next = [];
 				foreach ($subsets as $subset => $length)
@@ -52,34 +61,46 @@ foreach (['de', 'en'] as $language)
 				$subsets = $next;
 			}
 			$bylength = [];
+			$total = 0;
 			foreach ($subsets as $subset => $length)
 			{
-				if ($length > 2 and isset($filed[$subset])) { $bylength[$length] = ($bylength[$length] ?? 0) + substr_count($filed[$subset], ' ') + 1; }
+				if ($length < 3) { continue; }
+				if (isset($frequent[$subset])) { $bylength[$length] = ($bylength[$length] ?? 0) + substr_count($frequent[$subset], ' ') + 1; }
+				if (isset($common[$subset])) { $total += substr_count($common[$subset], ' ') + 1; }
 			}
-			if ($row['rarity'] < 2) { $bylength[mb_strlen($word)]--; } // the word itself, unless it is too uncommon to be filed
+			// the word itself is filed under all its letters, but is no word of its own solution
+			if (str_contains(' '.($frequent[$all] ?? '').' ', " $word ")) { $bylength[mb_strlen($word)]--; }
+			if (str_contains(' '.($common[$all] ?? '').' ', " $word ")) { $total--; }
 			$bylength = array_filter($bylength);
 			krsort($bylength);
-			$top = array_key_first($bylength);
-			$total = array_sum($bylength);
-			if ($total >= 25 and $total <= 150 and $bylength[$top] == 1 and ($flexion == 0 or $top == mb_strlen($word)))
+			if (!$umlauts) { $counts[$flexion][$source] = $bylength; }
+			elseif ($bylength == ($counts[$flexion][$source] ?? null)) { continue; }
+			$total += array_sum($bylength);
+			$long = 0;
+			foreach ($bylength as $shortest => $count)
 			{
-				$longestwords = [];
-				foreach ($subsets as $subset => $length)
-				{
-					if ($length == $top and isset($filed[$subset])) { array_push($longestwords, ...explode(' ', $filed[$subset])); }
-				}
-				$target = implode(array_diff($longestwords, [$word]));
-				// read off rather than found, like läufer in läuferin or vorzeichen in vorzeichnen
-				if (!preg_match('/'.implode('.*', mb_str_split($target)).'/u', $word)) { $candidates[] = [$word, $target]; }
+				$long += $count;
+				if ($long >= 10) { break; }
 			}
+			if ($long != 10 or $total >= 100) { continue; }
+			$settled[$source] = $flexion + $umlauts;
+			$target = [];
+			foreach ($subsets as $subset => $length)
+			{
+				if ($length >= $shortest and isset($frequent[$subset])) { array_push($target, ...explode(' ', $frequent[$subset])); }
+			}
+			$candidates[] = [$word, $flexion, $umlauts, implode(' ', array_diff($target, [$word]))];
 		}
-		foreach (array_chunk($candidates, 500) as $chunk)
-		{
-			$values = [];
-			foreach ($chunk as [$word, $target]) { $values[] = $language; $values[] = $word; $values[] = $target; }
-			$mysql->execute_query("insert ignore into candidate (language, word, target) values ".implode(",", array_fill(0, count($chunk), "(?,?,?)")), $values);
-		}
-		echo $language." ".$shortest."-".$longest." letters: ".count($candidates)." candidates".PHP_EOL;
+	}
+	foreach (array_chunk($candidates, 500) as $chunk)
+	{
+		$values = [];
+		foreach ($chunk as $candidate) { array_push($values, $language, ...$candidate); }
+		$mysql->execute_query("insert ignore into candidate (language, word, flexion, umlauts, target) values ".implode(",", array_fill(0, count($chunk), "(?,?,?,?,?)")), $values);
+	}
+	foreach ($mysql->execute_query("select char_length(word) as length, count(*) as count from candidate where language = ? group by length", [$language]) as $row)
+	{
+		echo $language." ".$row['length']." letters: ".$row['count']." candidates".PHP_EOL;
 	}
 	plandailies($mysql, $language);
 }

@@ -126,7 +126,9 @@ input, select {background-color: var(--shade); font-family: var(--ui);}
 .fadeOut {border: 1px solid var(--line); color: var(--fg); transition: border-color 1s, color 1s;}
 .unique {font-weight: bold;}
 .shared {background-color: var(--shade);}
-.others {background-color: var(--line); border-color: var(--muted);}
+.others, .short {background-color: var(--line); border-color: var(--muted);}
+/* a daily's #wordbox carries its current goal's rarity; a scoring word rarer than that stands out */
+:is(.target0 .rarity1, .target0 .rarity2, .target0 .rarity3, .target1 .rarity2, .target1 .rarity3, .target2 .rarity3):not(.short, .unfound) {font-weight: bold;}
 .unfound {border:none;}
 .unfound.rarity2 {font-size: small;}
 .unfound.rarity3 {font-size: smaller;}
@@ -198,7 +200,6 @@ input, select {background-color: var(--shade); font-family: var(--ui);}
 #dailylanguage {width: 5rem; float: right;}
 #result:not(.hide) {display: flex; align-items: start; gap: 10px; margin-bottom: 10px;}
 #result .share {min-width: 0; overflow-wrap: anywhere; white-space: pre-line;}
-.target {font-family: var(--display); font-size: 40px; line-height: 1;}
 
 /* game list */
 

@@ -32,7 +32,7 @@ foreach ($mysql->execute_query("select id, source_word, language, umlauts, flexi
 			$reactions++;
 		}
 	}
-	// a daily's points are counted on its own and stay as played
+	// a daily has no points
 	if (!$game['daily']) { recompute($mysql, $game['id']); }
 	echo (is_null($words) ? "no dictionary" : count($words)." words").", ".$reactions." reactions".PHP_EOL;
 }

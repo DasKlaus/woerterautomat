@@ -113,10 +113,11 @@ $ui = [
 	'descfinished' => 'Abgeschlossen.',
 
 	'daily' => 'Spiel des Tages',
-	'targetlength' => 'Zielwort: %1 Buchstaben',
-	'resultletters' => '%1 / %2 Punkte',
-	'resultwords' => '%1 / %2 Wörter',
-	'target' => 'Zielwort',
+	'dailygoal0' => '%1/%2 häufige Wörter ab %3 Buchstaben',
+	'dailygoal1' => '%1/%2 häufige und gebräuchliche Wörter ab %3 Buchstaben',
+	'dailygoal2' => '%1/%2 häufige bis ungewöhnliche Wörter ab %3 Buchstaben',
+	'missesleft' => '%1 Fehlversuche übrig',
+	'nomissesleft' => 'keine Fehlversuche übrig',
 	'streak' => '🔥 %1 Tage in Folge',
 	'copy' => 'Kopieren',
 ],
@@ -218,10 +219,11 @@ $ui = [
 	'descfinished' => 'Finished.',
 
 	'daily' => 'Game of the day',
-	'targetlength' => 'Target word: %1 letters',
-	'resultletters' => '%1 / %2 points',
-	'resultwords' => '%1 / %2 words',
-	'target' => 'Target word',
+	'dailygoal0' => '%1/%2 frequent words with %3+ letters',
+	'dailygoal1' => '%1/%2 frequent and common words with %3+ letters',
+	'dailygoal2' => '%1/%2 frequent to uncommon words with %3+ letters',
+	'missesleft' => '%1 misses left',
+	'nomissesleft' => 'no misses left',
 	'streak' => '🔥 %1 days in a row',
 	'copy' => 'Copy',
 ],
@@ -283,7 +285,7 @@ $text = [
 	'enterword' => 'Gib ein Wort ein, mit dem du ein Spiel starten willst.',
 
 	'nodaily' => 'Für diesen Tag gibt es kein Spiel des Tages.',
-	'dailyintro' => '<p>Bilde Wörter aus den Buchstaben des Ausgangswortes. Finde das Zielwort oder schließe das Spiel ab, um deine Punkte zu teilen.</p>',
+	'dailyintro' => '<p>Bilde Wörter aus den Buchstaben des Ausgangswortes. Auch seltene Wörter zählen für jedes Ziel, deshalb kann die Zahl darüber hinausgehen. Nicht erlaubte Wörter sind Fehlversuche, der vierte beendet das Spiel.</p>',
 ],
 'en' => [
 	'gamegone' => 'This game no longer exists.',
@@ -340,7 +342,7 @@ $text = [
 	'enterword' => 'Enter a word to start a game with.',
 
 	'nodaily' => 'There is no game of the day for this day.',
-	'dailyintro' => '<p>Make words with the letters of the source word. Find the target word or finish the game to share your score.</p>',
+	'dailyintro' => '<p>Make words with the letters of the source word. Rarer words count towards every goal too, which is why the count can go past it. Words that aren\'t allowed are misses, and the fourth one ends the game.</p>',
 ],
 ];
 

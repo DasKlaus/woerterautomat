@@ -71,7 +71,9 @@ CREATE TABLE `reaction` (
 CREATE TABLE `candidate` (
 	`language` varchar(10) NOT NULL,
 	`word` varchar(64) COLLATE utf8mb4_bin NOT NULL,
-	`target` varchar(64) COLLATE utf8mb4_bin NOT NULL, -- the one frequent or common word of the longest frequent or common length in its solution
+	`flexion` tinyint(1) NOT NULL DEFAULT 0,
+	`umlauts` tinyint(1) NOT NULL DEFAULT 0, -- the word is then spelled substituted too
+	`target` varchar(255) COLLATE utf8mb4_bin NOT NULL, -- the ten frequent long words in its solution, space-separated, for review
 	`day` int(10) DEFAULT NULL, -- the number of the day it is planned for; a length's lowest number goes first, so a 1 puts a word ahead
-	PRIMARY KEY (`language`, `word`)
+	PRIMARY KEY (`language`, `word`, `flexion`, `umlauts`) -- one spelling may qualify under two settings
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;

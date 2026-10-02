@@ -7,7 +7,6 @@ if ($dailyday) # set by canonical() for any day's page, with a daily or without
 			</div>
 			<h3>'.t('daily').' #'.daynumber($dailyday).'</h3>
 			<span id="dailycount"></span>
-			<span id="dailytarget"></span>
 		</div>';
 if (!$currentgame) # queried by canonical() in meta.php, which needs the word for the URL before any output
 {
@@ -169,7 +168,7 @@ if ($currentgame['daily'])
 		<button type="button" onClick="select(this); sortmode = 'chrono'; sortwords();"><?php echo t('sortchrono'); ?></button>
 		<button type="button" onClick="select(this); sortmode = 'alpha'; sortwords();"><?php echo t('alphabetical'); ?></button>
 		<button type="button" onClick="select(this); sortmode = 'length'; sortwords();"><?php echo t('sortlength'); ?></button>
-		<button type="button" onClick="select(this); sortmode = 'points'; sortwords();"><?php echo t('sortpoints'); ?></button>
+		<?php if (!$currentgame['daily']) echo '<button type="button" onClick="select(this); sortmode = \'points\'; sortwords();">'.t('sortpoints').'</button>'; ?>
 		</div>
 		<div id="orderbuttons" class="modes">
 		<button type="button" class="selected" title="<?php echo t('ascending'); ?>" onClick="select(this); direction = 1; sortwords();">&darr;</button>
