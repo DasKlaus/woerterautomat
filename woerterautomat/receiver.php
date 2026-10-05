@@ -434,6 +434,24 @@ function dailystate($mysql, $game, $user, $daily)
 	$return["missesleft"] = max(0, 3 - misses($mysql, $game, $user));
 	$return["solution"] = ($daily < date('Y-m-d') or ($return["players"][0]["status"] ?? 0) == 3)
 		? $mysql->execute_query("select word, rarity from solution where game_id = ? and rarity < 4", [$game])->fetch_all(MYSQLI_ASSOC) : [];
+	// with the solution, everyone who played ranked: the top ten, this player below them if further down, each with
+	// their scored words per length for the marks
+	if ($return["solution"])
+	{
+		$lengths = [];
+		foreach ($mysql->execute_query("select w.user_id, char_length(w.word), count(*) from word w where w.game_id = ? and ".DAILYSCORED."
+			group by 1, 2", [$game, $return["long"]])->fetch_all() as [$id, $length, $count])
+			$lengths[$id][$length] = (int)$count;
+		$return["top"] = [];
+		foreach ($mysql->execute_query("select p.user_id, p.display_name as player
+				from player p left join word w on w.game_id = p.game_id and w.user_id = p.user_id and ".DAILYSCORED."
+				where p.game_id = ? group by p.user_id, p.display_name
+				order by count(w.word) desc, sum(char_length(w.word)) desc, greatest(0, 3 - (select count(*) from word m left join solution s
+					on s.game_id = m.game_id and s.word = m.word where m.game_id = ? and m.user_id = p.user_id and coalesce(s.rarity, 5) = 5)) desc,
+					max(w.created_at)", [$return["long"], $game, $game])->fetch_all(MYSQLI_ASSOC) as $i => $row)
+			if ($i < 10 or $row["user_id"] == $user)
+				$return["top"][] = ["rank" => $i + 1, "player" => $row["player"], "self" => $row["user_id"] == $user, "lengths" => $lengths[$row["user_id"]] ?? []];
+	}
 	return $return;
 }
 

@@ -728,18 +728,18 @@ function writestatus(data)
 // Every scored word is long, and counts towards every goal whatever its rarity.
 function writedaily(data)
 {
+	writehighscores(data);
 	var me = data.players[0];
-	if (!me && mystatus == 3) { return; } // a visitor who never played it sees the solution alone
+	if (!me && mystatus == 3) { return; } // a visitor who never played it sees the solution and the ranking alone
 	var scored = data.words.filter(function(row) { return row.points == 0; });
+	var counts = {};
+	scored.forEach(function(row) { counts[row.word.length] = (counts[row.word.length] || 0) + 1; });
 	var goals = [0, 0, 0]; // frequent, then common and uncommon added
-	var marks = [];
-	for (var length in data.lengths) // ascending, as integer keys always are
+	for (var length in data.lengths)
 	{
 		if (length < data.long) { continue; }
 		var f = data.lengths[length][0], fc = f + data.lengths[length][1], fcu = fc + data.lengths[length][2];
 		goals = [goals[0] + f, goals[1] + fc, goals[2] + fcu];
-		var n = scored.filter(function(row) { return row.word.length == length; }).length;
-		marks.push(length + (n == 0 ? "–" : n >= fcu ? "♛" : n >= fc ? "★" : n >= f ? "✓" : "○"));
 	}
 	var goal = 0;
 	while (goal < 2 && scored.length >= goals[goal]) { goal++; }
@@ -750,7 +750,34 @@ function writedaily(data)
 	document.getElementById("result").classList.toggle("hide", !me || !(scored.length >= goals[0] || mystatus == 3));
 	var last = [hearts, me && me.streak >= 2 ? fmt(txt.streak, me.streak) : ""].filter(Boolean).join(" · ");
 	document.querySelector("#result .share").textContent = new URL("tag-"+daily.number+"-"+language, location.href).href+" #"+daily.number+" "+language.toUpperCase()
-		+ "\n" + marks.join(" ") + " · " + fmt(txt.wordcount, scored.length) + (last ? "\n" + last : "");
+		+ "\n" + marks(data, counts) + " · " + fmt(txt.wordcount, scored.length) + (last ? "\n" + last : "");
+}
+// a mark per long length, from the number of scored words of that length
+function marks(data, counts)
+{
+	var list = [];
+	for (var length in data.lengths) // ascending, as integer keys always are
+	{
+		if (length < data.long) { continue; }
+		var f = data.lengths[length][0], fc = f + data.lengths[length][1], fcu = fc + data.lengths[length][2];
+		var n = counts[length] || 0;
+		list.push(length + (n == 0 ? "–" : n >= fcu ? "♛" : n >= fc ? "★" : n >= f ? "✓" : "○"));
+	}
+	return list.join(" ");
+}
+// the ranking, sent with the solution: rank, name, marks and scored words
+function writehighscores(data)
+{
+	var list = document.getElementById("highscores");
+	list.textContent = "";
+	(data.top || []).forEach(function(entry) {
+		var row = element("div", entry.self ? "self" : "");
+		var count = Object.values(entry.lengths).reduce(function(sum, n) { return sum + n; }, 0);
+		row.append(element("span", "", entry.rank), element("span", "", entry.player || txt.guest),
+			element("span", "", marks(data, entry.lengths)), element("span", "", String(count)));
+		list.appendChild(row);
+	});
+	list.classList.toggle("hide", !list.childElementCount);
 }
 function livestext(missesleft)
 {

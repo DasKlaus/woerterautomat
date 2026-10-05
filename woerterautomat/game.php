@@ -159,7 +159,8 @@ if ($currentgame['daily'])
 	echo '<div id="result" class="hide">
 			<div class="share"></div>
 			<button type="button" class="copy" title="'.t('copy').'" onclick="getSelection().selectAllChildren(this.previousElementSibling); navigator.clipboard.writeText(this.previousElementSibling.textContent);">⧉</button>
-		</div>';
+		</div>
+		<div id="highscores" class="hide"></div>';
 }
 ?>
 <div id="wordbox">

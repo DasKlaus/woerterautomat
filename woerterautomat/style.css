@@ -200,6 +200,13 @@ input, select {background-color: var(--shade); font-family: var(--ui);}
 #dailylanguage {width: 5rem; float: right;}
 #result:not(.hide) {display: flex; align-items: start; gap: 10px; margin-bottom: 10px;}
 #result .share {min-width: 0; overflow-wrap: anywhere; white-space: pre-line;}
+/* rows share the columns, so names, marks and counts line up */
+#highscores:not(.hide) {display: grid; grid-template-columns: auto 1fr auto auto; margin-bottom: 10px; padding: 3px 0;
+	border: 1px solid var(--fg); border-radius: 3px; line-height: 22px;}
+#highscores > div {display: grid; grid-column: 1 / -1; grid-template-columns: subgrid; gap: 10px; padding: 0 10px;}
+#highscores > div > :is(:first-child, :last-child) {text-align: right; font-variant-numeric: tabular-nums;}
+#highscores > div > :nth-child(2) {min-width: 0; overflow-wrap: anywhere;}
+#highscores .self {background-color: var(--shade);}
 
 /* game list */
 
