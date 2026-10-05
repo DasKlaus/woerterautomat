@@ -750,7 +750,7 @@ function writedaily(data)
 	document.getElementById("result").classList.toggle("hide", !me || !(scored.length >= goals[0] || mystatus == 3));
 	var last = [hearts, me && me.streak >= 2 ? fmt(txt.streak, me.streak) : ""].filter(Boolean).join(" · ");
 	document.querySelector("#result .share").textContent = new URL("tag-"+daily.number+"-"+language, location.href).href+" #"+daily.number+" "+language.toUpperCase()
-		+ "\n" + marks.join(" ") + (last ? "\n" + last : "");
+		+ "\n" + marks.join(" ") + " · " + fmt(txt.wordcount, scored.length) + (last ? "\n" + last : "");
 }
 function livestext(missesleft)
 {

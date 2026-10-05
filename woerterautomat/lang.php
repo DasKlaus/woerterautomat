@@ -120,6 +120,7 @@ $ui = [
 	'missesleft' => '%1 Fehlversuche übrig',
 	'nomissesleft' => 'keine Fehlversuche übrig',
 	'streak' => '🔥 %1 Tage in Folge',
+	'wordcount' => '%1 Wörter',
 	'copy' => 'Kopieren',
 ],
 'en' => [
@@ -227,6 +228,7 @@ $ui = [
 	'missesleft' => '%1 misses left',
 	'nomissesleft' => 'no misses left',
 	'streak' => '🔥 %1 days in a row',
+	'wordcount' => '%1 words',
 	'copy' => 'Copy',
 ],
 ];
