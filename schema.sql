@@ -15,6 +15,7 @@ CREATE TABLE `game` (
 	`umlauts` tinyint(1) NOT NULL DEFAULT 0,
 	`flexion` tinyint(1) NOT NULL DEFAULT 0,
 	`dictionary` tinyint(1) NOT NULL DEFAULT 0,
+	`lives` tinyint(1) NOT NULL DEFAULT 0, -- the fourth miss finishes the player; implies dictionary
 	`private` tinyint(1) NOT NULL DEFAULT 0,
 	`maxplayers` int(10) NOT NULL DEFAULT 0,
 	`timelimit` int(10) NOT NULL DEFAULT 10080,

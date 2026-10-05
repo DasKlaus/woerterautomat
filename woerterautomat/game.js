@@ -633,6 +633,8 @@ function finish() {
 	mystatus=3;
 	document.getElementById('finish').style.display = 'none';
 	document.getElementById('inputline').style.display = 'none';
+	var line = document.getElementById('lives');
+	if (line) { line.remove(); }
 	document.getElementById('input').value = '';
 	writeletters(document.getElementById("letters").textContent);
 	playerbutton();
@@ -744,11 +746,15 @@ function writedaily(data)
 	document.getElementById("wordbox").className = "target" + goal;
 	var hearts = "❤️".repeat(data.missesleft);
 	document.getElementById("dailycount").textContent = fmt(txt['dailygoal'+goal], scored.length, goals[goal], data.long)
-		+ " · " + (hearts ? fmt(txt.missesleft, hearts) : txt.nomissesleft);
+		+ (mystatus == 3 ? "" : " · " + livestext(data.missesleft));
 	document.getElementById("result").classList.toggle("hide", !me || !(scored.length >= goals[0] || mystatus == 3));
 	var last = [hearts, me && me.streak >= 2 ? fmt(txt.streak, me.streak) : ""].filter(Boolean).join(" · ");
 	document.querySelector("#result .share").textContent = new URL("tag-"+daily.number+"-"+language, location.href).href+" #"+daily.number+" "+language.toUpperCase()
 		+ "\n" + marks.join(" ") + (last ? "\n" + last : "");
+}
+function livestext(missesleft)
+{
+	return missesleft ? fmt(txt.missesleft, "❤️".repeat(missesleft)) : txt.nomissesleft;
 }
 function finishdata(data)
 {
@@ -815,5 +821,7 @@ function receivedata(data)
 		}
 	}
 	if (daily) { writestatus(data); } else { writeplayers(data.players); }
+	var line = document.getElementById("lives");
+	if (line) { line.textContent = livestext(data.missesleft); }
 	if (changed && sortmode == 'points') { sortwords(); }
   }

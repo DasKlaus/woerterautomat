@@ -68,6 +68,7 @@ $ui = [
 	'setumlauts' => 'Umlaute substituieren',
 	'setflexion' => 'Flexionsformen erlauben',
 	'setdictionary' => 'nur Wörterbuch-Wörter werten',
+	'setlives' => 'nach dem vierten Fehlversuch ist das Spiel beendet',
 	'setprivate' => 'privates Spiel',
 	'setmaxplayers' => 'Spielerzahl begrenzen',
 	'maxplayerstitle' => 'bis zu %1 Spieler',
@@ -174,6 +175,7 @@ $ui = [
 	'setumlauts' => 'substitute umlauts',
 	'setflexion' => 'allow inflected forms',
 	'setdictionary' => 'score dictionary words only',
+	'setlives' => 'the fourth miss ends your game',
 	'setprivate' => 'private game',
 	'setmaxplayers' => 'limit the number of players',
 	'maxplayerstitle' => 'up to %1 players',
@@ -268,7 +270,7 @@ $text = [
 	'legendflexion' => 'Flexionsformen erlauben: gebeugte und abgeleitete Formen von Wörtern wie Mehrzahlen, Deklinationen, Konjugationen<br>
 		zum Beispiel Häuser, gelaufen, fragte, dessen, mir, Notarin, Fuchses',
 	'legenddictionary' => 'W&ouml;rter, die das W&ouml;rterbuch nicht kennt, bringen keine Punkte<br>
-		Fund durch einen zweiten Spieler oder ein 👍 nehmen ein Wort in die Wertung auf.',
+		Fund durch einen zweiten Spieler oder ein 👍 nehmen ein Wort in die Wertung auf, au&szlig;er in Spielen im ♡-Modus.',
 	'legendprivate' => 'privates Spiel: unsichtbar f&uuml;r andere (zum Einladen URL teilen)',
 	'legendmaxplayers' => 'Spielerzahl begrenzen; ohne Angabe unbegrenzt',
 	'legendtimelimit' => 'Zeitlimit f&uuml;r Inaktivit&auml;t, ab der das Spiel durch Mitspieler beendet werden kann<br>
@@ -325,7 +327,7 @@ $text = [
 	'legendflexion' => 'allow inflected forms: declined and derived forms of words such as plurals, cases, conjugations<br>
 		for example houses, walked, asked, whose, running, teacher&rsquo;s',
 	'legenddictionary' => 'words the dictionary does not know score no points<br>
-		A second player finding the word, or a 👍, takes it into the scoring.',
+		A second player finding the word, or a 👍, takes it into the scoring, except in games in ♡ mode.',
 	'legendprivate' => 'private game: invisible to others (share the URL to invite)',
 	'legendmaxplayers' => 'limit the number of players; unlimited if left empty',
 	'legendtimelimit' => 'inactivity time limit, after which fellow players can finish the game<br>
@@ -378,6 +380,7 @@ function legend($status = false)
 		<dt>&Auml;&rarr;AE</dt><dd>'.t('legendumlauts').'</dd>
 		<dt>&#9095;</dt><dd>'.t('legendflexion').'</dd>
 		<dt>&#128366;</dt><dd>'.t('legenddictionary').'</dd>
+		<dt>&#9825;</dt><dd>'.t('setlives').'</dd>
 		<dt>&#9919;</dt><dd>'.t('legendprivate').'</dd>
 		<dt>&#9786;</dt><dd>'.t('legendmaxplayers').'</dd>
 		<dt>&#9203;&#65038; &#128336;&#65038; &#128467;&#65038; &#128197;&#65038;</dt><dd>'.t('legendtimelimit').'</dd>

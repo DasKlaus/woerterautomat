@@ -75,6 +75,7 @@ $words = $mysql->execute_query("select word from word where game_id = ? and user
   substitute = <?php echo json_encode($currentgame['umlauts']>0); ?>;
   var flexion = <?php echo json_encode($currentgame['flexion']>0); ?>;
   var dictionaryonly = <?php echo json_encode($currentgame['dictionary']>0); ?>;
+  var lives = <?php echo json_encode($currentgame['lives']>0); ?>;
   var isprivate = <?php echo json_encode($currentgame['private']>0); ?>;
   var maxplayers = <?php echo json_encode($currentgame['maxplayers']); ?>;
   var timelimit = <?php echo json_encode((int)$currentgame['timelimit']); ?>;
@@ -138,7 +139,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
 // the same badges the game list draws, from the settings under the names this page gave them
 settingsbadges(document.getElementById("settings"), {language: language, umlauts: substitute, flexion: flexion,
-	dictionary: dictionaryonly, private: isprivate, maxplayers: maxplayers, timelimit: timelimit});
+	dictionary: dictionaryonly, lives: lives, private: isprivate, maxplayers: maxplayers, timelimit: timelimit});
 </script>
 
 <?php
@@ -146,6 +147,7 @@ if ($currentgame['daily'] and !$over and !$_SESSION['user_id'])
 	echo '<div id="dailyintro">'.t('dailyintro').'</div>';
 ?>
 <p id="gamemessage" class="hide"></p>
+<?php if ($currentgame['lives'] and !$currentgame['daily'] and $mystatus != 3 and $currentgame['status'] != 3) echo '<p id="lives"></p>'; # a daily has its own line ?>
 <div id="inputline">
 	<div id="back" onClick="backspace();"><?php echo t('back'); ?></div>
 	<input type="text" id="input" value="" autofocus autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false">

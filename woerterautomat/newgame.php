@@ -9,6 +9,7 @@
 		<label title="<?php echo t('setumlauts'); ?>"><input type="checkbox" name="umlauts" value="true" onchange="toggleUmlauts(this);">&Auml;&rarr;AE</label>
 		<label title="<?php echo t('setflexion'); ?>"><input type="checkbox" name="flexion" value="true" onchange="invalidate();">&#9095;</label>
 		<label title="<?php echo t('setdictionary'); ?>"><input type="checkbox" name="dictionary" value="true">&#128366;</label>
+		<label title="<?php echo t('setlives'); ?>"><input type="checkbox" name="lives" value="true" onchange="this.form.dictionary.disabled = this.checked; if (this.checked) { this.form.dictionary.checked = true; }">&#9825;</label>
 		<label title="<?php echo t('setprivate'); ?>"><input type="checkbox" name="private" value="true">&#9919;</label>
 		<label title="<?php echo t('setmaxplayers'); ?>">&#9786;<input type="number" name="players" id="playersinput" value="" min="0" max="99" placeholder=" "></label>
 		<label class="segment" title="<?php echo t('settimelimit'); ?>"><input type="number" name="timelimit" id="timelimitinput" value="" min="0" max="99" placeholder=" " oninput="timeunit(this);"></label>

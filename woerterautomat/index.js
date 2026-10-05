@@ -77,6 +77,7 @@ function settingsbadges(target, g)
 	if (g.flexion) { badge(target, "⎇", txt.setflexion); }
 	if (g.umlauts) { badge(target, "Ä→AE", txt.setumlauts); }
 	if (g.dictionary) { badge(target, "🕮", txt.setdictionary); }
+	if (g.lives) { badge(target, "♡", txt.setlives); }
 	if (g.solutions >= 0) { badge(target, difficulty(g.solutions), fmt(txt.possiblewords, g.solutions)); }
 	if (g.activitytime !== undefined)
 	{

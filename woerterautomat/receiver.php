@@ -8,10 +8,10 @@ require_once("meta.php");
 $return = null;
 $reactionemoji = ['💪', '👍', '🤦', '😭', '🤯', '😂', '✨', '❓', '🚫']; // keep in sync with reactionemoji in game.js
 $game = (int)($_POST['game'] ?? $_GET['game'] ?? 0);
-$daily = $mysql->execute_query("select daily from game where id = ?", [$game])->fetch_column(); // null for any other game
+[$daily, $lives] = $mysql->execute_query("select daily, lives from game where id = ?", [$game])->fetch_row(); // daily is null for any other game
 
-// the dictionary's verdict is withheld once a second finder or a 👍 vouches for the word
-const VOUCHED = "(r.reactor_id <> -1
+// the dictionary's verdict is withheld once a second finder or a 👍 vouches for the word, unless the game has lives
+const VOUCHED = "(r.reactor_id <> -1 or (select lives from game where id = r.game_id)
 	or ((select count(*) from word f where f.game_id = r.game_id and f.word = r.word) < 2
 		and not exists (select 1 from reaction t where t.game_id = r.game_id and t.word = r.word and t.emoji = '👍')))";
 
@@ -51,7 +51,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' and $_SESSION['user_id'])
 			{
 				$flexion = (isset($_POST['flexion'])) ? 1 : 0;
 				$umlauts = (isset($_POST['umlauts'])) ? 1 : 0;
-				$dictionaryonly = (isset($_POST['dictionary'])) ? 1 : 0;
+				$lives = (isset($_POST['lives'])) ? 1 : 0;
+				$dictionaryonly = (isset($_POST['dictionary']) or $lives) ? 1 : 0;
 				$language = in_array($_POST['language'] ?? '', ['de', 'en'], true) ? $_POST['language'] : 'de';
 				require_once("../dictionary.php");
 				$words = solutionwords($dictionary, $language, $umlauts, $flexion, $sourceword);
@@ -78,9 +79,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' and $_SESSION['user_id'])
 						$players = (int)($_POST['players'] ?? 0);
 						$unit = in_array($_POST['unit'] ?? '', ['1', '60', '1440', '43200'], true) ? (int)$_POST['unit'] : 1440;
 						$timelimit = (int)($_POST['timelimit'] ?? 0) * $unit;
-						$mysql->execute_query("insert into game (source_word, language, flexion, umlauts, dictionary, private, maxplayers, timelimit, solutions, created_by, created_by_name, created_at, last_activity_at)
-							values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, now(), now())",
-							[$sourceword, $language, $flexion, $umlauts, $dictionaryonly, $private, $players, $timelimit, $count, $user, $_SESSION['display_name']]);
+						$mysql->execute_query("insert into game (source_word, language, flexion, umlauts, dictionary, lives, private, maxplayers, timelimit, solutions, created_by, created_by_name, created_at, last_activity_at)
+							values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, now(), now())",
+							[$sourceword, $language, $flexion, $umlauts, $dictionaryonly, $lives, $private, $players, $timelimit, $count, $user, $_SESSION['display_name']]);
 						$id = $mysql->insert_id;
 						$mysql->execute_query("insert into player (game_id, user_id, display_name, joined_at, activity) values (?, ?, ?, now(), now())",
 							[$id, $user, $_SESSION['display_name']]);
@@ -93,9 +94,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' and $_SESSION['user_id'])
 		case "newword":
 			$word = mb_strtolower(trim($_POST['word'] ?? ''));
 			// three words the dictionary rejected within a minute stop the guessing; the block lifts as the oldest leaves the window
-			// a daily counts its misses instead
+			// a game with lives counts its misses instead
 			$_SESSION['wrongwords'] = array_values(array_filter($_SESSION['wrongwords'] ?? [], fn($t) => $t > time() - 60));
-			if (!$daily and count($_SESSION['wrongwords']) >= 3)
+			if (!$lives and count($_SESSION['wrongwords']) >= 3)
 			{
 				$return = gamestate($mysql, $game, $user);
 				$return['blocked'] = 60 - (time() - $_SESSION['wrongwords'][0]);
@@ -128,14 +129,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' and $_SESSION['user_id'])
 					$mysql->execute_query("insert ignore into reaction (game_id, word, reactor_id, emoji, display_name, created_at)
 						values (?, ?, -1, ?, 'Wörterbuch', now())", [$game, $word, $emoji]);
 					// a nonstandard word is no miss
-					if ($emoji != '❕' and !$daily) { $_SESSION['wrongwords'][] = time(); }
+					if ($emoji != '❕' and !$lives) { $_SESSION['wrongwords'][] = time(); }
 				}
-				// three misses are free, the fourth finishes the daily
-				if ($daily)
+				// three misses are free, the fourth finishes the player
+				if ($lives and misses($mysql, $game, $user) > 3)
 				{
-					if (misses($mysql, $game, $user) > 3) { $mysql->execute_query("update player set status = 3 where game_id = ? and user_id = ?", [$game, $user]); }
+					$mysql->execute_query("update player set status = 3 where game_id = ? and user_id = ?", [$game, $user]);
+					if (!$daily) { closegame($mysql, $game); }
 				}
-				else
+				if (!$daily)
 				{
 					recompute($mysql, $game);
 					touchgame($mysql, $game);
@@ -195,8 +197,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' and $_SESSION['user_id'])
 			$mysql->execute_query("update player set status = 3, activity = now() where game_id = ? and user_id = ?", [$game, $user]);
 			// only this player's view: a daily counts as it stands at midnight, finished or not
 			if ($daily) { $return = dailystate($mysql, $game, $user, $daily); break; }
-			$mysql->execute_query("update game set status = 3
-					where id = ? and not exists (select 1 from player where game_id = ? and status <> 3)", [$game, $game]);
+			closegame($mysql, $game);
 			touchgame($mysql, $game);
 			$return = finishstate($mysql, $game);
 			break;
@@ -210,8 +211,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' and $_SESSION['user_id'])
 				set t.status = 3
 				where t.game_id = ? and t.user_id = ? and t.status <> 3
 					and g.timelimit > 0 and t.activity < now() - interval g.timelimit minute", [$user, $game, $target]);
-			$mysql->execute_query("update game set status = 3
-					where id = ? and not exists (select 1 from player where game_id = ? and status <> 3)", [$game, $game]);
+			closegame($mysql, $game);
 			touchgame($mysql, $game);
 			$return = finishstate($mysql, $game);
 			break;
@@ -301,7 +301,7 @@ else
 			$sortdir = ($_GET['dir'] ?? '') === 'asc' ? 'asc' : 'desc';
 			$window = " order by ".$sortcolumn." ".$sortdir.", id ".$sortdir." limit 20 offset ".(20 * (max(1, (int)($_GET['page'] ?? 1)) - 1));
 			$return["pages"] = (int)ceil($mysql->execute_query("select count(*) from game ".$where, $params)->fetch_column() / 20);
-			$return["games"] = $mysql->execute_query("select id, source_word as word, status, language, umlauts, flexion, dictionary, private, maxplayers, timelimit, solutions,
+			$return["games"] = $mysql->execute_query("select id, source_word as word, status, language, umlauts, flexion, dictionary, lives, private, maxplayers, timelimit, solutions,
 					created_by_name as starter, timestampdiff(minute, last_activity_at, now()) as activitytime
 				from game ".$where.$window, $params)->fetch_all(MYSQLI_ASSOC);
 			$players = $mysql->execute_query("select p.game_id, p.display_name as player, p.points, p.status,
@@ -327,11 +327,18 @@ else
 ob_end_clean();
 echo json_encode($return);
 
-// on a daily, a word outside the solution or disallowed, of any length
+// with lives, a word outside the solution or disallowed, of any length
 function misses($mysql, $game, $user)
 {
 	return (int)$mysql->execute_query("select count(*) from word w left join solution s on s.game_id = w.game_id and s.word = w.word
 		where w.game_id = ? and w.user_id = ? and coalesce(s.rarity, 5) = 5", [$game, $user])->fetch_column();
+}
+
+// once no player is left unfinished
+function closegame($mysql, $game)
+{
+	$mysql->execute_query("update game set status = 3
+		where id = ? and not exists (select 1 from player where game_id = ? and status <> 3)", [$game, $game]);
 }
 
 function touchplayer($mysql, $game, $user)
@@ -366,6 +373,7 @@ function gamestate($mysql, $game, $user)
 	$return["reactions"] = $mysql->execute_query("select r.word, r.reactor_id, r.emoji, r.display_name
 		from reaction r join word w on w.game_id = r.game_id and w.word = r.word
 		where r.game_id = ? and w.user_id = ? and ".VOUCHED, [$game, $user])->fetch_all(MYSQLI_ASSOC);
+	if ($mysql->execute_query("select lives from game where id = ?", [$game])->fetch_column()) { $return["missesleft"] = max(0, 3 - misses($mysql, $game, $user)); }
 	return $return;
 }
 

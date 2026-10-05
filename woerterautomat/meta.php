@@ -6,11 +6,11 @@ const DAILY = '2026-09-23'; // the daily's day 0
 const DAILYLENGTH = [7, 8, 9, 10, 11, 12, 6]; // the daily's word length by weekday from Sunday
 
 # with the setting on, a word the dictionary objected to scores nothing until the same second
-# finder or 👍 that withdraws the verdict vouches for it
+# finder or 👍 that withdraws the verdict vouches for it; with lives, the verdict is final
 const UNSCORED = "g.dictionary and exists (select 1 from reaction d
 		where d.game_id = w.game_id and d.word = w.word and d.reactor_id = -1)
-	and (select count(*) from word f where f.game_id = w.game_id and f.word = w.word) < 2
-	and not exists (select 1 from reaction t where t.game_id = w.game_id and t.word = w.word and t.emoji = '👍')";
+	and (g.lives or (select count(*) from word f where f.game_id = w.game_id and f.word = w.word) < 2
+		and not exists (select 1 from reaction t where t.game_id = w.game_id and t.word = w.word and t.emoji = '👍'))";
 
 function playercount($mysql, $game)
 {
@@ -62,9 +62,9 @@ function createdaily($mysql, $language)
 	require_once("../dictionary.php");
 	$words = solutionwords($dictionary, $language, $candidate['umlauts'], $candidate['flexion'], $word);
 	$mysql->begin_transaction();
-	$mysql->execute_query("insert ignore into game (source_word, language, umlauts, flexion, dictionary, maxplayers, timelimit, solutions, daily,
+	$mysql->execute_query("insert ignore into game (source_word, language, umlauts, flexion, dictionary, lives, maxplayers, timelimit, solutions, daily,
 			created_by, created_by_name, created_at, last_activity_at)
-		values (?, ?, ?, ?, 1, 0, 0, ?, ?, 0, '', now(), now())",
+		values (?, ?, ?, ?, 1, 1, 0, 0, ?, ?, 0, '', now(), now())",
 		[$word, $language, $candidate['umlauts'], $candidate['flexion'], count(array_filter($words, fn($rarity) => $rarity < 2)), date('Y-m-d')]);
 	if ($mysql->affected_rows)
 	{
@@ -125,7 +125,7 @@ function canonical()
 	if ($go == 'game' or $go == 'daily')
 	{
 		# a game by its id, a daily by its day and language; a daily's own game URL leads to its day
-		$currentgame = $mysql->execute_query("select id, source_word, status, language, umlauts, flexion, dictionary, maxplayers, timelimit, private, created_by_name, daily,
+		$currentgame = $mysql->execute_query("select id, source_word, status, language, umlauts, flexion, dictionary, lives, maxplayers, timelimit, private, created_by_name, daily,
 				timestampdiff(minute, created_at, now()) as starttime from game where id = ? or daily = ? and language = ?",
 			[(int)($_GET['game'] ?? 0), $dailyday, $dailylanguage])->fetch_assoc();
 		if ($currentgame)
@@ -155,6 +155,7 @@ function gamedescription($word)
 	if ($currentgame['umlauts']) { $settings[] = $say['setumlauts']; }
 	if ($currentgame['flexion']) { $settings[] = $say['setflexion']; }
 	if ($currentgame['dictionary']) { $settings[] = $say['setdictionary']; }
+	if ($currentgame['lives']) { $settings[] = $say['setlives']; }
 	if ($currentgame['private']) { $settings[] = $say['setprivate']; }
 	if ($currentgame['maxplayers']) { $settings[] = fmt($say['maxplayerstitle'], [$currentgame['maxplayers']]); }
 
