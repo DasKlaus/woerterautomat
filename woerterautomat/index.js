@@ -3,7 +3,37 @@ document.onclick = function(event)
 	if (event.target.classList.contains('collapsible')) { event.target.classList.toggle('open'); }
   };
 
-var umlauts = {"ä":"ae", "ö":"oe", "ü":"ue", "ß":"ss", "å":"aa", "æ":"ae", "ø":"oe", "ё":"e"};
+// the unseen achievements, each dismissed on its own; the section exists only while there are any
+function showachievements(list)
+{
+	var section = document.getElementById("achievements");
+	if (section) { section.remove(); }
+	if (!list.length) { return; }
+	section = document.createElement("div");
+	section.id = "achievements";
+	section.className = "collapsible achievements";
+	list.forEach(function(entry) {
+		var box = document.createElement("div");
+		box.className = "achievement";
+		var icon;
+		if (entry.favicon) { icon = document.createElement("img"); icon.src = entry.favicon; icon.alt = ""; }
+		else { icon = document.createElement("span"); icon.textContent = "🏆"; }
+		var text = document.createElement("span");
+		text.textContent = entry.description;
+		var hint = document.createElement("small");
+		hint.textContent = txt.dismiss;
+		box.append(icon, text, hint);
+		box.onclick = function() {
+			box.remove();
+			if (!section.querySelector(".achievement")) { section.remove(); }
+			fetch("receiver.php", {method: "POST", body: new URLSearchParams({do: "confirmachievements", ["seen[" + entry.badge + "]"]: entry.level})});
+		};
+		section.appendChild(box);
+	});
+	(document.querySelector("#menu .actions") || document.querySelector("#menu .nav")).after(section);
+}
+
+var umlauts ={"ä":"ae", "ö":"oe", "ü":"ue", "ß":"ss", "å":"aa", "æ":"ae", "ø":"oe", "ё":"e"};
 var substitute = false;
 
 // the time limit is stored as minutes and is always a count times one of these factors, so the

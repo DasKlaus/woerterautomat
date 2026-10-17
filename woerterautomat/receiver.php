@@ -4,6 +4,7 @@ ob_start();
 require_once("config.php");
 require_once("../identity.php");
 require_once("meta.php");
+require_once("lang.php");
 
 $return = null;
 $reactionemoji = ['💪', '👍', '🤦', '😭', '🤯', '😂', '✨', '❓', '🚫']; // keep in sync with reactionemoji in game.js
@@ -162,9 +163,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' and $_SESSION['user_id'])
 					[$found, $total] = $mysql->execute_query("select sum(w.word is not null), sum(s.rarity < 3) from solution s
 						left join word w on w.game_id = s.game_id and w.user_id = ? and w.word = s.word
 						where s.game_id = ? and s.rarity < 4 and least(s.rarity, 2) = ?", [$user, $game, $tier])->fetch_row();
-					if (!$daily and $total >= 20) { achieve($user, 'wa_share'.$tier, $found, $total); }
+					if (!$daily and $total >= 20) { achieve($user, 'wa_share'.$tier, 100 * $found / $total); }
 				}
-				if ($closed) { outscored($mysql, $game, $user); }
+				if ($closed) { outscored($mysql, $game); }
 			}
 			$return = $daily ? dailystate($mysql, $game, $user, $daily) : gamestate($mysql, $game, $user);
 			// the goals as game.js counts them: every scored word counts towards each
@@ -176,6 +177,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' and $_SESSION['user_id'])
 				$scored = count(array_filter($return['words'], fn($row) => $row['points'] == 0));
 				achieve($user, 'wa_daily', count(array_filter($goals, fn($goal) => $scored >= $goal)));
 			}
+			$return['achievements'] = unseenAchievements($language, 'woerterautomat');
 			break;
 		case "removeword":
 			$word = mb_strtolower(trim($_POST['word'] ?? ''));
@@ -227,9 +229,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' and $_SESSION['user_id'])
 			$mysql->execute_query("update player set status = 3, activity = now() where game_id = ? and user_id = ?", [$game, $user]);
 			// only this player's view: a daily counts as it stands at midnight, finished or not
 			if ($daily) { $return = dailystate($mysql, $game, $user, $daily); break; }
-			if (closegame($mysql, $game)) { outscored($mysql, $game, $user); }
+			if (closegame($mysql, $game)) { outscored($mysql, $game); }
 			touchgame($mysql, $game);
 			$return = finishstate($mysql, $game);
+			$return['achievements'] = unseenAchievements($language, 'woerterautomat');
 			break;
 		// the whole permission check is the where clause: an actor who has finished, a target who has not,
 		// and a limit the target's last action has outlived
@@ -241,7 +244,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' and $_SESSION['user_id'])
 				set t.status = 3
 				where t.game_id = ? and t.user_id = ? and t.status <> 3
 					and g.timelimit > 0 and t.activity < now() - interval g.timelimit minute", [$user, $game, $target]);
-			if (closegame($mysql, $game)) { outscored($mysql, $game, $target); }
+			if (closegame($mysql, $game)) { outscored($mysql, $game); }
 			touchgame($mysql, $game);
 			$return = finishstate($mysql, $game);
 			break;
@@ -372,25 +375,22 @@ function closegame($mysql, $game)
 	return $mysql->affected_rows > 0;
 }
 
-// grants the level $n reaches on $key's thresholds, $n of $d for a share; a threshold may be a fraction or end in "+"
-function achieve($user, $key, $n, $d = 1, $seen = 0)
+// grants the level $n reaches on $key's thresholds, $n a percentage for a share; a threshold may end in "+"
+function achieve($user, $key, $n)
 {
 	static $catalogue = require "../achievements.php";
 	$level = 0;
 	foreach ($catalogue['woerterautomat']['badges'][$key]['levels'] as $threshold)
-	{
-		[$a, $b] = explode('/', $threshold.'/1');
-		if ($n * $b >= (int)$a * $d) { $level++; }
-	}
-	if ($level) { grantAchievement($user, $key, $level, $seen); }
+		if ($n >= (int)$threshold) { $level++; }
+	if ($level) { grantAchievement($user, $key, $level); }
 }
 
-// once a non-daily game is closed, everyone with more points than player 1, noticed only by $last, who finished last
-function outscored($mysql, $game, $last)
+// once a non-daily game is closed, everyone with more points than player 1
+function outscored($mysql, $game)
 {
 	foreach ($mysql->execute_query("select p.user_id from player p join player k on k.game_id = p.game_id and k.user_id = 1
 		where p.game_id = ? and p.user_id <> 1 and p.points > k.points", [$game])->fetch_all() as [$winner])
-		achieve($winner, 'wa_klaus', 1, 1, (int)($winner != $last));
+		achieve($winner, 'wa_klaus', 1);
 }
 
 function touchplayer($mysql, $game, $user)

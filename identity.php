@@ -283,21 +283,33 @@ function identityForm($language)
 			</form>';
 }
 
-# Raises $user's level of $badge to $level if that is higher, and marks it unseen, or seen with $seen
-# for a grant whose notice is suppressed. Granting a level already held changes nothing.
-function grantAchievement($user, $badge, $level, $seen = 0)
+# Raises $user's level of $badge to $level if that is higher, and marks it unseen.
+# Granting a level already held changes nothing.
+function grantAchievement($user, $badge, $level)
 {
 	global $identity;
 	identityConnect();
 	// level is assigned last, so the comparisons before it still see the old level
-	$identity->execute_query("insert into achievement (user_id, badge, level, granted_at, seen) values (?, ?, ?, now(), ?)
+	$identity->execute_query("insert into achievement (user_id, badge, level, granted_at, seen) values (?, ?, ?, now(), 0)
 		on duplicate key update granted_at = if(values(level) > level, values(granted_at), granted_at),
-		seen = if(values(level) > level, values(seen), seen), level = greatest(level, values(level))", [$user, $badge, $level, $seen]);
+		seen = if(values(level) > level, 0, seen), level = greatest(level, values(level))", [$user, $badge, $level]);
 }
 
-# The badges of this session's player not yet confirmed as seen, each with its project, level and
-# texts in $language. Marks nothing.
-function unseenAchievements($language)
+# The description of an achievement at $level in $language; a daily's levels are named by labels, the rest numbered by levels
+function achievementText($entry, $language, $level)
+{
+	return sprintf($entry[$language], $entry['labels'][$language][$level - 1] ?? $entry['levels'][$level - 1]);
+}
+
+# The favicon of a project other than $project, whose folder is its key in the catalogue; empty for $project itself
+function achievementFavicon($key, $project)
+{
+	return $key == $project ? '' : '../'.$key.'/favicon.svg';
+}
+
+# The badges of this session's player not yet confirmed as seen, each with its level, description in
+# $language and the favicon of a project other than $project. Marks nothing.
+function unseenAchievements($language, $project)
 {
 	global $identity;
 	if (!$_SESSION['user_id']) { return []; }
@@ -305,13 +317,10 @@ function unseenAchievements($language)
 	$catalogue = require __DIR__.'/achievements.php';
 	$unseen = [];
 	foreach ($identity->execute_query("select badge, level from achievement where user_id = ? and seen = 0 order by granted_at", [$_SESSION['user_id']]) as $row)
-		foreach ($catalogue as $project => $block)
+		foreach ($catalogue as $key => $block)
 			if (isset($block['badges'][$row['badge']]))
-			{
-				$entry = $block['badges'][$row['badge']];
-				$unseen[] = ['badge' => $row['badge'], 'project' => $project, 'level' => $row['level'],
-					'name' => $entry[$language][0], 'description' => sprintf($entry[$language][1], $entry['levels'][$row['level'] - 1])];
-			}
+				$unseen[] = ['badge' => $row['badge'], 'level' => $row['level'], 'favicon' => achievementFavicon($key, $project),
+					'description' => achievementText($block['badges'][$row['badge']], $language, $row['level'])];
 	return $unseen;
 }
 
@@ -326,8 +335,18 @@ function confirmAchievements($levels)
 		$identity->execute_query("update achievement set seen = 1 where user_id = ? and badge = ? and level = ?", [$_SESSION['user_id'], $badge, $level]);
 }
 
+# Marks all of this session's player's badges as seen.
+function confirmAllAchievements()
+{
+	global $identity;
+	if (!$_SESSION['user_id']) { return; }
+	identityConnect();
+	$identity->execute_query("update achievement set seen = 1 where user_id = ?", [$_SESSION['user_id']]);
+}
+
 # Echoes this player's badges at the level held, grouped by project: $project first, the others by
-# their latest grant; within a project newest first.
+# their latest grant; within a project newest first. The level is written as a number in a span with
+# the class level<N>, and a project other than $project adds its favicon.
 function showAchievements($language, $project)
 {
 	global $identity;
@@ -338,19 +357,18 @@ function showAchievements($language, $project)
 	foreach ($identity->execute_query("select badge, level from achievement where user_id = ? order by granted_at desc", [$_SESSION['user_id']]) as $row)
 		foreach ($catalogue as $key => $block)
 			if (isset($block['badges'][$row['badge']]))
-			{
-				$entry = $block['badges'][$row['badge']];
-				$groups[$key][] = [$entry[$language][0], sprintf($entry[$language][1], $entry['levels'][$row['level'] - 1])];
-			}
+				$groups[$key][] = [$row['level'], achievementText($block['badges'][$row['badge']], $language, $row['level'])];
 	if (!$groups) { return; }
 	if (isset($groups[$project])) { $groups = [$project => $groups[$project]] + $groups; }
-	echo '<h3>'.identityText($language, 'achievements').'</h3>';
+	echo '<h2>'.identityText($language, 'achievements').'</h2>';
 	foreach ($groups as $key => $badges)
 	{
-		echo '<h4>'.htmlspecialchars($catalogue[$key][$language], ENT_QUOTES, 'UTF-8').'</h4>
+		$favicon = achievementFavicon($key, $project);
+		echo '<h3>'.htmlspecialchars($catalogue[$key][$language], ENT_QUOTES, 'UTF-8').'</h3>
 			<ul class="achievements">';
-		foreach ($badges as [$name, $description])
-			echo '<li><b>'.htmlspecialchars($name, ENT_QUOTES, 'UTF-8').'</b> '.htmlspecialchars($description, ENT_QUOTES, 'UTF-8').'</li>';
+		foreach ($badges as [$level, $text])
+			echo '<li>'.($favicon ? '<img src="'.htmlspecialchars($favicon, ENT_QUOTES, 'UTF-8').'" alt=""> ' : '')
+				.'<span class="level'.$level.'">'.$level.'</span>'.htmlspecialchars($text, ENT_QUOTES, 'UTF-8').'</li>';
 		echo '</ul>';
 	}
 }

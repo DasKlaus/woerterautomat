@@ -54,6 +54,7 @@ function submitword()
 			// the word is placed by receivedata, not here: only the server knows its points, which points sorting needs
 			post({action: "newword", game: game, word: word}, function(data) {
 				receivedata(data);
+				if (data.achievements) { showachievements(data.achievements); }
 				// the rejected word comes back into the field, so waiting it out costs no retyping
 				if (data.blocked) { inputfield.value = word; resyncletters(); countdown(data.blocked); }
 			});
@@ -788,6 +789,7 @@ function finishdata(data)
 	pollwait = 5000;
 	playerstamp = Date.now();
 	version = data.version;
+	if (data.achievements) { showachievements(data.achievements); }
 	solution = data.solution;
 	if (daily) { writedaily(data); } else { writeplayers(data.players); }
 	if (!solution.length) { anagrambutton.remove(); } // no dictionary for this language, or nothing in the word

@@ -14,6 +14,8 @@ if (($_POST['do'] ?? '') == 'renameall' and $_SESSION['user_id'])
 
 canonical(); // redirects, so it belongs above the first output like any header
 
+if (($_GET['go'] ?? '') == 'user') { confirmAllAchievements(); } // the profile lists them all
+
 $go = $_GET['go'] ?? 'anleitung';
 // today's daily in the interface language is linked while it exists or a candidate is left to create it
 $dailyopen = $mysql->execute_query("select exists (select 1 from game where daily = ? and language = ?)
@@ -64,7 +66,8 @@ $dailyopen = $mysql->execute_query("select exists (select 1 from game where dail
 				<?php } ?>
 			<?php } ?>
 		</div>
-		<div id="content">
+		<script>showachievements(<?php echo json_encode(unseenAchievements($language, 'woerterautomat')); ?>);</script>
+			<div id="content">
 			<?php
 			identityMessage($language);
 			if (isset($_GET["go"]) and $_GET["go"]=="impressum")
