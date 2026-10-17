@@ -78,6 +78,7 @@ $dailyopen = $mysql->execute_query("select exists (select 1 from game where dail
 				echo '<h2>'.t('profile').'</h2>';
 				identityLanguageForm($language, ['de' => 'Deutsch', 'en' => 'English']);
 				identityForm($language);
+				showAchievements($language, 'woerterautomat');
 			}
 			elseif (isset($_GET["go"]) and $_GET["go"]=="neu" and !$_SESSION['user_id'])
 			{

@@ -48,7 +48,8 @@ CREATE TABLE `word` (
 	`user_id` bigint(20) NOT NULL,
 	`word` varchar(64) COLLATE utf8mb4_bin NOT NULL,
 	`created_at` datetime NOT NULL,
-	PRIMARY KEY (`game_id`, `user_id`, `word`)
+	PRIMARY KEY (`game_id`, `user_id`, `word`),
+	KEY `user` (`user_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE TABLE `solution` (

@@ -11,3 +11,13 @@ CREATE TABLE `user` (
 	PRIMARY KEY (`id`),
 	UNIQUE KEY `code` (`code`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+DROP TABLE IF EXISTS `achievement`;
+CREATE TABLE `achievement` (
+	`user_id` bigint(20) NOT NULL,
+	`badge` varchar(32) NOT NULL,
+	`level` tinyint(3) unsigned NOT NULL,
+	`granted_at` datetime NOT NULL,
+	`seen` tinyint(1) NOT NULL DEFAULT 0,
+	PRIMARY KEY (`user_id`, `badge`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
