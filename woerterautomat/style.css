@@ -191,16 +191,21 @@ input, select {background-color: var(--shade); font-family: var(--ui);}
 .playerdiv {margin: 10px 0; padding: 3px; border: 1px solid var(--fg); border-radius: 3px;}
 
 /* achievements: unseen ones as dismissable boxes in the menu, all of them as lines on the profile,
-   where the level is a number in a span that shows as that many trophies instead */
+   where the level is a number in a span that shows as that many trophies instead, right-aligned in a
+   column as wide as the list's widest, or circled behind another project's favicon */
 
 .achievement {display: flex; flex-wrap: wrap; align-items: center; gap: 0 10px; margin: 10px 0; padding: 3px;
 	border: 1px solid var(--fg); border-radius: 3px; cursor: pointer;}
 .achievement img, ul.achievements img {height: 1.3em; width: 1.3em;}
 .achievement small {width: 100%; font-size: 10px; color: var(--muted);}
-ul.achievements li {display: flex; align-items: center; gap: 10px; margin: 10px 0;}
-ul.achievements li > span:first-of-type {font-size: 0;}
+ul.achievements {display: grid; grid-template-columns: max-content 1fr; gap: 10px; margin: 10px 0;}
+ul.achievements:has(img) {grid-template-columns: max-content max-content 1fr;}
+ul.achievements li {display: grid; grid-column: 1 / -1; grid-template-columns: subgrid; align-items: center;}
+ul.achievements li > span:first-of-type {justify-self: end; font-size: 0;}
 ul.achievements li > span:first-of-type:before {font-size: 14px;}
-ul.achievements li:has(img) > span:first-of-type {display: none;}
+ul.achievements li:has(img) > span:first-of-type {display: grid; place-items: center; width: 1.7em; height: 1.7em;
+	border: 1px solid; border-radius: 50%; font-size: 11px;}
+ul.achievements li:has(img) > span:first-of-type:before {content: none;}
 ul.achievements .level1:before {content: "🏆";}
 ul.achievements .level2:before {content: "🏆🏆";}
 ul.achievements .level3:before {content: "🏆🏆🏆";}

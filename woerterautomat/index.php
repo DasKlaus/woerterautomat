@@ -14,7 +14,7 @@ if (($_POST['do'] ?? '') == 'renameall' and $_SESSION['user_id'])
 
 canonical(); // redirects, so it belongs above the first output like any header
 
-if (($_GET['go'] ?? '') == 'user') { confirmAllAchievements(); } // the profile lists them all
+if (($_GET['go'] ?? '') == 'achievements') { confirmAllAchievements(); } // the achievements page lists them all
 
 $go = $_GET['go'] ?? 'anleitung';
 // today's daily in the interface language is linked while it exists or a candidate is left to create it
@@ -48,6 +48,7 @@ $dailyopen = $mysql->execute_query("select exists (select 1 from game where dail
 		<div id="menu">
 			<div class="collapsible nav">
 				<a href="profil"<?php if ($go=='user') echo ' class="selected"'; ?>><?php echo t('profile'); if ($_SESSION['user_id']) echo ': '.htmlspecialchars($_SESSION['display_name'] ?: t('guest'), ENT_QUOTES, 'UTF-8'); ?></a>
+				<?php if ($_SESSION['user_id']) echo '<a href="erfolge"'.($go=='achievements' ? ' class="selected"' : '').'>'.t('achievements').'</a>'; ?>
 				<?php if ($dailyopen) echo '<a href="'.dailyurl(date('Y-m-d'), $language).'"'.($go=='daily' ? ' class="selected"' : '').'>'.t('daily').'</a>'; ?>
 				<a href="neu"<?php if ($go=='neu') echo ' class="selected"'; ?>><?php echo t('newgame'); ?></a>
 				<a href="spiele"<?php if ($go=='games') echo ' class="selected"'; ?>><?php echo t('gamelist'); ?></a>
@@ -81,8 +82,9 @@ $dailyopen = $mysql->execute_query("select exists (select 1 from game where dail
 				echo '<h2>'.t('profile').'</h2>';
 				identityLanguageForm($language, ['de' => 'Deutsch', 'en' => 'English']);
 				identityForm($language);
-				showAchievements($language, 'woerterautomat');
 			}
+			elseif ($go == 'achievements')
+				showAchievements($language, 'woerterautomat');
 			elseif (isset($_GET["go"]) and $_GET["go"]=="neu" and !$_SESSION['user_id'])
 			{
 				echo t('guestcreate');

@@ -110,7 +110,7 @@ function canonical()
 	$go = $_GET['go'] ?? 'anleitung';
 	$base = rtrim(dirname($_SERVER['SCRIPT_NAME']), '/\\').'/';
 	$origin = (empty($_SERVER['HTTPS']) ? 'http://' : 'https://').$_SERVER['HTTP_HOST'];
-	$path = ['neu' => 'neu', 'user' => 'profil', 'games' => 'spiele', 'impressum' => 'impressum'][$go] ?? '';
+	$path = ['neu' => 'neu', 'user' => 'profil', 'achievements' => 'erfolge', 'games' => 'spiele', 'impressum' => 'impressum'][$go] ?? '';
 	# the request as it arrived: mod_rewrite leaves REQUEST_URI alone but rewrites QUERY_STRING
 	parse_str(ltrim((string)strstr($_SERVER['REQUEST_URI'], '?'), '?'), $query);
 	$oldstyle = (isset($query['go']) or isset($query['game']));
@@ -172,7 +172,7 @@ function metatags()
 	$description = t('metadescription');
 	$image = 'vorschau.png';
 	$go = $_GET['go'] ?? 'anleitung';
-	$page = ['neu' => t('newgame'), 'user' => t('profile'), 'games' => t('gamelist'), 'impressum' => t('legal')][$go] ?? '';
+	$page = ['neu' => t('newgame'), 'user' => t('profile'), 'achievements' => t('achievements'), 'games' => t('gamelist'), 'impressum' => t('legal')][$go] ?? '';
 	if ($page) { $title = $page.' &middot; W&ouml;rterautomat'; }
 	if ($currentgame)
 	{

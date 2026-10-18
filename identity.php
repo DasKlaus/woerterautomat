@@ -32,6 +32,7 @@ $identitytexts = [
 	'signoutwarning' => 'Ohne den Code ist der Zugang zu Name und Historie nach dem Abmelden dauerhaft verloren.',
 	'signoutconfirm' => 'Ohne den Code ist der Zugang zu Name und Historie dauerhaft verloren. Wirklich abmelden?',
 	'achievements' => 'Erfolge',
+	'noachievements' => 'Bislang keine Erfolge.',
 ],
 'en' => [
 	'invalidcode' => 'The stored access is not valid. The code may have been regenerated in another session.',
@@ -58,6 +59,7 @@ $identitytexts = [
 	'signoutwarning' => 'Without the code, access to the name and history is permanently lost after signing out.',
 	'signoutconfirm' => 'Without the code, access to the name and history is permanently lost. Really sign out?',
 	'achievements' => 'Achievements',
+	'noachievements' => 'No achievements yet.',
 ],
 ];
 
@@ -359,9 +361,9 @@ function showAchievements($language, $project)
 		foreach ($catalogue as $key => $block)
 			if (isset($block['badges'][$row['badge']]))
 				$groups[$key][] = [$row['level'], achievementText($block['badges'][$row['badge']], $language, $row['level']), $row['seen']];
-	if (!$groups) { return; }
-	if (isset($groups[$project])) { $groups = [$project => $groups[$project]] + $groups; }
 	echo '<h2>'.identityText($language, 'achievements').'</h2>';
+	if (!$groups) { echo '<p>'.identityText($language, 'noachievements').'</p>'; return; }
+	if (isset($groups[$project])) { $groups = [$project => $groups[$project]] + $groups; }
 	foreach ($groups as $key => $badges)
 	{
 		$favicon = achievementFavicon($key, $project);
