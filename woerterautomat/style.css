@@ -198,9 +198,9 @@ input, select {background-color: var(--shade); font-family: var(--ui);}
 .achievement img, ul.achievements img {height: 1.3em; width: 1.3em;}
 .achievement small {width: 100%; font-size: 10px; color: var(--muted);}
 ul.achievements li {display: flex; align-items: center; gap: 10px; margin: 10px 0;}
-ul.achievements li > span {font-size: 0;}
-ul.achievements li > span:before {font-size: 14px;}
-ul.achievements li:has(img) > span {display: none;}
+ul.achievements li > span:first-of-type {font-size: 0;}
+ul.achievements li > span:first-of-type:before {font-size: 14px;}
+ul.achievements li:has(img) > span:first-of-type {display: none;}
 ul.achievements .level1:before {content: "🏆";}
 ul.achievements .level2:before {content: "🏆🏆";}
 ul.achievements .level3:before {content: "🏆🏆🏆";}
