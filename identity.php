@@ -348,8 +348,8 @@ function confirmAllAchievements()
 }
 
 # Echoes this player's badges at the level held, grouped by project: $project first, the others by
-# their latest grant; within a project newest first. The level is written as a number in a span with
-# the class level<N>, a project other than $project adds its favicon, and an unseen badge has the class unseen.
+# their latest grant; within a project in the catalogue's order. The level is written as a number in a span
+# with the class level<N>, a project other than $project adds its favicon, and an unseen badge has the class unseen.
 function showAchievements($language, $project)
 {
 	global $identity;
@@ -360,7 +360,7 @@ function showAchievements($language, $project)
 	foreach ($identity->execute_query("select badge, level, seen from achievement where user_id = ? order by granted_at desc", [$_SESSION['user_id']]) as $row)
 		foreach ($catalogue as $key => $block)
 			if (isset($block['badges'][$row['badge']]))
-				$groups[$key][] = [$row['level'], achievementText($block['badges'][$row['badge']], $language, $row['level']), $row['seen']];
+				$groups[$key][$row['badge']] = [$row['level'], achievementText($block['badges'][$row['badge']], $language, $row['level']), $row['seen']];
 	echo '<h2>'.identityText($language, 'achievements').'</h2>';
 	if (!$groups) { echo '<p>'.identityText($language, 'noachievements').'</p>'; return; }
 	if (isset($groups[$project])) { $groups = [$project => $groups[$project]] + $groups; }
@@ -369,7 +369,7 @@ function showAchievements($language, $project)
 		$favicon = achievementFavicon($key, $project);
 		echo '<h3>'.htmlspecialchars($catalogue[$key][$language], ENT_QUOTES, 'UTF-8').'</h3>
 			<ul class="achievements">';
-		foreach ($badges as [$level, $text, $seen])
+		foreach (array_replace(array_intersect_key($catalogue[$key]['badges'], $badges), $badges) as [$level, $text, $seen])
 			echo '<li'.($seen ? '' : ' class="unseen"').'>'.($favicon ? '<img src="'.htmlspecialchars($favicon, ENT_QUOTES, 'UTF-8').'" alt=""> ' : '')
 				.'<span class="level'.$level.'">'.$level.'</span><span>'.htmlspecialchars($text, ENT_QUOTES, 'UTF-8').'</span></li>';
 		echo '</ul>';
