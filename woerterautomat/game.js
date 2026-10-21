@@ -173,8 +173,8 @@ function sortword(word)
 		}
 	}
 	if (mystatus != 3) {
-		if (!daily) { wordspan.className += ' deletable'; }
-		var box = reactionbox(word, !daily);
+		if (!lives) { wordspan.className += ' deletable'; }
+		var box = reactionbox(word, !lives);
 		if (box)
 		{
 			wordspan.appendChild(box);
@@ -350,7 +350,7 @@ function sortfinishedword(word)
 		if (isshort(word)) { wordspan.className += ' short'; }
 		if (!daily) { wordspan.appendChild(pointspan(word["points"])); }
 	}
-	var box = reactionbox(word["word"], word["user_id"] == selfid && !daily);
+	var box = reactionbox(word["word"], word["user_id"] == selfid && !lives);
 	if (box)
 	{
 		wordspan.appendChild(box);
@@ -388,14 +388,17 @@ function reactionsFor(word)
 	return reactions.filter(function(r) { return r.word == word; });
 }
 // deletable is set for this player's own words, whose panel keeps offering removal after finishing:
-// it only ever costs the player points, and it is the one way to undo a mistyped word
+// it only ever costs the player points, and it is the one way to undo a mistyped word; with lives (every daily), it would undo a miss
 function reactionbox(word, deletable)
 {
 	var existing = reactionsFor(word);
-	// reacting and looking up are only offered once this player has personally finished, reacting not on a daily, played alone
+	// reacting is only offered once this player has personally finished, and not on a daily, played alone;
+	// looking up too, unless the game has lives, where a word can't be taken back;
+	// the dictionary answers for every word it did not object to, and for its own unfound ones
 	var finished = isplayer && mystatus == 3;
 	var canreact = finished && !daily;
-	if (existing.length == 0 && !finished && !deletable) { return null; }
+	var canlook = (lives || finished && solution.length) && lookFor('❗', existing, 'emoji') == -1;
+	if (existing.length == 0 && !finished && !canlook && !deletable) { return null; }
 	var box = element('span', 'popout');
 	var mine = null;
 	var panel = element('span', 'popoutpanel');
@@ -423,8 +426,7 @@ function reactionbox(word, deletable)
 		row.appendChild(picker);
 	}
 	var actions = element('span', 'modes');
-	// the dictionary answers for every word it did not object to, and for its own unfound ones
-	if (finished && solution.length && lookFor('❗', existing, 'emoji') == -1) {
+	if (canlook) {
 		var look = element('span', '', '🔍');
 		look.onclick = function(e) { e.stopPropagation(); box.classList.remove('open'); lookuphistory = []; lookup(word); };
 		actions.appendChild(look);
@@ -841,7 +843,7 @@ function receivedata(data)
 		var oldbox = wordspan.querySelector('.popout');
 		var wasopen = oldbox && oldbox.classList.contains('open');
 		if (oldbox) { wordspan.removeChild(oldbox); }
-		var newbox = reactionbox(data.words[i].word, !daily);
+		var newbox = reactionbox(data.words[i].word, !lives);
 		if (newbox)
 		{
 			if (wasopen) { newbox.classList.add('open'); }

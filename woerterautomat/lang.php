@@ -266,7 +266,7 @@ $text = [
 		<p>Das Wörterbuch ist ein Import von wiktionary.org und kann stellenweise unvollständig, falsch oder inkorrekt (nicht) als Flexionsform/selten gekennzeichnet sein. Daher verschwinden Wörterbuch-Reaktionen, wenn ein weiterer Spieler das Wort gefunden hat oder mit 👍 reagiert.</p>',
 	'othertitle' => 'Sonstige',
 	'othertext' => '<dl class="legend">
-			<dt>🔍</dt><dd>Wort nachschlagen (nur nach Spielabschluss möglich)</dd>
+			<dt>🔍</dt><dd>Wort nachschlagen</dd>
 			<dt>❌</dt><dd>Wort löschen</dd>
 			<dt>&#9200;&#65038;</dt><dd>Spieler war über das Zeitlimit hinaus nicht aktiv; das Spiel kann durch andere für ihn beendet werden.</dd>
 		</dl>',
@@ -323,7 +323,7 @@ $text = [
 		<p>The dictionary is an import from wiktionary.org and may be incomplete, wrong, or incorrectly marked (or not marked) as an inflected or rare form. Dictionary reactions therefore disappear once another player has found the word or reacted with 👍.</p>',
 	'othertitle' => 'Other',
 	'othertext' => '<dl class="legend">
-			<dt>🔍</dt><dd>look the word up (only once the game is finished)</dd>
+			<dt>🔍</dt><dd>look the word up</dd>
 			<dt>❌</dt><dd>delete the word</dd>
 			<dt>&#9200;&#65038;</dt><dd>player has been inactive beyond the time limit; others can finish the game on their behalf.</dd>
 		</dl>',

@@ -180,6 +180,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' and $_SESSION['user_id'])
 			$return['achievements'] = unseenAchievements($language, 'woerterautomat');
 			break;
 		case "removeword":
+			if ($lives) { break; } // removing a word would undo a miss
 			$word = mb_strtolower(trim($_POST['word'] ?? ''));
 			$mysql->begin_transaction();
 			$mysql->execute_query("delete from word where game_id = ? and user_id = ? and word = ?", [$game, $user, $word]);
